@@ -64,7 +64,7 @@ class Console():
         jumpcount=0
         #jump=0
 
-        crate=pygame.image.load(self.dir_img+'/crate.png')
+        crate=pygame.image.load(self.dir_img+'/mushroom.png')
         crate=pygame.transform.rotozoom(crate,0,0.8)
         crate_x=700
         crate_speed=2
