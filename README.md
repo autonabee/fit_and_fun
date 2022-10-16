@@ -56,7 +56,7 @@ hdmi_safe=1 (décommenter)
 
 * Capteur inertiel : M5stickC-Plus : https://www.gotronic.fr/art-module-m5stickc-plus-k016-p-33740.htm
 * Config Arduino: https://docs.m5stack.com/en/quick_start/m5stickc_plus/arduino pour installation libs et plateforme.
-* Programmer (config access wifi et IP broker): 
+* Programmer (configurer access wifi et IP broker): `FAF_STICK5/FAF_STICK5.ino`
 
 ## Démo qui tourne
 
@@ -82,7 +82,7 @@ Pourtant d'autres machines (PC, tél) arrivent à se connecter à cet access-poi
 
 * https://forums.raspberrypi.com/viewtopic.php?t=14914
 
-Après modification de la config, l'écran est mal affiché quand on passe sous 'X'. Au départ la bannière est bien affiché. C'est donc un problème de réglage sans doute un peut profond du gestionnaire d'affichage. J'ai essayé un peu de jouer avec les paramètres `hdmi_group, hdmi_mode...` sans grand succés. L'écran s'affiche un peu à la canalplus... Pb de frequence, entrelacement ? Difficile de trouver la doc de cet écran aliexpress :-(
+Après modification de la config, l'écran est mal affiché quand on passe sous 'X'. Au départ la bannière est bien affiché. C'est donc un problème de réglage sans doute un peu plus profond du gestionnaire d'affichage. J'ai essayé un peu de jouer avec les paramètres `hdmi_group, hdmi_mode...` sans grand succés. L'écran s'affiche un peu à la canalplus... Pb de frequence, entrelacement ? Difficile de trouver la doc de cet écran aliexpress :-(
 
 * j'ai testé une version ubuntu 22.0 (affichage en wayland) => même combat
 * l'écran fonctionne car quand je le mets en 2eme écran sur mon PC il est correctement configuré.
