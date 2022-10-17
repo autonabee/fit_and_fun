@@ -45,6 +45,7 @@ Some reminders to debug
 #### Réglages Ecran
 
 * LCD 9 pouces, 1024x600, 43 euros : https://fr.aliexpress.com/item/32954126627.html
+* manuel utilisateur: https://usermanual.wiki/Pdf/ERVB800168Datasheet.1273732525/html
 
 Modification de /boot/config.txt
 ```
@@ -87,6 +88,14 @@ Après modification de la config, l'écran est mal affiché quand on passe sous 
 * j'ai testé une version ubuntu 22.0 (affichage en wayland) => même combat
 * l'écran fonctionne car quand je le mets en 2eme écran sur mon PC il est correctement configuré.
 * peut-être pas s'emmerder et voir si il n'y a pas un écran 7 ou 10 pouces à Rennes de dispo ?
+
+J'ai retrouvé de la doc. sur le controleur de l'écran:
+
+* manuel utilisateur: https://usermanual.wiki/Pdf/ERVB800168Datasheet.1273732525/html
+* https://www.openhacks.com/page/productos/id/1880/title/HDMI-4-Pi%3A-7#lightbox['galeria']/0/
+* https://learn.adafruit.com/hdmi-uberguide/2396-7-touch-display-1024x600-mini-driver
+
+Le dernier lien propose un `config.txt` pour ce contrôleur. Il me semble avoir essayé ces paramètres...mais on se sait jamais...
 
 ## Liens utiles
 
