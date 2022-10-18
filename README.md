@@ -117,12 +117,4 @@ Le dernier lien propose un `config.txt` pour ce contrôleur. Il me semble avoir 
 
 ## TODO
 
-* [x] Tuto MQTT
-* [x] echange MQTT ESP32-IMU/PC (arduino/Python)
-* [x] jeu avec clavier en client MQTT
-* [x] intégration soft IMU avec le jeu
-* [x] intégration raspberry
-* [ ] Config écran
-* [ ] Config AccessPoint pour connection capteur
-* [ ] Intégration capteur autonabee (reprogrammation)
 * [ ] Tuto ceinture cardio
