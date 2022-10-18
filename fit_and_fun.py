@@ -29,6 +29,7 @@ class Console():
         self.rot_speed=0
         # speed = SPEED_RATIO*rot_speed = speed of the screen
         self.speed=0
+        self.energy=0.0
         self.score=0
         # initial time when the game begins
         self.time0=0
@@ -96,8 +97,13 @@ class Console():
         # The mushroom
         mushroom=pg.image.load(self.dir_img+'/mushroom.png')
         mushroom=pg.transform.rotozoom(mushroom,0,0.8)
-        mushroom_x=700
-        mushroom_speed=2
+        # The crate
+        crate=pg.image.load(self.dir_img+'/crate.png')
+        crate=pg.transform.rotozoom(crate,0,0.5)
+        # Target (mushroom:0 or crate:1) position
+        target_x=700
+        target_speed=2
+        target_type=1
         # Initial time recorded
         self.time0=time.time()
         # Game behavior
@@ -116,15 +122,24 @@ class Console():
             player_y=325-50*self.jump    
             # Mushroom advances with mushroom_x
             # when it disapear we create another one randomly
-            c_rect=self.screen.blit(mushroom,(mushroom_x,250))
-            mushroom_x -= mushroom_speed
-            if mushroom_x < -50:
-                mushroom_x=random.randint(700,800)
-                mushroom_speed=random.randint(2,3)
-            # Detect the collision between the mushroom and the little guy
+            if target_type == 0:
+                c_rect=self.screen.blit(mushroom,(target_x,250))
+            else:
+                c_rect=self.screen.blit(crate,(target_x,250))
+            target_x -= target_speed
+            if target_x < -50:
+                target_x=random.randint(800,1000)
+                target_speed=random.randint(2,3)
+                target_type=random.randint(0,1)
+            # Detect the collision between the target and the little guy
+            # score+ if it is a mushroom, score- if it is a crate
             if p_rect.colliderect(c_rect):
-                self.score+=10
-                mushroom_x=-51
+                if target_type==0:
+                    self.score+=10
+                else:
+                    self.score-=10
+                target_x=-51
+            self.energy+=self.speed/1000.0 
             # Draw a banner with textual information
             self._draw_text(self.get_banner(), 30, 320, 1)
             # Loop event
@@ -148,7 +163,7 @@ class Console():
         minutes, seconds = divmod(duration, 60)
         template = "Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
         banner= template.format(min=int(minutes), sec=int(seconds), 
-                            speed=round(self.rot_speed), score=self.score)
+                            speed=int(self.rot_speed), score=self.score+int(self.energy))
         return banner
 
     def get_speed(self, client, userdata, message):
@@ -173,7 +188,7 @@ class Console():
             self.speed=0
             self.rot_speed=0
 
-        self.score=self.score+self.speed
+        #self.score=self.score+self.speed
         if self.speed > 2:
             self.jump=1
         else:
