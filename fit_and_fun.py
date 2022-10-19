@@ -2,6 +2,7 @@ import pygame as pg
 import random
 import threading
 import time
+from game_entities import Player, SideObstacle, Bonus
 
 from mqtt_subscriber import mqtt_subscriber
 
@@ -15,11 +16,11 @@ class Console():
     def __init__(self):
         """ Class constructor """
         # Screen configuration
-        self.size_x=640
-        self.size_y=480
+        self.size_x=480
+        self.size_y=640
         self.dir_img='images'
-        # Minimun speed
-        self.ROT_SPEED_MIN=10
+        # Max speed 
+        self.ROT_SPEED_MAX = 700
         # rot speed max = 700, screen speed max = 3 => 3/600
         self.SPEED_RATIO=0.005
         # Control variable
@@ -82,74 +83,107 @@ class Console():
 
     def game(self):
         """
-        game panel. A little guy go headed on a scrolled side game if
-        the speed is > 0 and go higher if the speed > 2. If it reaches
-        muschroom the score is increasing.
+        game panel. A character go headed on a scrolled side game depending
+        on its speed. If it reaches muschroom the score is decrease.
         """
-        # Image of the background landscape
-        image=pg.image.load(self.dir_img+'/level1.png')
-        image=pg.transform.scale(image, (640,480))
-        bgx=0
-        # The little guy
-        player=pg.image.load(self.dir_img+'/boy.png')
-        player=pg.transform.rotozoom(player,0,0.2)
-        player_y = 325
-        # The mushroom
-        mushroom=pg.image.load(self.dir_img+'/mushroom.png')
-        mushroom=pg.transform.rotozoom(mushroom,0,0.8)
-        # The crate
-        crate=pg.image.load(self.dir_img+'/crate.png')
-        crate=pg.transform.rotozoom(crate,0,0.5)
-        # Target (mushroom:0 or crate:1) position
-        target_x=700
-        target_speed=2
-        target_type=1
-        # Initial time recorded
+        # Time init
+        clock = pg.time.Clock()
         self.time0=time.time()
-        # Game behavior
+
+        # Sprite assets loading
+        desert_bg = pg.image.load(self.dir_img+'/desert.jpg')
+        bg_size = desert_bg.get_size()
+        mushroom_sprite = pg.image.load(self.dir_img + "/mushroom.png")
+        player = Player(self.screen, self.dir_img + "/boy.png")
+        
+        # Data
+        last_speed = 0  # Used for value smoothing
+        bg_y = 0
+        bg_scroll_speed = 1.5
+        
+        # Create permanent obstacles entities
+        obstacles = [SideObstacle(self.screen) for _ in range(3)]
+        bonus = Bonus(self.screen)
+        bonus.spawn(300)
+
         while True:
-            # Background landscape advances with bgx
-            # so the little guy seems to advance
-            self.screen.blit(image,(bgx-640,0))
-            self.screen.blit(image,(bgx,0))
-            self.screen.blit(image,(bgx+640,0))
-            bgx = bgx - self.speed
-            if bgx <= -640:
-                bgx=0
-            # The litte guy can go higher with player_y if
-            # a 'jump' is required
-            p_rect=self.screen.blit(player,(50, player_y))
-            player_y=325-50*self.jump    
-            # Mushroom advances with mushroom_x
-            # when it disapear we create another one randomly
-            if target_type == 0:
-                c_rect=self.screen.blit(mushroom,(target_x,250))
-            else:
-                c_rect=self.screen.blit(crate,(target_x,250))
-            target_x -= target_speed
-            if target_x < -50:
-                target_x=random.randint(800,1000)
-                target_speed=random.randint(2,3)
-                target_type=random.randint(0,1)
-            # Detect the collision between the target and the little guy
-            # score+ if it is a mushroom, score- if it is a crate
-            if p_rect.colliderect(c_rect):
-                if target_type==0:
-                    self.score+=10
-                else:
-                    self.score-=10
-                target_x=-51
-            self.energy+=self.speed/1000.0 
-            # Draw a banner with textual information
-            self._draw_text(self.get_banner(), 30, 320, 1)
-            # Loop event
+            delta = clock.tick(30)
+            
+            # Background scrolling
+            self.screen.blit(desert_bg,(0, bg_y - bg_size[1]))
+            self.screen.blit(desert_bg,(0, bg_y))
+            self.screen.blit(desert_bg,(0, bg_y + bg_size[1]))
+            bg_y = bg_y + bg_scroll_speed
+            if bg_y >= bg_size[1]:
+                bg_y=0
+            
+            # Normalizing and smoothing
+            speed =  0.8 * last_speed + 0.2 * (self.rot_speed / self.ROT_SPEED_MAX)
+            last_speed = speed
+            # Speed should be normalized    
+            player.speed = speed    
+            player.update(delta)
+            
+            bonus.update(delta)
+
+            for obs in obstacles:
+                obs.update(delta)
+            
+            #########################################
+            ## Obstacle/Player collision detection ##
+            #########################################
+            
+            #collision = player_hitbox.collideobjects(obstacles, key=lambda x: x.hitbox)
+            colliding = player.hitbox.collidelistall([o.hitbox for o in obstacles if o.alive])
+            if len(colliding) > 0:
+                was_hit = player.hit()
+                if was_hit:
+                    self.score -= 100
+            for i in colliding:
+                obstacles[i].alive = False
+            
+            if bonus.alive and player.hitbox.colliderect(bonus.hitbox):
+                bonus.alive = False
+                self.score += 200
+            
+            bonus.draw()
+            
+            player.draw()
+            
+            for obs in obstacles:
+                obs.draw()
+            
+            
+            # Spawn Obstacles and Bonuses
+            if random.random() < 0.02:
+                for obs in obstacles:
+                    if not obs.alive:
+                        side = 1
+                        if random.random() < 0.5:
+                            side = -1
+                        
+                        obstacle_height = random.random() * self.size_y
+                        obs.spawn(mushroom_sprite, obstacle_height, side)
+                        break
+            
+            if not bonus.alive and random.random() < 0.002:
+                bonus.spawn(random.random() * self.size_y)
+            
+            
+            #####################
+            ######## HUD ########
+            #####################
+
+            self._draw_text(self.get_banner(), 25, self.size_x/2, 1)
+            
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.display.quit()
-                    if _DEBUG==True: print("Quit") 
+                    print("QUIT")
                     self.synchro.release()
                     exit() 
+       
 
     def get_banner(self):
         """ Format textual information
@@ -202,4 +236,4 @@ if __name__ == "__main__":
     console=Console()
     mqtt_sub=mqtt_subscriber(console.get_speed, console.synchro, 'fit_and_fun/speed')
     mqtt_sub.run()
-    console.menu()
+    console.game()

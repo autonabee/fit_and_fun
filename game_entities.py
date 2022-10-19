@@ -1,0 +1,132 @@
+import pygame as pg
+
+
+class Player():
+    pos_y = 0
+    hit_cooldown = 0
+    cooldown_counter = 0
+    speed = 0   # Speed should be a normalized value between 0 and 1
+    
+    def __init__(self, screen, image):
+        self.screen = screen
+        sprite = pg.image.load(image)
+        self.sprite = pg.transform.rotozoom(sprite, 0, 0.2)
+        self.pos_x = (self.screen.get_width() - self.sprite.get_width()) * 0.5
+    
+    def update(self, delta):
+        self.pos_y = self.screen.get_height() - self.sprite.get_height() \
+                    - self.speed * (self.screen.get_height() - self.sprite.get_height())
+        self.hitbox = pg.Rect(self.pos_x + 2, self.pos_y + 2, self.sprite.get_width() - 4, self.sprite.get_height() - 4)
+        if self.hit_cooldown > 0:
+            self.hit_cooldown -= delta
+    
+    def draw(self):
+        if self.hit_cooldown > 0:
+            self.cooldown_counter += 1
+            if (self.cooldown_counter // 4) % 2 == 0:
+                self.screen.blit(self.sprite, (self.pos_x, self.pos_y))
+        else:
+            self.screen.blit(self.sprite, (self.pos_x, self.pos_y))
+        #pg.draw.rect(self.screen, (0, 255,0), self.hitbox)
+    
+
+    """
+        returns True if the hit was effective, False otherwise
+    """
+    def hit(self):
+        if self.hit_cooldown <= 0:
+            self.hit_cooldown = 3000
+            return True
+        return False
+
+
+
+class SideObstacle():
+    collision_margin = 2
+    hitbox = pg.Rect(0, 0, 0, 0)
+    
+    def __init__(self, screen):
+        self.screen = screen
+        self.alive = False
+    
+    
+    def spawn(self, sprite, height, side=1, speed=0.1):
+        self.alive = True
+        self.sprite = sprite
+        self.size = self.sprite.get_size()
+        self.side = side
+        self.speed = speed
+        self.pos_y = height
+        
+        if side == 1:
+            self.pos_x = -self.size[0] * 0.5
+        else:
+            self.pos_x = self.screen.get_width() + self.size[0] * 0.5
+    
+    
+    def update(self, delta):
+        if self.alive:
+            self.pos_x += self.side * self.speed * delta
+            self.hitbox = pg.Rect(self.pos_x - 0.5*self.size[0] + self.collision_margin,
+                                         self.pos_y - 0.5*self.size[1] + self.collision_margin,
+                                         self.size[0] - 2 * self.collision_margin,
+                                         self.size[1] - 2 * self.collision_margin)
+            
+            # Kill obstacle when out of screen
+            if self.pos_x > self.screen.get_width() + self.size[0] or self.pos_x < -self.size[0]:
+                self.alive = False
+    
+    
+    def draw(self):
+        if self.alive:
+            self.screen.blit(self.sprite, (self.pos_x - 0.5*self.size[0], self.pos_y - 0.5*self.size[1]))
+            #pg.draw.rect(self.screen, (255, 0, 0),
+            #    (self.pos_x - 0.5*self.size[0], self.pos_y - 0.5*self.size[1], self.size[0], self.size[1]))
+            
+            # Hitbox debug drawing
+            #pg.draw.rect(self.screen, (0, 255, 0), self.hitbox)
+
+
+
+class Bonus():
+    def __init__(self, screen):
+        self.screen = screen
+        self.alive = False
+
+
+    def spawn(self, height):
+        self.alive = True
+        # self.sprite = sprite
+        # self.size = self.sprite.get_size()
+        self.pos_y = height
+        self.lifetime = 5000
+        self.disapearing = False
+        self.counter = 0
+        center = self.screen.get_width() * 0.5
+        self.hitbox = pg.Rect(center-25, self.pos_y-50, 50, 50)
+
+
+    def update(self, delta):
+        self.lifetime -= delta
+        if self.lifetime <= 0:
+            self.alive = False
+        elif self.lifetime < 3000:
+            self.disapearing = True
+
+
+    def draw(self):
+        if not self.alive:
+            return
+        
+        center = self.screen.get_width() * 0.5
+        if self.disapearing:
+            self.counter += 1
+            if (self.counter // 6) % 2 == 0:
+                polygon = [(center-24, self.pos_y), (center+24, self.pos_y), (center+32, self.pos_y-50), (center-32, self.pos_y-50)]
+                pg.draw.polygon(self.screen, (0,0,255), polygon)
+        else:
+            polygon = [(center-24, self.pos_y), (center+24, self.pos_y), (center+32, self.pos_y-50), (center-32, self.pos_y-50)]
+            pg.draw.polygon(self.screen, (0,0,255), polygon)
+
+        # Hitbox debug drawing
+        #pg.draw.rect(self.screen, (0,255,0), self.hitbox)
