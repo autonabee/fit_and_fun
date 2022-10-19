@@ -57,3 +57,19 @@ class mqtt_subscriber():
         """ Stop the thread """
         self.lock.release()
         self.t1.join()
+
+if __name__ == "__main__":
+    """ Exemple of subscriber use"""
+
+    lock = threading.Lock()
+    
+    def get_msg(self, client, userdata, message):
+        try:
+            rot_speed=float(str(message.payload.decode("utf-8"))) 
+        except Exception:
+            print('Error in mqtt message')
+            self.speed=0
+            self.rot_speed=0
+
+    mqtt_sub=mqtt_subscriber(get_msg, lock, 'fit_and_fun/speed')
+    lock.acquire()
