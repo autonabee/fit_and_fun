@@ -74,15 +74,15 @@ On peut utiliser également le jeu avec un clavier: `python fit_and_fun_keyboard
 
 ## Fichiers
 
-* `console.py`
-* `game_canoe.py`
-* `game_entities.py`
-* `fit_and_fun_keyboard.py`
-* `mqtt_subscriber.py`
-* `sensor_keyboard.py`
-* `fit_and_fun.py`
-* `sensors/FAF_ESP/FAF_ESP.ino`
-* `sensors/FAF_STICK5/FAF_STICK5.ino`
+* `console.py`: Entry menu of the game before launching the Canoe game
+* `game_canoe.py`: Canoe game (GameCanoe inherit from Console)
+* `game_entities.py`: pygame elements for Canoe game
+* `fit_and_fun_keyboard.py`: main to launch the game with keyboard interaction (without mqtt)
+* `mqtt_subscriber.py`: mqtt subscriber to read the topic `fit_and_fun/speed`
+* `sensor_keyboard.py`: main to control the game in the other part with keyboard interaction (with mqtt)
+* `fit_and_fun.py`: main to launch the game controllable through mqtt (topic `fit_and_fun/speed`)
+* `sensors/FAF_ESP/FAF_ESP.ino`: firmware for the gyro sensor (ESP2866+BNO05) sending rot speed through mqtt
+* `sensors/FAF_STICK5/FAF_STICK5.ino`: firmware for the gyro sensor (M5StickC-P), sending rot speed through mqtt to be tested.
 
 ## Problèmes non résolus
 
