@@ -55,8 +55,6 @@ class KeyboardController():
 
 
 console = Console()
-#mqtt_subscriber=MqttSubscriber(game.get_speed)
-#mqtt_subscriber.run()
 virtualController = KeyboardController(console.get_speed)
 virtualController.run()
 console.game()

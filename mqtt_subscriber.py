@@ -1,8 +1,6 @@
 import paho.mqtt.client as mqtt
 import threading
 
-_DEBUG=True
-
 class mqtt_subscriber():
     """ Mqtt subscriber to receive a raw rotational speed"""
     def __init__(self, on_message, synchro, topic, broker_addr='localhost'):
@@ -30,12 +28,13 @@ class mqtt_subscriber():
         # Lock thread synchronization
         self.lock = synchro
         self.lock.acquire()
+        self.debug=True
 
 
     def subscribe_connect(self):
         """ client function launched in a thread
         """
-        if _DEBUG==True: print("Start mqtt subscriber")
+        if self.debug==True: print("Start mqtt subscriber")
         # Broker connection
         client = mqtt.Client("Console")
         client.connect(self.mqttBroker) 
@@ -46,7 +45,7 @@ class mqtt_subscriber():
         # Wait for the end
         self.lock.acquire()
         client.loop_stop()
-        if _DEBUG==True: print("End mqtt subscriber")
+        if self.debug==True: print("End mqtt subscriber")
    
     def run(self):
         """ Start the thread """

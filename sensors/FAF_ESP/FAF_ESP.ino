@@ -15,7 +15,7 @@ char msg[MSG_BUFFER_SIZE];
 float value = 51.0;
 
 /* Set the delay between fresh samples */                                       
-uint16_t BNO055_SAMPLERATE_DELAY_MS = 1000;                                      
+uint16_t BNO055_SAMPLERATE_DELAY_MS = 100;                                      
 /* Check I2C device address */                                                          
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28); 
 
