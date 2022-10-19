@@ -2,8 +2,8 @@ import paho.mqtt.client as mqtt
 import readchar 
 
 VEL_MIN=0.0
-VEL_MAX=700.0
-VEL_INC=100.0
+VEL_MAX=30.0
+VEL_INC=5.0
 
 mqttBroker ='localhost'
 client = mqtt.Client("Sensor-keyboard")
@@ -20,12 +20,12 @@ print('a (speed up) / z (speed up) / e (speed zero) / q (quit)')
 while run: 
     key = readchar.readkey()
     if key == 'a':
-        velocity+=100.0
+        velocity+=VEL_INC
         if velocity > VEL_MAX:
             velocity = VEL_MAX
 
     elif key == 'z':
-        velocity-=100.0
+        velocity-=VEL_INC
         if velocity < VEL_MIN:
             velocity = VEL_MIN
 

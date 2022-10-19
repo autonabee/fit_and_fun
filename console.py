@@ -1,6 +1,19 @@
 import pygame as pg
+import pygame_menu as pg_menu
+from pygame_menu import themes, Theme
+
 import threading
 import time
+
+# Custom menu theme
+
+mytheme = pg_menu.themes.THEME_BLUE.copy()
+myimage = pg_menu.baseimage.BaseImage(
+    image_path="images/desert.jpg",
+    drawing_mode=pg_menu.baseimage.IMAGE_MODE_REPEAT_XY
+)
+mytheme.background_color = myimage
+mytheme.widget_font=pg_menu.font.FONT_NEVIS
 
 class Console():
     """ Class Console to manage the game
@@ -15,12 +28,11 @@ class Console():
         self.size_y=640
         self.dir_img='images'
         # Min/Max speed 
-        self.ROT_SPEED_MIN = 10
-        self.ROT_SPEED_MAX = 700
+        self.ROT_SPEED_MIN = 00
+        self.ROT_SPEED_MAX = 30
         # rot speed max = 700, screen speed max = 3 => 3/600
         self.SPEED_RATIO=0.005
         # Control variable
-        self.jump=0
         self._on_message = None
         # raw speed value received from the mqtt sensor
         self.rot_speed=0
@@ -41,24 +53,56 @@ class Console():
         # lock for synchro to kill the sensor speed client
         self.synchro = threading.Lock()
         self.debug=True
-
+        self.difficulty=1
+        self.name='Julien'
+        
+    def set_level(self, value, difficulty):
+        """ callback called by self.levelmenu """
+        self.difficulty=difficulty
+   
+    def set_user(self, selec_name, name): 
+        """ callback called by self.usermenu """
+        self.name=name
+   
+    def level_menu(self): 
+        """ Open self.levelmenu """
+        self.mainmenu._open(self.levelmenu)
+ 
+    def user_menu(self):
+        """ Open self.usermenu """
+        self.mainmenu._open(self.usermenu)
+ 
     def menu(self):
-        """ First entry panel before launching the game"""
-        # Load and display the image menu
-        image=pg.image.load(self.dir_img+'/menu.png')
-        image=pg.transform.scale(image, (self.size_x, self.size_y))
-        # You enter in the new panel game when you click 
-        # on the arrow of the image located in (300,320)
+        """ Menu game management """
+        # Main entry menu
+        self.mainmenu = pg_menu.Menu('FIT and FUN', self.size_x, self.size_y, theme=mytheme)
+        # User name 
+        self.mainmenu.add.button('User', self.user_menu)
+        self.usermenu = pg_menu.Menu('Select a User', self.size_x, self.size_y, theme=mytheme)
+        self.usermenu.add.selector('Name :', [('Julien', 'Julien'), ('Christophe', 'Christophe')], onchange=self.set_user)
+        # Launch the game
+        self.mainmenu.add.button('Play', self.game)
+        # Select the level of the game
+        self.mainmenu.add.button('Levels', self.level_menu)
+        self.levelmenu = pg_menu.Menu('Select a Level', self.size_x, self.size_y, theme=mytheme)
+        self.levelmenu.add.selector('Level :', [('Non-regular', 1), ('Regular', 2)], onchange=self.set_level)
+        # Quit the game
+        self.mainmenu.add.button('Quit', pg_menu.events.EXIT)
+        # Event loop
         while True:
-            self.screen.blit(image,(0,0))
-            pg.display.update()
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
+            events = pg.event.get()
+            for event in events:
+                if event.type == pg.QUIT: 
                     pg.display.quit()
-                    exit() 
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    if event.pos[0] in range(230,240) and event.pos[1] in range(280,295) :
-                        self.game()
+                    if self.debug : print("Quit") 
+                    self.synchro.release()
+                    exit()
+        
+            if self.mainmenu.is_enabled():
+                self.mainmenu.update(events)
+                self.mainmenu.draw(self.screen)
+            pg.display.update()
+   
 
     def draw_text(self, text, size, x, y):
         """ Print text on the panel with 
@@ -116,9 +160,5 @@ class Console():
             self.rot_speed=0
 
         #self.score=self.score+self.speed
-        if self.speed > 2:
-            self.jump=1
-        else:
-            self.jump=0
 
         if self.debug==True: print(self.get_banner())

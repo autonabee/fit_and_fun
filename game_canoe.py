@@ -108,8 +108,5 @@ class GameCanoe(Console):
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT:
-                    pg.display.quit()
-                    if self.debug : print("Quit") 
-                    self.synchro.release()
-                    exit() 
+                    self.menu()
        
