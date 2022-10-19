@@ -20,8 +20,8 @@ class GameCanoe(Console):
         self.time0=time.time()
 
         # Sprite assets loading
-        desert_bg = pg.image.load(self.dir_img+'/desert.jpg')
-        bg_size = desert_bg.get_size()
+        river_bg = pg.image.load(self.dir_img+'/river.png')
+        river_bg = pg.transform.scale(river_bg, (self.size_x, self.size_y))
         mushroom_sprite = pg.image.load(self.dir_img + "/mushroom.png")
         player = Player(self.screen, self.dir_img + "/boy.png")
         
@@ -39,11 +39,11 @@ class GameCanoe(Console):
             delta = clock.tick(30)
             
             # Background scrolling
-            self.screen.blit(desert_bg,(0, bg_y - bg_size[1]))
-            self.screen.blit(desert_bg,(0, bg_y))
-            self.screen.blit(desert_bg,(0, bg_y + bg_size[1]))
+            self.screen.blit(river_bg,(0, bg_y - self.size_y))
+            self.screen.blit(river_bg,(0, bg_y))
+            self.screen.blit(river_bg,(0, bg_y + self.size_y))
             bg_y = bg_y + bg_scroll_speed
-            if bg_y >= bg_size[1]:
+            if bg_y >= self.size_y:
                 bg_y=0
             
             # Normalizing and smoothing
