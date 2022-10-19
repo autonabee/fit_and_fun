@@ -23,7 +23,7 @@ class GameCanoe(Console):
         river_bg = pg.image.load(self.dir_img+'/river.png')
         river_bg = pg.transform.scale(river_bg, (self.size_x, self.size_y))
         mushroom_sprite = pg.image.load(self.dir_img + "/mushroom.png")
-        player = Player(self.screen, self.dir_img + "/boy.png")
+        player = Player(self.screen, self.dir_img + "/canoe_1.png")
         
         # Data
         last_speed = 0  # Used for value smoothing

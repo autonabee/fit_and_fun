@@ -14,7 +14,7 @@ sur PC.
 * Raspberry Pi OS Full (64 bit) a port of debian bullseye with desktop (humanlab/humanlab)
 * python > 3.9
 * sudo apt install -y mosquitto  mosquitto-clients
-* pip install -y pygame paho-mqtt readchar
+* pip install -y pygame pygame-menu paho-mqtt readchar
 
 #### Mqtt broker config
 
@@ -39,13 +39,13 @@ Some reminders to debug
 
 #### Wifi access point
 
-* J'ai suivi : https://www.tomshardware.com/how-to/raspberry-pi-access-point
+* J'ai suivi : <https://www.tomshardware.com/how-to/raspberry-pi-access-point>
 * par configuration graphique: `ssid=fit_and_fun, pwd=fun_and_fit, WPA/WPA2`
 
 #### Réglages Ecran
 
-* LCD 9 pouces, 1024x600, 43 euros : https://fr.aliexpress.com/item/32954126627.html
-* manuel utilisateur: https://usermanual.wiki/Pdf/ERVB800168Datasheet.1273732525/html
+* LCD 9 pouces, 1024x600, 43 euros : <https://fr.aliexpress.com/item/32954126627.html>
+* manuel utilisateur: <https://usermanual.wiki/Pdf/ERVB800168Datasheet.1273732525/html>
 
 Modification de /boot/config.txt
 ```
@@ -55,14 +55,34 @@ hdmi_safe=1 (décommenter)
 
 ### M5Stick-C P
 
-* Capteur inertiel : M5stickC-Plus : https://www.gotronic.fr/art-module-m5stickc-plus-k016-p-33740.htm
-* Config Arduino: https://docs.m5stack.com/en/quick_start/m5stickc_plus/arduino pour installation libs et plateforme.
+* Capteur inertiel : M5stickC-Plus : <https://www.gotronic.fr/art-module-m5stickc-plus-k016-p-33740.htm>
+* Config Arduino: <https://docs.m5stack.com/en/quick_start/m5stickc_plus/arduino> pour installation libs et plateforme.
+* lib mqtt: <https://www.arduino.cc/reference/en/libraries/pubsubclient>
 * Programmer (configurer access wifi et IP broker): `FAF_STICK5/FAF_STICK5.ino`
 
+### ESP2866+BNO05
+
+* micro-controleur ESP2866 avec une IMU BNO05 via I2C
+* <https://learn.adafruit.com/adafruit-bno055-absolute-orientation-sensor>
+* lib mqtt: <lib https://www.arduino.cc/reference/en/libraries/pubsubclient>
 ## Démo qui tourne
 
-Avec une connection wifi sur box (sans access point raspberry) et un écran classique sur la raspberry. Après configuration Wifi/Mqtt coté raspberry et capteur, on peut lancer le jeu: `python fit_and_fun.py`.
-Quand le capteur tourne sur lui-même (axe normal à l'écran), le paysage avance et si on passe une certaine vitesse, le personnage monte en l'air. Le score augmente en fonction de la durée/vitesse et si le personnage touche les champignons en l'air. C'est un exemple, on peut imaginer pleins d'autre choses
+Avec le raspberry en wifi access-point (ssid:fit_and_fun, passwd:fun_and_fit) et un écran classique sur la raspberry. Après configuration Wifi/Mqtt coté raspberry (`sudo systemctl restart mosquitto`) et mis sous tension le capteur ESP2866+BNO05, on peut lancer le jeu: `python fit_and_fun.py -b 10.4.0.1`.
+Quand le capteur tourne sur lui-même (axe Z), la rivière avance et si on passe une certaine vitesse, le personnage avance aussi. Le score augmente en fonction de la durée/vitesse et si le personnage touche les obstacles  qui traverse la rivière.
+
+On peut utiliser également le jeu avec un clavier: `python fit_and_fun_keyboard.py`
+
+## Fichiers
+
+* `console.py`
+* `game_canoe.py`
+* `game_entities.py`
+* `fit_and_fun_keyboard.py`
+* `mqtt_subscriber.py`
+* `sensor_keyboard.py`
+* `fit_and_fun.py`
+* `sensors/FAF_ESP/FAF_ESP.ino`
+* `sensors/FAF_STICK5/FAF_STICK5.ino`
 
 ## Problèmes non résolus
 
@@ -97,23 +117,30 @@ J'ai retrouvé de la doc. sur le controleur de l'écran:
 
 Le dernier lien propose un `config.txt` pour ce contrôleur. Il me semble avoir essayé ces paramètres...mais on se sait jamais...
 
+## Fichiers
+
+
 ## Liens utiles
 
+* Pygame
+ 
+  * <https://pythonfaqfr.readthedocs.io/en/latest/pygame_collisions.html>
+
 * M5stackC-Plus
-  * https://docs.m5stack.com/en/core/m5stickc_plus
-  * https://github.com/m5stack/M5StickC-Plus
-  * https://community.m5stack.com/
-  * https://www.hackster.io/m5stack/
+  * <https://docs.m5stack.com/en/core/m5stickc_plus>
+  * <https://github.com/m5stack/M5StickC-Plus>
+  * <https://community.m5stack.com>
+  * <https://www.hackster.io/m5stack>
 * MQTT
-  * https://randomnerdtutorials.com/esp32-mqtt-publish-subscribe-arduino-ide/
-  * https://diyi0t.com/introduction-into-mqtt/
-  * https://learn.sparkfun.com/tutorials/introduction-to-mqtt
-  * https://medium.com/python-point/mqtt-basics-with-python-examples-7c758e605d4
-  * https://www.tutos.eu/4910
+  * <https://randomnerdtutorials.com/esp32-mqtt-publish-subscribe-arduino-ide>
+  * <https://diyi0t.com/introduction-into-mqtt>
+  * <https://learn.sparkfun.com/tutorials/introduction-to-mqtt>
+  * <https://medium.com/python-point/mqtt-basics-with-python-examples-7c758e605d4>
+  * <https://www.tutos.eu/4910>
 * Config Ecran
-  * https://www.raspberrypi.com/documentation/computers/config_txt.html
+  * <https://www.raspberrypi.com/documentation/computers/config_txt.html>
 * Wifi access point
-  * https://www.tomshardware.com/how-to/raspberry-pi-access-point
+  * <https://www.tomshardware.com/how-to/raspberry-pi-access-point>
 
 ## TODO
 
