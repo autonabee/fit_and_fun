@@ -24,7 +24,7 @@ class Console():
     
     dir_img='images'
     
-    def __init__(self):
+    def __init__(self, wind=None):
         """ Class constructor """
         # Screen configuration
         self.size_x=480
@@ -57,7 +57,14 @@ class Console():
         self.debug=True
         self.difficulty=1
         self.name='Julien'
-        
+        # Wind resistor
+        self.wind_resistor = wind
+
+    def set_wind(self):
+        """ Activate the wind if the object exists"""
+        if self.wind_resistor != None:
+            self.wind_resistor.activate()
+
     def set_level(self, value, difficulty):
         """ callback called by self.levelmenu """
         self.difficulty=difficulty
@@ -97,7 +104,9 @@ class Console():
                 if event.type == pg.QUIT: 
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro.release()
+                    self.synchro.release() 
+                    if self.wind_resistor != None:
+                        self.wind_resistor.stop()
                     exit()
         
             if self.mainmenu.is_enabled():
@@ -150,13 +159,16 @@ class Console():
                     speed rotation (0 to 700)
         """
         try:
-            rot_speed=float(str(message.payload.decode("utf-8"))) 
+            rot_speed=float(str(message.payload.decode("utf-8")))
+            rot_speed=abs(rot_speed)
             if rot_speed < self.ROT_SPEED_MIN:
                 self.rot_speed=0
                 self.speed=0
+            elif rot_speed > self.ROT_SPEED_MAX:
+                self.rot_speed=self.ROT_SPEED_MAX
             else:
                 self.rot_speed=rot_speed
-                self.speed=round(self.SPEED_RATIO*self.rot_speed)
+            self.speed=round(self.SPEED_RATIO*self.rot_speed)
         except Exception:
             self.speed=0
             self.rot_speed=0
