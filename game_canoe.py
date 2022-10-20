@@ -23,10 +23,13 @@ class GameCanoe(Console):
         # Sprite assets loading
         river_bg = pg.image.load(self.dir_img+'/level_bg.png')
         #river_bg = pg.transform.scale(river_bg, (self.size_x, self.size_y))
-        mushroom_sprite = pg.image.load(self.dir_img + "/mushroom.png")
+        duck_sprites = [pg.transform.rotozoom(pg.image.load(self.dir_img + "/duck.png"), 0, 1.5)]
+        duck_sprites.append(pg.transform.flip(duck_sprites[0], True, False))
         bush_sprites = [pg.image.load(os.path.join(self.dir_img, f"buisson_{i}.png")) for i in range(1,3)]
         tree_sprites = [pg.image.load(os.path.join(self.dir_img, f"tree_{i}.png")) for i in range(1,3)]
         rock_sprites = [pg.image.load(os.path.join(self.dir_img, f"rocher_{i}.png")) for i in range(1,3)]
+        wood_sprites = [pg.image.load(os.path.join(self.dir_img, f"wood_{i}.png")) for i in range(1,3)]
+        wood_sprites = [pg.transform.rotate(ws, random.randint(-80, 80)) for ws in wood_sprites]
         
         player = Player(self.screen)
         
@@ -108,7 +111,7 @@ class GameCanoe(Console):
             if random.random() < 0.01:
                 for le in lower_landscape:
                     if not le.alive:
-                        le.spawn(random.choice(bush_sprites + rock_sprites))
+                        le.spawn(random.choice(bush_sprites + rock_sprites + wood_sprites))
                         break
             if random.random() < 0.01:
                 for le in upper_landscape:
@@ -120,11 +123,13 @@ class GameCanoe(Console):
                 for obs in obstacles:
                     if not obs.alive:
                         side = 1
+                        sprite = duck_sprites[0]
                         if random.random() < 0.5:
                             side = -1
+                            sprite = duck_sprites[1]
                         
                         obstacle_height = random.random() * self.size_y
-                        obs.spawn(mushroom_sprite, obstacle_height, side)
+                        obs.spawn(sprite, obstacle_height, side)
                         break
             
             if not bonus.alive and random.random() < 0.002:

@@ -30,7 +30,7 @@ class Player():
             self.hit_cooldown -= delta
         
         self.anim_counter += 1
-        if self.anim_counter >= 4:
+        if self.anim_counter >= 6:
             self.anim_counter = 0
             self.sprite_idx = (self.sprite_idx + 1) % 2
     
@@ -79,7 +79,6 @@ class LandscapeProp():
         
         self.pos_y += delta * bg_speed
         if self.pos_y < -self.height or self.pos_y > self.screen.get_height() + self.height:
-            print("kill")
             self.alive = False
     
     def draw(self):
@@ -134,9 +133,14 @@ class Obstacle():
 
 
 class Bonus():
+    sprites_path = ["tremplin_0.png", "tremplin_1.png"]
+
     def __init__(self, screen):
         self.screen = screen
         self.alive = False
+        self.sprites = [pg.image.load(os.path.join(Console.dir_img, filename)) for filename in self.sprites_path]
+        self.width = self.sprites[0].get_width()
+        self.height = self.sprites[0].get_height()
 
 
     def spawn(self, height):
@@ -145,18 +149,15 @@ class Bonus():
         # self.size = self.sprite.get_size()
         self.pos_y = height
         self.lifetime = 5000
-        self.disapearing = False
         self.counter = 0
         center = self.screen.get_width() * 0.5
-        self.hitbox = pg.Rect(center-25, self.pos_y-50, 50, 50)
+        self.hitbox = pg.Rect(center-25, self.pos_y-self.height*0.5, 50, self.height)
 
 
     def update(self, delta):
         self.lifetime -= delta
         if self.lifetime <= 0:
             self.alive = False
-        elif self.lifetime < 3000:
-            self.disapearing = True
 
 
     def draw(self):
@@ -164,14 +165,11 @@ class Bonus():
             return
         
         center = self.screen.get_width() * 0.5
-        if self.disapearing:
-            self.counter += 1
-            if (self.counter // 6) % 2 == 0:
-                polygon = [(center-24, self.pos_y), (center+24, self.pos_y), (center+32, self.pos_y-50), (center-32, self.pos_y-50)]
-                pg.draw.polygon(self.screen, (0,0,255), polygon)
-        else:
-            polygon = [(center-24, self.pos_y), (center+24, self.pos_y), (center+32, self.pos_y-50), (center-32, self.pos_y-50)]
-            pg.draw.polygon(self.screen, (0,0,255), polygon)
 
+        self.counter += 1
+        sprite = self.sprites[(self.counter // 6) % 2]
+        
+        self.screen.blit(sprite, (center - self.width * 0.5, self.pos_y - self.height * 0.5))
+        
         # Hitbox debug drawing
         #pg.draw.rect(self.screen, (0,255,0), self.hitbox)
