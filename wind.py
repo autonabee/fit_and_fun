@@ -59,11 +59,10 @@ class wind():
 if __name__ == "__main__":
     """ Exemple of subscriber use"""
 
-    lock = threading.Lock()
-    
+    wind=wind()
     wind.run()
-    wind.activate()
-    time.sleep(10)
+    time.sleep(2)
+    print('Activate')
     wind.activate()
     time.sleep(10)
     wind.stop()

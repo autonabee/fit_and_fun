@@ -31,7 +31,7 @@ class Console():
         self.size_y=640
         # Min/Max speed 
         self.ROT_SPEED_MIN = 00
-        self.ROT_SPEED_MAX = 30
+        self.ROT_SPEED_MAX = 15
         # rot speed max = 700, screen speed max = 3 => 3/600
         self.SPEED_RATIO=0.005
         # Control variable
