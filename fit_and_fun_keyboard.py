@@ -42,8 +42,8 @@ class KeyboardController():
             
             # Send the value every 100 millisec to simulate the real sensor's frequency
             if timer > 100:
-                virtual_speed = min(max(0, virtual_speed - 20), 700)
-                virtual_speed += n_press * 50   # rough
+                virtual_speed = min(max(0, virtual_speed - 4), 700)
+                virtual_speed += n_press * 10   # rough
                 message = self.FakeMQTTMessage(str(virtual_speed))
                 self.on_message(None, None, message)
                 n_press = 0
@@ -58,4 +58,4 @@ class KeyboardController():
 console = GameCanoe()
 virtualController = KeyboardController(console.get_speed)
 virtualController.run()
-console.menu()
+console.game()
