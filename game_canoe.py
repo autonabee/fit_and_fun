@@ -1,8 +1,9 @@
 import pygame as pg
 import time
+import os
 import random
 from console import Console
-from game_entities import Player, SideObstacle, Bonus
+from game_entities import Player, Obstacle, Bonus, LandscapeProp
 
 
 class GameCanoe(Console):
@@ -20,29 +21,37 @@ class GameCanoe(Console):
         self.time0=time.time()
 
         # Sprite assets loading
-        river_bg = pg.image.load(self.dir_img+'/river.png')
-        river_bg = pg.transform.scale(river_bg, (self.size_x, self.size_y))
+        river_bg = pg.image.load(self.dir_img+'/level_bg.png')
+        #river_bg = pg.transform.scale(river_bg, (self.size_x, self.size_y))
         mushroom_sprite = pg.image.load(self.dir_img + "/mushroom.png")
-        player = Player(self.screen, self.dir_img + "/canoe_1.png")
+        bush_sprites = [pg.image.load(os.path.join(self.dir_img, f"buisson_{i}.png")) for i in range(1,3)]
+        tree_sprites = [pg.image.load(os.path.join(self.dir_img, f"tree_{i}.png")) for i in range(1,3)]
+        rock_sprites = [pg.image.load(os.path.join(self.dir_img, f"rocher_{i}.png")) for i in range(1,3)]
+        
+        player = Player(self.screen)
         
         # Data
         last_speed = 0  # Used for value smoothing
         bg_y = 0
-        bg_scroll_speed = 1.5
+        bg_scroll_speed = 0.1
         
-        # Create permanent obstacles entities
-        obstacles = [SideObstacle(self.screen) for _ in range(3)]
+        # Create prop pools
+        # Entities are instanciated once to avoid constant garbage collection
+        obstacles = [Obstacle(self.screen) for _ in range(3)]
+        lower_landscape = [LandscapeProp(self.screen) for _ in range(5)]
+        upper_landscape = [LandscapeProp(self.screen) for _ in range(2)]
+        
         bonus = Bonus(self.screen)
         bonus.spawn(300)
 
         while True:
             delta = clock.tick(30)
-            
+
             # Background scrolling
             self.screen.blit(river_bg,(0, bg_y - self.size_y))
             self.screen.blit(river_bg,(0, bg_y))
             self.screen.blit(river_bg,(0, bg_y + self.size_y))
-            bg_y = bg_y + bg_scroll_speed
+            bg_y = bg_y + bg_scroll_speed * delta
             if bg_y >= self.size_y:
                 bg_y=0
             
@@ -50,9 +59,14 @@ class GameCanoe(Console):
             speed =  0.8 * last_speed + 0.2 * (self.rot_speed / self.ROT_SPEED_MAX)
             last_speed = speed
             # Speed should be normalized    
-            player.speed = speed    
+            player.speed = speed
+
+            # Update all entities
             player.update(delta)
-            
+
+            for le in lower_landscape + upper_landscape:
+                le.update(delta, bg_scroll_speed)
+
             bonus.update(delta)
 
             for obs in obstacles:
@@ -75,6 +89,13 @@ class GameCanoe(Console):
                 bonus.alive = False
                 self.score += 200
             
+            for le in lower_landscape:
+                le.draw()
+
+            # Draw upper landscape above lower landscape
+            for le in upper_landscape:
+                le.draw()
+
             bonus.draw()
             
             player.draw()
@@ -83,7 +104,18 @@ class GameCanoe(Console):
                 obs.draw()
             
             
-            # Spawn Obstacles and Bonuses
+            # Spawn Lanscape elements, Obstacles and Bonuses
+            if random.random() < 0.01:
+                for le in lower_landscape:
+                    if not le.alive:
+                        le.spawn(random.choice(bush_sprites + rock_sprites))
+                        break
+            if random.random() < 0.01:
+                for le in upper_landscape:
+                    if not le.alive:
+                        le.spawn(random.choice(tree_sprites))
+                        break
+            
             if random.random() < 0.02:
                 for obs in obstacles:
                     if not obs.alive:
