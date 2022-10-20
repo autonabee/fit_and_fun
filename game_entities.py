@@ -17,6 +17,9 @@ class Player():
         self.width = self.sprites[0].get_width()
         self.height = self.sprites[0].get_height()
         self.pos_x = (self.screen.get_width() - self.width) * 0.5
+        self.sprite_idx = 0
+        self.anim_counter = 0
+
     
     def update(self, delta):
         assert 0 <= self.speed <= 1, "speed value is outside [0,1] range"
@@ -25,14 +28,19 @@ class Player():
         self.hitbox = pg.Rect(self.pos_x + 55, self.pos_y + 2, self.width - 110, self.height - 4)
         if self.hit_cooldown > 0:
             self.hit_cooldown -= delta
+        
+        self.anim_counter += 1
+        if self.anim_counter >= 4:
+            self.anim_counter = 0
+            self.sprite_idx = (self.sprite_idx + 1) % 2
     
     def draw(self):
         if self.hit_cooldown > 0:
             self.cooldown_counter += 1
             if (self.cooldown_counter // 4) % 2 == 0:
-                self.screen.blit(self.sprites[0], (self.pos_x, self.pos_y))
+                self.screen.blit(self.sprites[self.sprite_idx], (self.pos_x, self.pos_y))
         else:
-            self.screen.blit(self.sprites[0], (self.pos_x, self.pos_y))
+            self.screen.blit(self.sprites[self.sprite_idx], (self.pos_x, self.pos_y))
         # Hitbox debug drawing
         #pg.draw.rect(self.screen, (0, 255,0), self.hitbox)
     
