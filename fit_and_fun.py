@@ -19,7 +19,8 @@ if __name__ == "__main__":
     if ARGS.wind==True:
         wind_resistor=wind()
         wind_resistor.run()
-    console=GameCanoe(wind=wind_resistor) 
+    #console=GameCanoe(wind=wind_resistor) 
+    console=GameCanoe()
     mqtt_sub=mqtt_subscriber(console.get_speed, console.synchro, 'fit_and_fun/speed', 
                             broker_addr=ARGS.broker)
     mqtt_sub.run()
