@@ -1,5 +1,6 @@
 import pygame as pg
 from console import Console
+from game_canoe import GameCanoe
 import threading
 class KeyboardController():
     
@@ -54,7 +55,7 @@ class KeyboardController():
 
 
 
-console = Console()
+console = GameCanoe()
 virtualController = KeyboardController(console.get_speed)
 virtualController.run()
-console.game()
+console.menu()
