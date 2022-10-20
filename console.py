@@ -21,12 +21,14 @@ class Console():
         It provides a method get_speed to be called outside
         of the class to read a 'sensor value'
     """
+    
+    dir_img='images'
+    
     def __init__(self):
         """ Class constructor """
         # Screen configuration
         self.size_x=480
         self.size_y=640
-        self.dir_img='images'
         # Min/Max speed 
         self.ROT_SPEED_MIN = 00
         self.ROT_SPEED_MAX = 30
