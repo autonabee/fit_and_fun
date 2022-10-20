@@ -29,7 +29,7 @@ class GameCanoe(Console):
         tree_sprites = [pg.image.load(os.path.join(self.dir_img, f"tree_{i}.png")) for i in range(1,3)]
         rock_sprites = [pg.image.load(os.path.join(self.dir_img, f"rocher_{i}.png")) for i in range(1,3)]
         wood_sprites = [pg.image.load(os.path.join(self.dir_img, f"wood_{i}.png")) for i in range(1,3)]
-        wood_sprites = [pg.transform.rotate(ws, random.randint(-80, 80)) for ws in wood_sprites]
+        wood_sprites = [pg.transform.rotate(ws, random.choice([75, -75])) for ws in wood_sprites]
         
         player = Player(self.screen)
         
@@ -45,7 +45,6 @@ class GameCanoe(Console):
         upper_landscape = [LandscapeProp(self.screen) for _ in range(2)]
         
         bonus = Bonus(self.screen)
-        bonus.spawn(300)
 
         while True:
             delta = clock.tick(30)

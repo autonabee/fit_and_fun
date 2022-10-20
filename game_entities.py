@@ -30,7 +30,7 @@ class Player():
             self.hit_cooldown -= delta
         
         self.anim_counter += 1
-        if self.anim_counter >= 6:
+        if self.anim_counter >= 10:
             self.anim_counter = 0
             self.sprite_idx = (self.sprite_idx + 1) % 2
     
@@ -67,10 +67,10 @@ class LandscapeProp():
         self.height = self.sprite.get_height()
         if random.random() < 0.5:
             # Spawn left of the river
-            self.pos_x = 30 + random.randint(-24, 24)
+            self.pos_x = 40 + random.randint(-50, 50)
         else:
             # Or spawn right of the river
-            self.pos_x = self.screen.get_width() - 30 + random.randint(-10, 10)
+            self.pos_x = self.screen.get_width() - 40 + random.randint(-50, 50)
         self.pos_y = -self.height * 0.5
     
     def update(self, delta, bg_speed):
@@ -141,6 +141,7 @@ class Bonus():
         self.sprites = [pg.image.load(os.path.join(Console.dir_img, filename)) for filename in self.sprites_path]
         self.width = self.sprites[0].get_width()
         self.height = self.sprites[0].get_height()
+        self.lifetime = 0
 
 
     def spawn(self, height):
