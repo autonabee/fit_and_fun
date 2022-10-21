@@ -5,17 +5,20 @@ import random
 from console import Console
 from game_entities import Player, Obstacle, Bonus, LandscapeProp
 
+import psutil
 
 class GameCanoe(Console):
 
     def __init__(self):
-        super().__init__()
+        super().__init__()        
     
     def game(self):
         """
         game panel. A character go headed on a scrolled side game depending
         on its speed. If it reaches muschroom the score is decrease.
         """
+
+        prev_mem_usage =  psutil.Process().memory_info().rss / (1024 * 1024)
 
         # Constants
         SCROLL_SPEED_MAX = 0.2       # Raise value for a faster river current
@@ -29,28 +32,40 @@ class GameCanoe(Console):
 
         # Loading sprite assets
         river_bg = pg.image.load(self.dir_img+'/level_bg.png')
-        #river_bg = pg.transform.scale(river_bg, (self.size_x, self.size_y))
         duck_sprites = [pg.transform.rotozoom(pg.image.load(self.dir_img + "/duck.png"), 0, 1.5)]
         duck_sprites.append(pg.transform.flip(duck_sprites[0], True, False))
         bush_sprites = [pg.image.load(os.path.join(self.dir_img, f"buisson_{i}.png")) for i in range(1,3)]
         tree_sprites = [pg.image.load(os.path.join(self.dir_img, f"tree_{i}.png")) for i in range(1,3)]
         rock_sprites = [pg.image.load(os.path.join(self.dir_img, f"rocher_{i}.png")) for i in range(1,3)]
-        wood_sprites = [pg.image.load(os.path.join(self.dir_img, f"wood_{i}.png")) for i in range(1,3)]
-        wood_sprites = [pg.transform.rotate(ws, random.choice([75, -75])) for ws in wood_sprites]
+        truncs_sprites = [pg.image.load(os.path.join(self.dir_img, f"wood_{i}.png")) for i in range(1,3)]
         
-        player = Player(self.screen)
-        
+
+        # Assets augmentation
+        for elt in rock_sprites[:]:
+            # Smaller rocks
+            rock_sprites.append(pg.transform.scale(elt, (0.5, 0.5)))
+        for elt in rock_sprites[:]:
+            # Vertically flipped rocks
+            rock_sprites.append(pg.transform.flip(elt, False, True))
+        for elt in truncs_sprites[:]:
+            # Smaller tree truncs
+            truncs_sprites.append(pg.transform.scale(elt, (0.5, 0.5)))
+        # Rotate all tree truncs
+        truncs_sprites = [pg.transform.rotate(ws, random.choice([75, -70, 60, -50])) for ws in truncs_sprites]
+
         # Data
         previous_speed = 0  # Used for value smoothing
-        bg_y = 0
+        bg_y = 0                                                                                                
         distance = 0        # Virtual rowing distance (in bogo-meters)
         
         # Entities are instanciated once to avoid garbage collection as much as possible
-        obstacles = [Obstacle(self.screen) for _ in range(3)]
-        lower_landscape = [LandscapeProp(self.screen) for _ in range(5)]
-        upper_landscape = [LandscapeProp(self.screen) for _ in range(2)]
-        
+        player = Player(self.screen)
         bonus = Bonus(self.screen)
+        obstacles = [Obstacle(self.screen) for _ in range(3)]
+        landscape = [LandscapeProp(self.screen) for _ in range(20)]
+
+        mem_usage = psutil.Process().memory_info().rss / (1024 * 1024)
+        print("memory usage:", round(mem_usage - prev_mem_usage, 2), "Mo")
 
         while True:
             time_delta = clock.tick(30)
@@ -75,15 +90,15 @@ class GameCanoe(Console):
 
             # Update all entities
             player.update(time_delta)
-
-            for le in lower_landscape + upper_landscape:
-                le.update(time_delta, scroll_speed)
-
             bonus.update(time_delta)
+
+            for elt in landscape:
+                elt.update(time_delta, scroll_speed)
 
             for obs in obstacles:
                 obs.update(time_delta)
             
+
             #########################################
             ## Obstacle/Player collision detection ##
             #########################################
@@ -100,16 +115,13 @@ class GameCanoe(Console):
             if bonus.alive and player.hitbox.colliderect(bonus.hitbox):
                 bonus.alive = False
                 self.score += 200
-            
-            for le in lower_landscape:
-                le.draw()
 
-            # Draw upper landscape above lower landscape
-            for le in upper_landscape:
-                le.draw()
+            # Draw scenery elements in order defined by their layer
+            landscape.sort(key=lambda x: x.layer)
+            for elt in landscape:
+                elt.draw()
 
             bonus.draw()
-            
             player.draw()
             
             for obs in obstacles:
@@ -117,17 +129,31 @@ class GameCanoe(Console):
             
             
             # Spawn Lanscape elements
-            if random.random() < 0.01:
-                for le in lower_landscape:
-                    if not le.alive:
-                        le.spawn(random.choice(bush_sprites + rock_sprites + wood_sprites))
+            if random.random() < 0.05:
+                # Spawn rocks on bottom layer
+                for elt in landscape:
+                    if not elt.alive:
+                        elt.spawn(random.choice(rock_sprites), 0)
                         break
             if random.random() < 0.01:
-                for le in upper_landscape:
-                    if not le.alive:
-                        le.spawn(random.choice(tree_sprites))
+                # Spawn tree truncs
+                for elt in landscape:
+                    if not elt.alive:
+                        elt.spawn(random.choice(bush_sprites + truncs_sprites), 1)
                         break
-            
+            if random.random() < 0.01:
+                # Spawn bushes
+                for elt in landscape:
+                    if not elt.alive:
+                        elt.spawn(random.choice(bush_sprites), 2)
+                        break
+            if random.random() < 0.01:
+                # Spawn trees on highest layer
+                for elt in landscape:
+                    if not elt.alive:
+                        elt.spawn(random.choice(tree_sprites), 3)
+                        break
+                        
             # Spawn Obstacles and Bonuses
             if random.random() < 0.02:
                 for obs in obstacles:
@@ -157,4 +183,3 @@ class GameCanoe(Console):
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     self.menu()
-       

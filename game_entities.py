@@ -82,6 +82,7 @@ class LandscapeProp():
     def __init__(self, screen):
         self.screen = screen
         self.alive = False
+        self.layer = 0
     
 
     def spawn(self, sprite, layer=0):
@@ -91,7 +92,7 @@ class LandscapeProp():
             ----------
                 sprite: pygame.Surface
                 layer: int
-                    drawing layer
+                    drawing layer (higher numbers will be drawn on top)
         """
         self.alive = True
         self.layer = layer      # Drawing layer, higher numbers will be drawn on top of lower numbers
