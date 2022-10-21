@@ -167,6 +167,7 @@ Le dernier lien propose un `config.txt` pour ce contrôleur. Il me semble avoir 
 ## TODO
 
 * [ ] Retour d'utilisation joueurs ANTS
-* [ ] Packaging et robustesse
+* [ ] Intégrer boutons et joystick
 * [ ] Intégrer le frein avec moteur pas à pas
+* [ ] Packaging et robustesse
 * [ ] Tuto ceinture cardio
