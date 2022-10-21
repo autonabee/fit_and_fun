@@ -5,6 +5,8 @@ An interactive device to make a hand pedal fun
 Première version avec un capteur MStick5C-P qui envoie la vitesse de rotation du capteur par MQTT/wifi à un jeu pygame
 sur PC.
 
+Voir le wikilab: <https://pad.lamyne.org/Fabrikarium2022-Fit_and_Fun#>
+
 ## Pre-requis
 
 ### Raspberry
@@ -14,7 +16,8 @@ sur PC.
 * Raspberry Pi OS Full (64 bit) a port of debian bullseye with desktop (humanlab/humanlab)
 * python > 3.9
 * sudo apt install -y mosquitto  mosquitto-clients
-* pip install -y pygame pygame-menu paho-mqtt readchar
+* pip install -y pygame pygame-menu paho-mqtt readchar 
+* pip
 
 #### Mqtt broker config
 
@@ -70,7 +73,23 @@ hdmi_safe=1 (décommenter)
 Avec le raspberry en wifi access-point (ssid:fit_and_fun, passwd:fun_and_fit) et un écran classique sur la raspberry. Après configuration Wifi/Mqtt coté raspberry (`sudo systemctl restart mosquitto`) et mis sous tension le capteur ESP2866+BNO05, on peut lancer le jeu: `python fit_and_fun.py -b 10.4.0.1`.
 Quand le capteur tourne sur lui-même (axe Z), la rivière avance et si on passe une certaine vitesse, le personnage avance aussi. Le score augmente en fonction de la durée/vitesse et si le personnage touche les obstacles  qui traverse la rivière.
 
-On peut utiliser également le jeu avec un clavier: `python fit_and_fun_keyboard.py`
+On peut utiliser également le jeu avec un clavier sans mqtt: `python fit_and_fun_keyboard.py`
+
+```bash
+python fit_and_fun.py -h
+pygame 2.1.2 (SDL 2.0.16, Python 3.10.0)
+Hello from the pygame community. https://www.pygame.org/contribute.html
+pygame-menu 4.2.8
+usage: fit_and_fun.py [-h] [-b BROKER] [-w]
+
+Fit and fun game during sport
+
+options:
+  -h, --help            show this help message and exit
+  -b BROKER, --broker BROKER
+                        Broker host to connect (default localhost)
+  -w, --wind            Wind simulation resistance
+```
 
 ## Fichiers
 
@@ -83,6 +102,7 @@ On peut utiliser également le jeu avec un clavier: `python fit_and_fun_keyboard
 * `fit_and_fun.py`: main to launch the game controllable through mqtt (topic `fit_and_fun/speed`)
 * `sensors/FAF_ESP/FAF_ESP.ino`: firmware for the gyro sensor (ESP2866+BNO05) sending rot speed through mqtt
 * `sensors/FAF_STICK5/FAF_STICK5.ino`: firmware for the gyro sensor (M5StickC-P), sending rot speed through mqtt to be tested.
+* `wind.py`: 'wind' resistor management (to be tested)
 
 ## Problèmes non résolus
 
@@ -117,15 +137,14 @@ J'ai retrouvé de la doc. sur le controleur de l'écran:
 
 Le dernier lien propose un `config.txt` pour ce contrôleur. Il me semble avoir essayé ces paramètres...mais on se sait jamais...
 
-## Fichiers
-
-
 ## Liens utiles
 
 * Pygame
- 
+  * <https://realpython.com/pygame-a-primer>
+  * <https://www.pygame.org/docs>
+  * <https://www.youngwonks.com/blog/How-to-Make-a-Side-Scroller-Game-using-Python-and-PyGame>
   * <https://pythonfaqfr.readthedocs.io/en/latest/pygame_collisions.html>
-
+  * <https://www.techwithtim.net/tutorials/game-development-with-python/side-scroller-pygame>
 * M5stackC-Plus
   * <https://docs.m5stack.com/en/core/m5stickc_plus>
   * <https://github.com/m5stack/M5StickC-Plus>
@@ -141,7 +160,13 @@ Le dernier lien propose un `config.txt` pour ce contrôleur. Il me semble avoir 
   * <https://www.raspberrypi.com/documentation/computers/config_txt.html>
 * Wifi access point
   * <https://www.tomshardware.com/how-to/raspberry-pi-access-point>
+* Moteur pas à pas
+  * Carte controle TB6560 <https://m.alibaba.com/product/1600135069093/HW-090-motor-driver-board-single.html>
+  * Tuto arduino <https://www.makerguides.com/tb6560-stepper-motor-driver-arduino-tutorial>
 
 ## TODO
 
+* [ ] Retour d'utilisation joueurs ANTS
+* [ ] Packaging et robustesse
+* [ ] Intégrer le frein avec moteur pas à pas
 * [ ] Tuto ceinture cardio

@@ -8,8 +8,8 @@ from game_entities import Player, Obstacle, Bonus, LandscapeProp
 
 class GameCanoe(Console):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, wind):
+        super().__init__(wind)
     
     def game(self):
         """
@@ -18,7 +18,7 @@ class GameCanoe(Console):
         """
         # Time init
         clock = pg.time.Clock()
-        self.time0=time.time()
+        self.reset_data()
 
         # Sprite assets loading
         river_bg = pg.image.load(self.dir_img+'/level_bg.png')
@@ -134,6 +134,7 @@ class GameCanoe(Console):
             if not bonus.alive and random.random() < 0.002:
                 bonus.spawn(random.random() * self.size_y)
             
+            current_time=time.time() - self.time0
             
             #####################
             ######## HUD ########

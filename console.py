@@ -21,9 +21,8 @@ class Console():
         It provides a method get_speed to be called outside
         of the class to read a 'sensor value'
     """
-    
     dir_img='images'
-    
+
     def __init__(self, wind=None):
         """ Class constructor """
         # Screen configuration
@@ -33,17 +32,23 @@ class Console():
         self.ROT_SPEED_MIN = 00
         self.ROT_SPEED_MAX = 15
         # rot speed max = 700, screen speed max = 3 => 3/600
-        self.SPEED_RATIO=0.005
+        self.SPEED_RATIO=0.005 
+        # 2*Pi rad (1 revolution) -> 0.5 meter
+        self.DIST_RATIO=0.079577472
         # Control variable
         self._on_message = None
-        # raw speed value received from the mqtt sensor
+        # raw speed value (rad/s) received from the mqtt sensor
         self.rot_speed=0
-        # speed = SPEED_RATIO*rot_speed = speed of the screen
+        # speed = SPEED_RATIO*rot_speed = speed of the screen (no unit )
         self.speed=0
-        self.energy=0.0
+        # distance in meter = DIST_RATIO*rot_speed*dt
+        self.distance=0.0
+        self.mean_rot_speed=0.0
         self.score=0
         # initial time when the game begins
         self.time0=0
+        # current time
+        self.time=0
         # Screen init
         pg.init()
         self.screen = pg.display.set_mode((self.size_x, self.size_y))
@@ -145,8 +150,13 @@ class Console():
         minutes, seconds = divmod(duration, 60)
         template = "Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
         banner= template.format(min=int(minutes), sec=int(seconds), 
-                            speed=int(self.rot_speed), score=self.score+int(self.energy))
+                            speed=int(self.rot_speed), score=self.score+int(self.distance))
         return banner
+
+    def reset_data(self):
+        self.time0=time.time()
+        self.distance=0
+        self.mean_rot_speed=0
 
     def get_speed(self, client, userdata, message):
         """ extract and normalize the rotation raw speed
@@ -161,6 +171,7 @@ class Console():
         try:
             rot_speed=float(str(message.payload.decode("utf-8")))
             rot_speed=abs(rot_speed)
+            # ro_speed normalisation
             if rot_speed < self.ROT_SPEED_MIN:
                 self.rot_speed=0
                 self.speed=0
@@ -168,11 +179,21 @@ class Console():
                 self.rot_speed=self.ROT_SPEED_MAX
             else:
                 self.rot_speed=rot_speed
+            # speed update
             self.speed=round(self.SPEED_RATIO*self.rot_speed)
+            # compute deltatime dt and update data values
+            current_time = time.time()
+            dt=0
+            if self.time == 0:
+                self.distance=0
+            else:
+                dt = current_time - self.time
+                self.distance+=(self.rot_speed*self.DIST_RATIO*dt)
+                self.mean_rot_speed=self.distance/((current_time - self.time0)*self.DIST_RATIO)
+            self.time=current_time
         except Exception:
             self.speed=0
             self.rot_speed=0
 
         #self.score=self.score+self.speed
-
         if self.debug==True: print(self.get_banner())
