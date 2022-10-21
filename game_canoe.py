@@ -21,9 +21,11 @@ class GameCanoe(Console):
         prev_mem_usage =  psutil.Process().memory_info().rss / (1024 * 1024)
 
         # Constants
-        SCROLL_SPEED_MAX = 0.2       # Raise value for a faster river current
-        SCROLL_SPEED_MIN = 0.02      # Minimum current speed of the river
+        SCROLL_SPEED_MAX = 0.2      # Raise value for a faster river current
+        SCROLL_SPEED_MIN = 0.02     # Minimum current speed of the river
         SPEED_SMOOTHING = 0.8       # To smooth speed value and avoid jagginess, between 0 and 1
+        BONUS_DURATION = 2.0        # Duration of speed bonus with doubled scrolling speed (in seconds)
+        BONUS_COOLDOWN = 1.0        # Speed bonus deceleration period (in seconds)
 
 
         # Time init
@@ -55,7 +57,8 @@ class GameCanoe(Console):
 
         # Data
         previous_speed = 0  # Used for value smoothing
-        bg_y = 0                                                                                                
+        bg_y = 0
+        bonus_timer = 0
         distance = 0        # Virtual rowing distance (in bogo-meters)
         
         # Entities are instanciated once to avoid garbage collection as much as possible
@@ -75,7 +78,20 @@ class GameCanoe(Console):
             speed = SPEED_SMOOTHING * previous_speed + (1 - SPEED_SMOOTHING) * rot_speed_normalized
             previous_speed = speed
             player.speed = speed # speed is normalized (between 0 and 1)
-            scroll_speed = SCROLL_SPEED_MAX * speed + SCROLL_SPEED_MIN
+
+            if bonus_timer > 0:
+                # Bonus is activated
+                if bonus_timer > BONUS_COOLDOWN*1000:
+                    # Full speed
+                    scroll_speed = 2 * SCROLL_SPEED_MAX
+                else:
+                    # Decelerating by interpolating between double speed and regular speed
+                    a = bonus_timer/(BONUS_COOLDOWN*1000)
+                    scroll_speed = a * 2 * SCROLL_SPEED_MAX + (1-a) * (SCROLL_SPEED_MAX * speed + SCROLL_SPEED_MIN)
+                bonus_timer -= time_delta
+            else:
+                scroll_speed = SCROLL_SPEED_MAX * speed + SCROLL_SPEED_MIN
+
             distance += scroll_speed * time_delta * 0.01
 
             # Background scrolling
@@ -103,7 +119,6 @@ class GameCanoe(Console):
             ## Obstacle/Player collision detection ##
             #########################################
             
-            #collision = player_hitbox.collideobjects(obstacles, key=lambda x: x.hitbox)
             colliding = player.hitbox.collidelistall([o.hitbox for o in obstacles if o.alive])
             if len(colliding) > 0:
                 was_hit = player.hit()
@@ -114,6 +129,7 @@ class GameCanoe(Console):
             
             if bonus.alive and player.hitbox.colliderect(bonus.hitbox):
                 bonus.alive = False
+                bonus_timer = (BONUS_DURATION + BONUS_COOLDOWN) * 1000
                 self.score += 200
 
             # Draw scenery elements in order defined by their layer
