@@ -2,6 +2,8 @@ import pygame as pg
 from console import Console
 from game_canoe import GameCanoe
 import threading
+
+
 class KeyboardController():
     
     def __init__(self, on_message):
@@ -42,8 +44,8 @@ class KeyboardController():
             
             # Send the value every 100 millisec to simulate the real sensor's frequency
             if timer > 100:
-                virtual_speed = min(max(0, virtual_speed - 4), 700)
-                virtual_speed += n_press * 10   # rough
+                virtual_speed = min(max(0, virtual_speed - 1.5), 15)
+                virtual_speed += n_press * 4
                 message = self.FakeMQTTMessage(str(virtual_speed))
                 self.on_message(None, None, message)
                 n_press = 0
