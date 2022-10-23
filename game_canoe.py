@@ -4,6 +4,7 @@ import os
 import random
 from console import Console
 from game_entities import Player, Obstacle, Bonus, LandscapeProp
+from game_events import game_events
 
 
 class GameCanoe(Console):
@@ -56,18 +57,56 @@ class GameCanoe(Console):
         bg_y = 0
         bonus_timer = 0
         distance = 0        # Virtual rowing distance (in bogo-meters)
+        event_idx = 0       # Keep track of game events
+        level_started = False
+        control_enabled = True
+        fixed_speed = 0
         
         # Entities are instanciated once to avoid garbage collection as much as possible
         player = Player(self.screen)
         bonus = Bonus(self.screen)
         obstacles = [Obstacle(self.screen) for _ in range(3)]
         landscape = [LandscapeProp(self.screen) for _ in range(20)]
+        special_scenery = [LandscapeProp(self.screen) for _ in range(8)]
 
         while True:
             time_delta = clock.tick(30)
 
+
+            ####  Scripted Game Events (see file game_events.py)  ####
+            if event_idx < len(game_events):
+                while game_events[event_idx][0] < distance:
+                    event_type = game_events[event_idx][1]
+                    if event_type == "LC":      # Lock game control
+                        control_enabled = False
+                    elif event_type == "EC":    # Enable game control
+                        control_enabled = True
+                    elif event_type == "FS":    # Fixed speed
+                        event_data = game_events[event_idx][2]
+                        fixed_speed = event_data
+                    elif event_type == "LV1":     # Start level (obstacles, bonuses and score recording)
+                        level_started = True
+                    elif event_type == "SS":      # Spawn special scenery
+                        event_data = game_events[event_idx][2]
+                        for elt in special_scenery:
+                            if not elt.alive:
+                                sprite_filename = os.path.join(self.dir_img, event_data[0])
+                                sprite = pg.image.load(sprite_filename)
+                                elt.spawn(sprite, 0)
+                                elt.pos_x = self.size_x * 0.5 + event_data[1]
+                                break
+                        else:
+                            print("WARNING: special_scenery array is full")
+                    event_idx += 1
+                    if event_idx >= len(game_events):
+                        break
+
+
             # Normalizing and smoothing speed value
-            rot_speed_normalized = self.rot_speed / self.ROT_SPEED_MAX
+            if control_enabled:
+                rot_speed_normalized = self.rot_speed / self.ROT_SPEED_MAX
+            else:
+                rot_speed_normalized = 0
             speed = SPEED_SMOOTHING * previous_speed + (1 - SPEED_SMOOTHING) * rot_speed_normalized
             previous_speed = speed
             player.speed = speed # speed is normalized (between 0 and 1)
@@ -85,6 +124,9 @@ class GameCanoe(Console):
                 bonus_timer -= time_delta
             else:
                 scroll_speed = SCROLL_SPEED_MAX * speed + SCROLL_SPEED_MIN
+            
+            if fixed_speed > 0:
+                scroll_speed = fixed_speed * SCROLL_SPEED_MAX
 
             distance += scroll_speed * time_delta * 0.01
 
@@ -105,6 +147,9 @@ class GameCanoe(Console):
             for elt in landscape:
                 elt.update(time_delta, scroll_speed)
 
+            for elt in special_scenery:
+                elt.update(time_delta, scroll_speed)
+
             for obs in obstacles:
                 obs.update(time_delta)
             
@@ -123,7 +168,10 @@ class GameCanoe(Console):
                 bonus_timer = (BONUS_DURATION + BONUS_COOLDOWN) * 1000
                 self.score += 200
 
-            # Draw scenery elements in order defined by their layer
+            for elt in special_scenery:
+                elt.draw()
+
+            # Draw landscape elements in order defined by their layer
             landscape.sort(key=lambda x: x.layer)
             for elt in landscape:
                 elt.draw()
@@ -161,8 +209,8 @@ class GameCanoe(Console):
                         elt.spawn(random.choice(tree_sprites), 3)
                         break
                         
-            # Spawn Obstacles and Bonuses
-            if random.random() < 0.02:
+            ####  Spawning Obstacles and Bonuses  ####
+            if level_started and random.random() < 0.02:
                 for obs in obstacles:
                     if not obs.alive:
                         side = 1
@@ -175,14 +223,10 @@ class GameCanoe(Console):
                         obs.spawn(sprite, obstacle_height, side)
                         break
             
-            if not bonus.alive and random.random() < 0.002:
-                bonus.spawn(random.random() * self.size_y)
+            # if not bonus.alive and random.random() < 0.002:
+            #     bonus.spawn(random.random() * self.size_y)
             
-            
-            #####################
-            ######## HUD ########
-            #####################
-
+            ####  HUD  ####
             self.draw_text(self.get_banner(), 25, self.size_x/2, 1)
             self.draw_text(str(round(distance, 1)), 25, self.size_x - 32, self.size_y - 32)
             
