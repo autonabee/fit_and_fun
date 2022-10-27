@@ -147,13 +147,13 @@ class Obstacle():
         self.alive = False
     
     
-    def spawn(self, sprite, height, side=1, speed=0.1):
+    def spawn(self, sprite, height, side=1, speed=1.0):
         self.alive = True
         self.sprite = sprite
         self.width = self.sprite.get_width()
         self.height = self.sprite.get_height()
         self.side = side
-        self.speed = speed
+        self.speed = speed * 0.1
         self.pos_y = height
         
         if side == 1:

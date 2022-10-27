@@ -1,10 +1,20 @@
+"""
+    Projet Fit & Fun
+    Autonabee
+
+    Fabrikarium 2022 à Rennes
+    code: Gweltaz Duval-Guennoc, Les Portes Logiques, Quimper
+    contact: gweltou@hotmail.com
+"""
+
+
 import pygame as pg
 import time
 import os
 import random
 from console import Console
 from game_entities import Player, Obstacle, Bonus, LandscapeProp
-from game_events import game_events
+from game_events import game_events, event_blocks
 
 
 class GameCanoe(Console):
@@ -58,33 +68,48 @@ class GameCanoe(Console):
         bonus_timer = 0
         distance = 0        # Virtual rowing distance (in bogo-meters)
         event_idx = 0       # Keep track of game events
-        level_started = False
+        # level_started = False
         control_enabled = True
         fixed_speed = 0
         
         # Entities are instanciated once to avoid garbage collection as much as possible
         player = Player(self.screen)
-        bonus = Bonus(self.screen)
-        obstacles = [Obstacle(self.screen) for _ in range(3)]
-        landscape = [LandscapeProp(self.screen) for _ in range(20)]
+        bonus = Bonus(self.screen)  # Only one bonus at each moment
+        obstacles = [Obstacle(self.screen) for _ in range(16)]
+        landscape = [LandscapeProp(self.screen) for _ in range(32)]
         special_scenery = [LandscapeProp(self.screen) for _ in range(8)]
+
+        # Level events
+        # Ici on peut ajouter des évenements temporels au niveau, créés à la volée
+        # ou bien piochés dans le dictionnaire `event_blocks`, du fichier `game_events.py`
+        # Ne pas oublier de trier la liste `game_events` après tout ajout
+        # On peut aussi ajouter un bloc d'évenements à la liste en cours de partie...
+
+        t = 10
+        for i in range(10):
+            ev_block = random.choice(list(event_blocks.values()))
+            events = [ (t + te, *ev) for te, *ev in ev_block["events"] ]
+            game_events.extend(events)
+            t += ev_block["dur"]
+
+        game_events.sort(key=lambda x: x[0])    # Sort by time
 
         while True:
             time_delta = clock.tick(30)
 
-
             ####  Scripted Game Events (see file game_events.py)  ####
             if event_idx < len(game_events):
-                while game_events[event_idx][0] < distance:
+                t = time.time() - self.time0
+                while game_events[event_idx][0] < t:
                     event_type = game_events[event_idx][1]
-                    if event_type == "LC":      # Lock game control
+                    if event_type == "LOCK":      # Lock game control
                         control_enabled = False
-                    elif event_type == "EC":    # Enable game control
+                    elif event_type == "UNLOCK":    # Enable game control
                         control_enabled = True
                     elif event_type == "FS":    # Fixed speed
                         event_data = game_events[event_idx][2]
                         fixed_speed = event_data
-                    elif event_type == "LV1":     # Start level (obstacles, bonuses and score recording)
+                    elif event_type == "LVL_START":     # Start level (obstacles, bonuses and score recording)
                         level_started = True
                     elif event_type == "SS":      # Spawn special scenery
                         event_data = game_events[event_idx][2]
@@ -97,6 +122,33 @@ class GameCanoe(Console):
                                 break
                         else:
                             print("WARNING: special_scenery array is full")
+                    elif event_type == "BON":
+                        h = game_events[event_idx][2]
+                        bonus_height = self.size_y * (1.0 - h)
+                        bonus.spawn(bonus_height)
+                    elif event_type == "OBS_duck":
+                        h, dir, speed = game_events[event_idx][2]
+                        for obs in obstacles:
+                            if not obs.alive:
+                                side = dir
+                                if side >= 0:
+                                    sprite = duck_sprites[0]
+                                else:
+                                    sprite = duck_sprites[1]
+                                
+                                obstacle_height = self.size_y * (1.0 - h)
+                                obs.spawn(sprite, obstacle_height, side, speed)
+                                break
+                        else:
+                            print("WARNING: obstacle array is full")
+                    else:
+                        if event_type in event_blocks:
+                            events = event_blocks[event_type]["events"]
+                            events = [ (t + te, *ev) for te, *ev in events ]
+                            game_events.extend(events)
+                            game_events.sort(key=lambda x: x[0])    # Sort by time
+                        else:
+                            print("ERROR: event type '{}' not found in event_blocks".format(event_type))
                     event_idx += 1
                     if event_idx >= len(game_events):
                         break
@@ -208,23 +260,7 @@ class GameCanoe(Console):
                     if not elt.alive:
                         elt.spawn(random.choice(tree_sprites), 3)
                         break
-                        
-            ####  Spawning Obstacles and Bonuses  ####
-            if level_started and random.random() < 0.02:
-                for obs in obstacles:
-                    if not obs.alive:
-                        side = 1
-                        sprite = duck_sprites[0]
-                        if random.random() < 0.5:
-                            side = -1
-                            sprite = duck_sprites[1]
-                        
-                        obstacle_height = random.random() * self.size_y
-                        obs.spawn(sprite, obstacle_height, side)
-                        break
             
-            # if not bonus.alive and random.random() < 0.002:
-            #     bonus.spawn(random.random() * self.size_y)
             
             ####  HUD  ####
             self.draw_text(self.get_banner(), 25, self.size_x/2, 1)
