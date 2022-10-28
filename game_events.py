@@ -75,6 +75,8 @@ game_events = [
 
 
 
+#### DICTIONNAIRE DE BLOCS D'EVENEMENTS ####
+
 # La durée des blocs d'évènements (paramètre 'dur' en secondes) est à régler manuellement et devrait inclure
 #   une période de repos pour éviter les enchaînement d'évènements trop serrés
 #   ( La structure peut faire penser à du JSON mais c'est du Python ! ;) )
@@ -118,4 +120,45 @@ event_blocks = {
                 ( 2.8, "OBS_duck" , (1, zone_0 - 0.1, left, 1.0) ),
                 ],   
     },
+
+    "omg_birds": {
+        "dur": 10,
+        "events": [
+            # for i in range(32): 
+            #     print(f'( {round(random.random()*2+1.8, 2)}, "OBS_duck", (1, {round(zone_0+2*(random.random()-0.5)*zone_0,2)}, right, {round(4+2*random.random(),2)}) ),') 
+            (0, "OBS_duck", (0, zone_0, right, 1.5) ),
+            ( 3.6, "OBS_duck", (1, 0.23, right, 4.55) ),
+            ( 3.11, "OBS_duck", (1, 0.24, right, 4.32) ),
+            ( 3.39, "OBS_duck", (1, 0.13, right, 4.75) ),
+            ( 2.55, "OBS_duck", (1, 0.16, right, 4.16) ),
+            ( 3.05, "OBS_duck", (1, 0.12, right, 4.01) ),
+            ( 1.85, "OBS_duck", (1, 0.3, right, 5.34) ),
+            ( 3.77, "OBS_duck", (1, 0.03, right, 5.05) ),
+            ( 2.17, "OBS_duck", (1, 0.29, right, 4.51) ),
+            ( 2.17, "OBS_duck", (1, 0.25, right, 5.01) ),
+            ( 2.32, "OBS_duck", (1, 0.1, right, 5.0) ),
+            ( 2.24, "OBS_duck", (1, 0.28, right, 5.19) ),
+            ( 2.38, "OBS_duck", (1, 0.24, right, 5.26) ),
+            ( 3.46, "OBS_duck", (1, 0.06, right, 4.8) ),
+            ( 1.92, "OBS_duck", (1, 0.0, right, 5.65) ),
+            ( 2.77, "OBS_duck", (1, 0.01, right, 4.42) ),
+            ( 3.0, "OBS_duck", (1, 0.27, right, 4.09) ),
+            ( 1.83, "OBS_duck", (1, 0.03, right, 5.78) ),
+            ( 2.07, "OBS_duck", (1, 0.18, right, 5.32) ),
+            ( 3.14, "OBS_duck", (1, 0.07, right, 4.93) ),
+            ( 2.41, "OBS_duck", (1, 0.01, right, 5.45) ),
+            ( 2.23, "OBS_duck", (1, 0.16, right, 4.59) ),
+            ( 2.3, "OBS_duck", (1, 0.32, right, 4.48) ),
+            ( 2.47, "OBS_duck", (1, 0.05, right, 5.95) ),
+            ( 1.9, "OBS_duck", (1, 0.27, right, 5.31) ),
+            ( 3.09, "OBS_duck", (1, 0.08, right, 4.04) ),
+            ( 2.46, "OBS_duck", (1, 0.17, right, 4.32) ),
+            ( 3.22, "OBS_duck", (1, 0.33, right, 4.37) ),
+            ( 3.55, "OBS_duck", (1, 0.29, right, 4.83) ),
+            ( 2.65, "OBS_duck", (1, 0.11, right, 4.9) ),
+            ( 3.36, "OBS_duck", (1, 0.28, right, 5.8) ),
+            ( 2.5, "OBS_duck", (1, 0.17, right, 4.64) ),
+            ( 1.88, "OBS_duck", (1, 0.02, right, 4.65) ),
+        ]
+    }
 }

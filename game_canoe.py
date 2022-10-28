@@ -140,7 +140,6 @@ class GameCanoe(Console):
                         for obs in obstacles:
                             if not obs.alive:
                                 side = dir
-                                print(indiv, h, dir, speed)
                                 if side >= 0:
                                     sprite = duck_sprites[indiv*2 + 0] # facing right
                                 else:

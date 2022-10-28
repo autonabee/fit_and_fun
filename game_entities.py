@@ -48,8 +48,10 @@ class Player():
 
         assert 0 <= self.speed <= 1, "speed value is outside [0,1] range"
 
-        self.pos_y = self.screen.get_height() - self.height \
-                    - self.speed * (self.screen.get_height() - self.height)
+        screen_height = self.screen.get_height()
+        self.pos_y = screen_height - self.height \
+                    - self.speed * (screen_height - self.height)
+        self.pos_y = 0.9 * self.pos_y + 0.05 * screen_height  # Up and bottom margin
         self.hitbox.x = self.pos_x + 55
         self.hitbox.y = self.pos_y + 10
         
