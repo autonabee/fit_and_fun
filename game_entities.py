@@ -1,3 +1,13 @@
+"""
+    Projet Fit & Fun
+    Autonabee
+
+    Fabrikarium 2022 à Rennes
+    code: Gweltaz Duval-Guennoc, Les Portes Logiques, Quimper
+    contact: gweltou@hotmail.com
+"""
+
+
 import pygame as pg
 import random
 import os

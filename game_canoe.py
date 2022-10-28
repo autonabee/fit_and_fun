@@ -42,14 +42,23 @@ class GameCanoe(Console):
 
         # Loading sprite assets
         river_bg = pg.image.load(self.dir_img+'/level_bg.png')
-        duck_sprites = [pg.transform.rotozoom(pg.image.load(self.dir_img + "/duck.png"), 0, 1.5)]
-        duck_sprites.append(pg.transform.flip(duck_sprites[0], True, False))
+        duck_sprites = [pg.image.load(os.path.join(self.dir_img, f"canard_{i}.png")) for i in range(1,3)]
+        # duck_sprites = [pg.transform.rotozoom(pg.image.load(self.dir_img + "/duck.png"), 0, 1.5)]
+        # duck_sprites.append(pg.transform.flip(duck_sprites[0], True, False))
         bush_sprites = [pg.image.load(os.path.join(self.dir_img, f"buisson_{i}.png")) for i in range(1,3)]
         tree_sprites = [pg.image.load(os.path.join(self.dir_img, f"tree_{i}.png")) for i in range(1,3)]
         rock_sprites = [pg.image.load(os.path.join(self.dir_img, f"rocher_{i}.png")) for i in range(1,4)]
         trunc_sprites = [pg.image.load(os.path.join(self.dir_img, f"wood_{i}.png")) for i in range(1,3)]
 
         # Assets augmentation
+        duck_sprites_aug = []
+        for s in duck_sprites:
+            # Resized and mirrored
+            #resized = pg.transform.rotozoom(s, 0, 1.25)
+            flipped = pg.transform.flip(s, True, False)
+            duck_sprites_aug.append(s)
+            duck_sprites_aug.append(flipped)
+        duck_sprites = duck_sprites_aug
         for elt in rock_sprites[:]:
             # Smaller rocks
             rock_sprites.append(pg.transform.scale(elt, (0.5, 0.5)))
@@ -111,7 +120,7 @@ class GameCanoe(Console):
                         fixed_speed = event_data
                     elif event_type == "LVL_START":     # Start level (obstacles, bonuses and score recording)
                         level_started = True
-                    elif event_type == "SS":      # Spawn special scenery
+                    elif event_type == "DECO":      # Spawn special scenery
                         event_data = game_events[event_idx][2]
                         for elt in special_scenery:
                             if not elt.alive:
@@ -122,22 +131,23 @@ class GameCanoe(Console):
                                 break
                         else:
                             print("WARNING: special_scenery array is full")
-                    elif event_type == "BON":
+                    elif event_type == "BONUS":
                         h = game_events[event_idx][2]
                         bonus_height = self.size_y * (1.0 - h)
                         bonus.spawn(bonus_height)
                     elif event_type == "OBS_duck":
-                        h, dir, speed = game_events[event_idx][2]
+                        indiv, h, dir, speed = game_events[event_idx][2]
                         for obs in obstacles:
                             if not obs.alive:
                                 side = dir
+                                print(indiv, h, dir, speed)
                                 if side >= 0:
-                                    sprite = duck_sprites[0]
+                                    sprite = duck_sprites[indiv*2 + 0] # facing right
                                 else:
-                                    sprite = duck_sprites[1]
+                                    sprite = duck_sprites[indiv*2 + 1] # facing left
                                 
-                                obstacle_height = self.size_y * (1.0 - h)
-                                obs.spawn(sprite, obstacle_height, side, speed)
+                                spawn_height = self.size_y * (1.0 - h)
+                                obs.spawn(sprite, spawn_height, side, speed)
                                 break
                         else:
                             print("WARNING: obstacle array is full")
