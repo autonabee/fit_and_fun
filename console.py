@@ -23,6 +23,10 @@ class Console():
     """
     
     dir_img='images'
+
+    #Images
+    heart_full_img = pg.image.load(dir_img+'/heart_full.png')
+    heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
     
     def __init__(self, wind=None):
         """ Class constructor """
@@ -132,6 +136,24 @@ class Console():
         text_rect = text_surface.get_rect()
         text_rect.midtop = (x, y)
         self.screen.blit(text_surface, text_rect)
+
+    def draw_life(self, life_count):
+        """ Print life counter in the top left corner with 
+
+         Parameters
+        ----------
+            life_counter: int
+                number of remaining lives
+        """
+        self.screen.blit(self.heart_full_img, (5, 30))
+        if(life_count >= 2):
+            self.screen.blit(self.heart_full_img, (5, 61))
+        else:
+            self.screen.blit(self.heart_empty_img, (5, 61))
+        if(life_count == 3):
+            self.screen.blit(self.heart_full_img, (5, 92))
+        else:
+            self.screen.blit(self.heart_empty_img, (5, 92))
 
     def get_banner(self):
         """ Format textual information

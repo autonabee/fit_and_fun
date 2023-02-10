@@ -80,7 +80,8 @@ class GameCanoe(Console):
         # level_started = False
         control_enabled = True
         fixed_speed = 0
-        self.score = 0.0 
+        self.score = 0.0
+        life_count = 3
         
         # Entities are instanciated once to avoid garbage collection as much as possible
         player = Player(self.screen)
@@ -222,6 +223,7 @@ class GameCanoe(Console):
                 was_hit = player.hit()
                 if was_hit:
                     self.score -= 100
+                    life_count -= 1
             for i in colliding:
                 obstacles[i].alive = False
             
@@ -275,8 +277,9 @@ class GameCanoe(Console):
             ####  HUD  ####
             self.draw_text(self.get_banner(), 25, self.size_x/2, 1)
             self.draw_text(str(round(distance, 1)), 25, self.size_x - 32, self.size_y - 32)
+            self.draw_life(life_count)
             
             pg.display.update()
             for event in pg.event.get():
-                if event.type == pg.QUIT:
+                if event.type == pg.QUIT or life_count == 0:
                     self.menu()
