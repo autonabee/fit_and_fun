@@ -80,6 +80,7 @@ class GameCanoe(Console):
         # level_started = False
         control_enabled = True
         fixed_speed = 0
+        self.score = 0.0 
         
         # Entities are instanciated once to avoid garbage collection as much as possible
         player = Player(self.screen)
@@ -227,7 +228,7 @@ class GameCanoe(Console):
             if bonus.alive and player.hitbox.colliderect(bonus.hitbox):
                 bonus.alive = False
                 bonus_timer = (BONUS_DURATION + BONUS_COOLDOWN) * 1000
-                self.score += 200
+                self.score += 100
 
             for elt in special_scenery:
                 elt.draw()

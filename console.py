@@ -33,13 +33,13 @@ class Console():
         self.ROT_SPEED_MIN = 00
         self.ROT_SPEED_MAX = 15
         # rot speed max = 700, screen speed max = 3 => 3/600
-        self.SPEED_RATIO=0.005
+        # Ratio between effective speed and apparent score
+        self.SCORE_RATIO=0.02
         # Control variable
         self._on_message = None
         # raw speed value received from the mqtt sensor
         self.rot_speed=0
-        # speed = SPEED_RATIO*rot_speed = speed of the screen
-        self.speed=0
+        self.speed=0.0
         self.energy=0.0
         self.score=0
         # initial time when the game begins
@@ -145,7 +145,7 @@ class Console():
         minutes, seconds = divmod(duration, 60)
         template = "Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
         banner= template.format(min=int(minutes), sec=int(seconds), 
-                            speed=int(self.rot_speed), score=self.score+int(self.energy))
+                            speed=int(self.rot_speed), score=round(self.score)+int(self.energy))
         return banner
 
     def get_speed(self, client, userdata, message):
@@ -163,16 +163,16 @@ class Console():
             rot_speed=abs(rot_speed)
             if rot_speed < self.ROT_SPEED_MIN:
                 self.rot_speed=0
-                self.speed=0
+                self.speed=0.0
             elif rot_speed > self.ROT_SPEED_MAX:
                 self.rot_speed=self.ROT_SPEED_MAX
             else:
                 self.rot_speed=rot_speed
-            self.speed=round(self.SPEED_RATIO*self.rot_speed)
+            self.speed=self.SCORE_RATIO*self.rot_speed
         except Exception:
-            self.speed=0
+            self.speed=0.0
             self.rot_speed=0
 
-        #self.score=self.score+self.speed
+        self.score=self.score+self.speed
 
         if self.debug==True: print(self.get_banner())
