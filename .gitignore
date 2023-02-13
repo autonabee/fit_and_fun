@@ -1,1 +1,7 @@
 __pycache__/
+sensors/FAF_ESP/debug.cfg
+sensors/FAF_ESP/debug_custom.json
+sensors/FAF_ESP/esp32.svd
+sensors/FAF_STICK5/debug.cfg
+sensors/FAF_STICK5/debug_custom.json
+sensors/FAF_STICK5/esp32.svd
