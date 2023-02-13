@@ -85,6 +85,32 @@ class Console():
         """ Open self.usermenu """
         self.mainmenu._open(self.usermenu)
  
+    def score_menu(self, duration, distance):
+        """ Open self.scoremenu """
+        self.scoremenu = pg_menu.Menu('Congratulations!', self.size_x, self.size_y, theme=mytheme)
+        minutes, seconds = divmod(duration, 60)
+        self.scoremenu.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"")
+        self.scoremenu.add.label("Distance : " + str(round(distance)))
+        self.scoremenu.add.label("Score : " + str(round(self.score)))
+        self.scoremenu.add.button('Menu', self.menu)
+        self.scoremenu.add.button('Quit', pg_menu.events.EXIT)
+        while True:
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT: 
+                    pg.display.quit()
+                    if self.debug : print("Quit") 
+                    self.synchro.release() 
+                    if self.wind_resistor != None:
+                        self.wind_resistor.stop()
+                    exit()
+
+            if self.scoremenu.is_enabled():
+                self.scoremenu.update(events)
+                self.scoremenu.draw(self.screen)
+            pg.display.update()
+
     def menu(self):
         """ Menu game management """
         # Main entry menu
@@ -99,6 +125,7 @@ class Console():
         self.mainmenu.add.button('Levels', self.level_menu)
         self.levelmenu = pg_menu.Menu('Select a Level', self.size_x, self.size_y, theme=mytheme)
         self.levelmenu.add.selector('Level :', [('Non-regular', 1), ('Regular', 2)], onchange=self.set_level)
+
         # Quit the game
         self.mainmenu.add.button('Quit', pg_menu.events.EXIT)
         # Event loop

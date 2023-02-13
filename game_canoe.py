@@ -282,4 +282,4 @@ class GameCanoe(Console):
             pg.display.update()
             for event in pg.event.get():
                 if event.type == pg.QUIT or life_count == 0:
-                    self.menu()
+                    self.score_menu(time.time() - self.time0, distance)
