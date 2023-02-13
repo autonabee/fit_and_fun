@@ -77,7 +77,7 @@ class GameCanoe(Console):
         bonus_timer = 0
         distance = 0        # Virtual rowing distance (in bogo-meters)
         event_idx = 0       # Keep track of game events
-        # level_started = False
+        level_started = False
         control_enabled = True
         fixed_speed = 0
         self.score = 0.0
@@ -191,7 +191,10 @@ class GameCanoe(Console):
             if fixed_speed > 0:
                 scroll_speed = fixed_speed * SCROLL_SPEED_MAX
 
-            distance += scroll_speed * time_delta * 0.01
+            if(level_started):
+                distance += scroll_speed * time_delta * 0.01
+            else:
+                distance = 0
 
             ####  Background scrolling  ####
             self.screen.blit(river_bg,(0, bg_y - self.size_y))
