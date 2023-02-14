@@ -57,7 +57,9 @@ class Console():
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
         # lock for synchro to kill the sensor speed client
-        self.synchro = threading.Lock()
+        self.synchro_speed = threading.Lock()
+        self.synchro_select = threading.Lock()
+        self.synchro_down = threading.Lock()
         self.debug=True
         self.difficulty=1
         self.name='Julien'
@@ -101,7 +103,9 @@ class Console():
                 if event.type == pg.QUIT: 
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro.release() 
+                    self.synchro_speed.release() 
+                    self.synchro_select.release() 
+                    self.synchro_down.release() 
                     if self.wind_resistor != None:
                         self.wind_resistor.stop()
                     exit()
@@ -135,7 +139,9 @@ class Console():
                 if event.type == pg.QUIT: 
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro.release() 
+                    self.synchro_speed.release() 
+                    self.synchro_select.release() 
+                    self.synchro_down.release() 
                     if self.wind_resistor != None:
                         self.wind_resistor.stop()
                     exit()
@@ -226,9 +232,22 @@ class Console():
 
         if self.debug==True: print(self.get_banner())
 
+    def btn_select(self, client, userdata, message):
+        try:
+            print("MQTT on select key works!\n")
+            if(str(message.payload.decode("utf-8")) == "HIGH"):
+                print("Select key pressed\n")
+                #newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_DOWN, mod=pg.locals.KMOD_NONE)
+                #pg.event.post(newevent)
+        except Exception:
+            print("ERROR in btn_select\n")
+
     def btn_down(self, client, userdata, message):
-        print("MQTT on down key works!\n")
-        if(str(message.payload.decode("utf-8")) == "HIGH"):
-            print("Down key pressed\n")
-            newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_DOWN, mod=pg.locals.KMOD_NONE)
-            pg.event.post(newevent)
+        try:
+            print("MQTT on down key works!\n")
+            if(str(message.payload.decode("utf-8")) == "HIGH"):
+                print("Down key pressed\n")
+                #newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_DOWN, mod=pg.locals.KMOD_NONE)
+                #pg.event.post(newevent)
+        except Exception:
+            print("ERROR in btn_down\n")
