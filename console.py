@@ -225,3 +225,10 @@ class Console():
         self.score=self.score+self.speed
 
         if self.debug==True: print(self.get_banner())
+
+    def btn_down(self, client, userdata, message):
+        print("MQTT on down key works!\n")
+        if(str(message.payload.decode("utf-8")) == "HIGH"):
+            print("Down key pressed\n")
+            newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_DOWN, mod=pg.locals.KMOD_NONE)
+            pg.event.post(newevent)

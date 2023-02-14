@@ -1,4 +1,4 @@
-#include <ESP8266WiFi.h>
+#include <WiFi.h>
 #include <PubSubClient.h>
 #include <Adafruit_Sensor.h>                                                    
 #include <Adafruit_BNO055.h>   
@@ -9,6 +9,13 @@ PubSubClient client(espClient);
 const char* ssid        = "fit_and_fun";
 const char* password    = "fun_and_fit";
 const char* mqtt_server = "10.42.0.1";
+
+const int buttonSelectPin = 14;
+const int buttonDownPin = 15;
+int buttonSelectState = 0;
+int buttonDownState = 0;
+
+const int ledPin =  13;      // the number of the LED pin
 
 #define MSG_BUFFER_SIZE (10)
 char msg[MSG_BUFFER_SIZE];
@@ -27,7 +34,8 @@ void setupWifi() {
     delay(10);
     Serial.print("Connecting to ");
     Serial.println(ssid);
-    WiFi.begin(ssid, password);  // Start Wifi connection.
+    //WiFi.begin(ssid, password);  // Start Wifi connection.
+    WiFi.begin(ssid);
 
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
@@ -52,6 +60,10 @@ void setup() {
 );                                                                              
     while (1);                                                                  
   }       
+
+  pinMode(buttonSelectPin, INPUT_PULLUP);
+  pinMode(buttonDownPin, INPUT_PULLUP);
+  pinMode(ledPin, OUTPUT);
   
   delay(1000);                                                                                   
                   
@@ -74,11 +86,26 @@ void loop() {
   Serial.print((float)event.gyro.z);
   Serial.println(F(""));
 
-  
+  /* Creation and sending of a speed message */
   snprintf(msg, MSG_BUFFER_SIZE, "%6.2f", (float)event.gyro.z);
   client.publish("fit_and_fun/speed", msg);
-  Serial.print("mqtt publish: ");
+  Serial.print("mqtt publish speed: ");
   Serial.println(msg);
+
+  /* Creation and sending of a select button message */
+  buttonSelectState = digitalRead(buttonSelectPin);
+  snprintf(msg, MSG_BUFFER_SIZE, "%s", buttonSelectState == LOW ? "false" : "true");
+  client.publish("fit_and_fun/select", msg);
+  Serial.print("mqtt publish select: ");
+  Serial.println(msg);
+  
+  /* Creation and sending of a down button message */
+  buttonDownState = digitalRead(buttonDownPin);  
+  snprintf(msg, MSG_BUFFER_SIZE, "%s", buttonDownState == LOW ? "false" : "true");
+  client.publish("fit_and_fun/down", msg);
+  Serial.print("mqtt publish down: ");
+  Serial.println(msg);
+  
   delay(BNO055_SAMPLERATE_DELAY_MS);
 }
 

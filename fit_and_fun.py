@@ -21,8 +21,14 @@ if __name__ == "__main__":
         wind_resistor.run()
     #console=GameCanoe(wind=wind_resistor) 
     console=GameCanoe()
-    mqtt_sub=mqtt_subscriber(console.get_speed, console.synchro, 'fit_and_fun/speed', 
+    mqtt_sub_speed=mqtt_subscriber(console.get_speed, console.synchro, 'fit_and_fun/speed', 
                             broker_addr=ARGS.broker)
-    mqtt_sub.run()
+    mqtt_sub_select=mqtt_subscriber(console.get_speed, console.synchro, 'fit_and_fun/select', 
+                            broker_addr=ARGS.broker)
+    mqtt_sub_down=mqtt_subscriber(console.btn_down, console.synchro, 'fit_and_fun/down', 
+                            broker_addr=ARGS.broker)
+    mqtt_sub_speed.run()
+    mqtt_sub_select.run()
+    mqtt_sub_down.run()
     console.menu()
  
