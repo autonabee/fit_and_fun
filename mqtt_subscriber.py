@@ -31,12 +31,12 @@ class mqtt_subscriber():
         self.debug=True
 
 
-    def subscribe_connect(self):
+    def subscribe_connect(self, client_name):
         """ client function launched in a thread
         """
         if self.debug==True: print("Start mqtt subscriber")
         # Broker connection
-        client = mqtt.Client("Console")
+        client = mqtt.Client(client_name)
         client.connect(self.mqttBroker) 
         # Topics 'fit_and_fun/speed' subscription
         client.loop_start()
@@ -47,9 +47,9 @@ class mqtt_subscriber():
         client.loop_stop()
         if self.debug==True: print("End mqtt subscriber")
    
-    def run(self):
+    def run(self, client_name):
         """ Start the thread """
-        self.t1=threading.Thread(target=self.subscribe_connect)
+        self.t1=threading.Thread(target=self.subscribe_connect(client_name))
         self.t1.start()
 
     def stop(self):
