@@ -3,7 +3,7 @@ import threading
 
 class mqtt_subscriber():
     """ Mqtt subscriber to receive a raw rotational speed"""
-    def __init__(self, on_message, synchro, topic, broker_addr='localhost'):
+    def __init__(self, on_message, synchro, topics, broker_addr='localhost'):
         """
         Class constructor
 
@@ -18,38 +18,39 @@ class mqtt_subscriber():
         broker_addr: string
             broker address (name or IP) in action
 
-        topic: string
-            Mqtt topic to be subscribed
+        topics: [string]
+            Mqtt topics to be subscribed
         
         """
         self.on_message=on_message
         self.mqttBroker = broker_addr
-        self.topic = topic
+        self.topics = topics
         # Lock thread synchronization
         self.lock = synchro
         self.lock.acquire()
         self.debug=True
 
 
-    def subscribe_connect(self, client_name):
+    def subscribe_connect(self):
         """ client function launched in a thread
         """
         if self.debug==True: print("Start mqtt subscriber")
         # Broker connection
-        client = mqtt.Client(client_name)
+        client = mqtt.Client("Console")
         client.connect(self.mqttBroker) 
         # Topics 'fit_and_fun/speed' subscription
         client.loop_start()
-        client.subscribe(self.topic)
+        for topic in self.topics:
+            client.subscribe(topic)
         client.on_message=self.on_message 
         # Wait for the end
         self.lock.acquire()
         client.loop_stop()
         if self.debug==True: print("End mqtt subscriber")
    
-    def run(self, client_name):
+    def run(self):
         """ Start the thread """
-        self.t1=threading.Thread(target=self.subscribe_connect(client_name))
+        self.t1=threading.Thread(target=self.subscribe_connect)
         self.t1.start()
 
     def stop(self):

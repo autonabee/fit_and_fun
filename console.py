@@ -57,9 +57,7 @@ class Console():
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
         # lock for synchro to kill the sensor speed client
-        self.synchro_speed = threading.Lock()
-        self.synchro_select = threading.Lock()
-        self.synchro_down = threading.Lock()
+        self.synchro = threading.Lock()
         self.debug=True
         self.difficulty=1
         self.name='Julien'
@@ -103,9 +101,7 @@ class Console():
                 if event.type == pg.QUIT: 
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro_speed.release() 
-                    self.synchro_select.release() 
-                    self.synchro_down.release() 
+                    self.synchro.release()
                     if self.wind_resistor != None:
                         self.wind_resistor.stop()
                     exit()
@@ -139,9 +135,7 @@ class Console():
                 if event.type == pg.QUIT: 
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro_speed.release() 
-                    self.synchro_select.release() 
-                    self.synchro_down.release() 
+                    self.synchro.release()
                     if self.wind_resistor != None:
                         self.wind_resistor.stop()
                     exit()
@@ -203,6 +197,20 @@ class Console():
                             speed=int(self.rot_speed), score=round(self.score)+int(self.energy))
         return banner
 
+    def message_callback(self, client, userdata, message):
+        """ executes the function corresponding to the called topic
+        """
+        match message.topic:
+            case "fit_and_fun/speed":
+                self.get_speed(client, userdata, message)
+            case "fit_and_fun/select":
+                self.btn_select(client, userdata, message)
+            case "fit_and_fun/down":
+                self.btn_down(client, userdata, message)
+            case _:
+                print("WARNING: topic " + message.topic + " unknown\n")
+
+
     def get_speed(self, client, userdata, message):
         """ extract and normalize the rotation raw speed
             compatible (client/userdata) with a mqtt subscriber
@@ -233,21 +241,19 @@ class Console():
         if self.debug==True: print(self.get_banner())
 
     def btn_select(self, client, userdata, message):
+        """ Displays a text if the 'select' button is pressed
+        """
         try:
-            print("MQTT on select key works!\n")
-            if(str(message.payload.decode("utf-8")) == "HIGH"):
-                print("Select key pressed\n")
-                #newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_DOWN, mod=pg.locals.KMOD_NONE)
-                #pg.event.post(newevent)
+            if(str(message.payload.decode("utf-8")) == "true"):
+                if self.debug==True: print("Select key pressed\r")
         except Exception:
             print("ERROR in btn_select\n")
 
     def btn_down(self, client, userdata, message):
+        """ Displays a text if the 'down' button is pressed
+        """
         try:
-            print("MQTT on down key works!\n")
-            if(str(message.payload.decode("utf-8")) == "HIGH"):
-                print("Down key pressed\n")
-                #newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_DOWN, mod=pg.locals.KMOD_NONE)
-                #pg.event.post(newevent)
+            if(str(message.payload.decode("utf-8")) == "true"):
+                if self.debug==True: print("Down key pressed\r")
         except Exception:
             print("ERROR in btn_down\n")
