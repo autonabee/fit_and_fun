@@ -13,6 +13,8 @@ if __name__ == "__main__":
                         help='Broker host to connect (default localhost)', default='localhost')
     PARSER.add_argument('-w', '--wind', dest='wind', action='store_true',
                         help='Wind simulation resistance')
+    PARSER.add_argument('-d', '--debug', dest='debug', action='store_true',
+                        help='Display some additional informations')
     ARGS = PARSER.parse_args()
 
     wind_resistor=None
@@ -20,7 +22,7 @@ if __name__ == "__main__":
         wind_resistor=wind()
         wind_resistor.run()
     #console=GameCanoe(wind=wind_resistor) 
-    console=GameCanoe()
+    console=GameCanoe(ARGS.debug)
     mqtt_sub=mqtt_subscriber(console.message_callback, console.synchro, ['fit_and_fun/speed', 'fit_and_fun/select','fit_and_fun/down'], 
                             broker_addr=ARGS.broker)
     mqtt_sub.run()

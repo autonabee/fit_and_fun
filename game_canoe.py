@@ -19,8 +19,8 @@ from game_events import game_events, event_blocks
 
 class GameCanoe(Console):
 
-    def __init__(self):
-        super().__init__()        
+    def __init__(self, debug = False):
+        super().__init__(debug=debug)
     
     def game(self):
         """

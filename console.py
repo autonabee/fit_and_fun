@@ -29,7 +29,7 @@ class Console():
     heart_full_img = pg.image.load(dir_img+'/heart_full.png')
     heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
     
-    def __init__(self, wind=None):
+    def __init__(self, wind=None, debug=False):
         """ Class constructor """
         # Screen configuration
         self.size_x=480
@@ -61,7 +61,7 @@ class Console():
         self.BLACK = (0, 0, 0)
         # lock for synchro to kill the sensor speed client
         self.synchro = threading.Lock()
-        self.debug=True
+        self.debug=debug
         self.difficulty=1
         self.name='Julien'
         # Wind resistor
@@ -243,15 +243,32 @@ class Console():
 
         if self.debug==True: print(self.get_banner())
 
+    #Different input types to simulate
+    INPUT_SELECT = 0
+    INPUT_DOWN = 1
+    INPUT_BACK = 2
+    INPUT_ESC = 3
+
+    def simulate_input(self, input_type: int):
+        match input_type:
+            case self.INPUT_SELECT:
+                #Simulate a keyboard 'return' ('enter' key) input
+                newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_RETURN, mod=pg.locals.KMOD_NONE)
+                pg.event.post(newevent)
+            case self.INPUT_DOWN:
+                #Simulate a joystick 'down' input
+                newevent = pg.event.Event(pg.JOYHATMOTION, value=(0, -1))
+                pg.event.post(newevent)
+            case _:
+                return
+
     def btn_select(self, client, userdata, message):
         """ Displays a text if the 'select' button is pressed
         """
         try:
-            #Simulate a keyboard 'return' ('enter' key) input
             if(str(message.payload.decode("utf-8")) == "true"):
                 if self.debug==True: print("Select key pressed\r")
-                newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_RETURN, mod=pg.locals.KMOD_NONE)
-                pg.event.post(newevent)
+                self.simulate_input(self.INPUT_SELECT)
         except Exception:
             print("ERROR in btn_select\n")
 
@@ -259,10 +276,8 @@ class Console():
         """ Displays a text if the 'down' button is pressed
         """
         try:
-            #Simulate a joystick 'down' input
             if(str(message.payload.decode("utf-8")) == "true"):
                 if self.debug==True: print("Down key pressed\r")
-                newevent = pg.event.Event(pg.JOYHATMOTION, value=(0, -1))
-                pg.event.post(newevent)
+                self.simulate_input(self.INPUT_DOWN)
         except Exception:
             print("ERROR in btn_down\n")
