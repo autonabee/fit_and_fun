@@ -15,6 +15,7 @@ myimage = pg_menu.baseimage.BaseImage(
 mytheme.background_color = myimage
 mytheme.widget_font=pg_menu.font.FONT_NEVIS
 
+
 class Console():
     """ Class Console to manage the game
         using a single input rot_speed
@@ -52,6 +53,8 @@ class Console():
         pg.init()
         self.screen = pg.display.set_mode((self.size_x, self.size_y))
         pg.display.set_caption('Fit&Fun')
+        #Add a delay before you can press a key again
+        pg.key.set_repeat(150)
         # Font, Colors
         self.font_name = pg.font.match_font('arial')
         self.WHITE = (255, 255, 255)
@@ -244,8 +247,11 @@ class Console():
         """ Displays a text if the 'select' button is pressed
         """
         try:
+            #Simulate a keyboard 'return' ('enter' key) input
             if(str(message.payload.decode("utf-8")) == "true"):
                 if self.debug==True: print("Select key pressed\r")
+                newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_RETURN, mod=pg.locals.KMOD_NONE)
+                pg.event.post(newevent)
         except Exception:
             print("ERROR in btn_select\n")
 
@@ -253,7 +259,10 @@ class Console():
         """ Displays a text if the 'down' button is pressed
         """
         try:
+            #Simulate a joystick 'down' input
             if(str(message.payload.decode("utf-8")) == "true"):
                 if self.debug==True: print("Down key pressed\r")
+                newevent = pg.event.Event(pg.JOYHATMOTION, value=(0, -1))
+                pg.event.post(newevent)
         except Exception:
             print("ERROR in btn_down\n")
