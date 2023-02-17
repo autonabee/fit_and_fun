@@ -4,12 +4,13 @@ from pygame_menu import themes, Theme
 
 import threading
 import time
+import os
 
 # Custom menu theme
 
 mytheme = pg_menu.themes.THEME_BLUE.copy()
 myimage = pg_menu.baseimage.BaseImage(
-    image_path="images/desert.jpg",
+    image_path=os.path.join(os.path.dirname(__file__),"images/desert.jpg"),
     drawing_mode=pg_menu.baseimage.IMAGE_MODE_REPEAT_XY
 )
 mytheme.background_color = myimage
@@ -23,7 +24,7 @@ class Console():
         of the class to read a 'sensor value'
     """
     
-    dir_img='images'
+    dir_img=os.path.join(os.path.dirname(__file__), 'images')
 
     #Images
     heart_full_img = pg.image.load(dir_img+'/heart_full.png')
