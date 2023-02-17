@@ -204,15 +204,14 @@ class Console():
     def message_callback(self, client, userdata, message):
         """ executes the function corresponding to the called topic
         """
-        match message.topic:
-            case "fit_and_fun/speed":
-                self.get_speed(client, userdata, message)
-            case "fit_and_fun/select":
-                self.btn_select(client, userdata, message)
-            case "fit_and_fun/down":
-                self.btn_down(client, userdata, message)
-            case _:
-                print("WARNING: topic " + message.topic + " unknown\n")
+        if message.topic == "fit_and_fun/speed":
+            self.get_speed(client, userdata, message)
+        elif message.topic == "fit_and_fun/select":
+            self.btn_select(client, userdata, message)
+        elif message.topic == "fit_and_fun/down":
+            self.btn_down(client, userdata, message)
+        else:
+            print("WARNING: topic " + message.topic + " unknown\n")
 
 
     def get_speed(self, client, userdata, message):
