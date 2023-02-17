@@ -251,17 +251,16 @@ class Console():
     INPUT_ESC = 3
 
     def simulate_input(self, input_type: int):
-        match input_type:
-            case self.INPUT_SELECT:
-                #Simulate a keyboard 'return' ('enter' key) input
-                newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_RETURN, mod=pg.locals.KMOD_NONE)
-                pg.event.post(newevent)
-            case self.INPUT_DOWN:
-                #Simulate a joystick 'down' input
-                newevent = pg.event.Event(pg.JOYHATMOTION, value=(0, -1))
-                pg.event.post(newevent)
-            case _:
-                return
+        if input_type == self.INPUT_SELECT:
+            #Simulate a keyboard 'return' ('enter' key) input
+            newevent = pg.event.Event(pg.locals.KEYDOWN, key=pg.locals.K_RETURN, mod=pg.locals.KMOD_NONE)
+            pg.event.post(newevent)
+        elif input_type == self.INPUT_DOWN:
+            #Simulate a joystick 'down' input
+            newevent = pg.event.Event(pg.JOYHATMOTION, value=(0, -1))
+            pg.event.post(newevent)
+        else:
+            return
 
     def btn_select(self, client, userdata, message):
         """ Displays a text if the 'select' button is pressed
