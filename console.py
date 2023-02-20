@@ -32,9 +32,6 @@ class Console():
     
     def __init__(self, wind=None, debug=False):
         """ Class constructor """
-        # Screen configuration
-        self.size_x=480
-        self.size_y=640
         # Min/Max speed 
         self.ROT_SPEED_MIN = 00
         self.ROT_SPEED_MAX = 15
@@ -52,7 +49,9 @@ class Console():
         self.time0=0
         # Screen init
         pg.init()
-        self.screen = pg.display.set_mode((self.size_x, self.size_y))
+        self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
+        self.size_x = self.screen.get_width()
+        self.size_y = self.screen.get_height()
         pg.display.set_caption('Fit&Fun')
         #Add a delay before you can press a key again
         pg.key.set_repeat(150)
