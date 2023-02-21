@@ -30,7 +30,7 @@ class Console():
     heart_full_img = pg.image.load(dir_img+'/heart_full.png')
     heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
     
-    def __init__(self, wind=None, debug=False):
+    def __init__(self, wind=None, debug=False, fullscreen=False):
         """ Class constructor """
         # Min/Max speed 
         self.ROT_SPEED_MIN = 00
@@ -49,9 +49,14 @@ class Console():
         self.time0=0
         # Screen init
         pg.init()
-        self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
-        self.size_x = self.screen.get_width()
-        self.size_y = self.screen.get_height()
+        if fullscreen:
+            self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
+            self.size_x = self.screen.get_width()
+            self.size_y = self.screen.get_height()
+        else:
+            self.size_x = 600
+            self.size_y = 1024
+            self.screen = pg.display.set_mode((self.size_x, self.size_y))
         pg.display.set_caption('Fit&Fun')
         #Add a delay before you can press a key again
         pg.key.set_repeat(150)

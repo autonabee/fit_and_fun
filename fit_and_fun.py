@@ -15,6 +15,8 @@ if __name__ == "__main__":
                         help='Wind simulation resistance')
     PARSER.add_argument('-d', '--debug', dest='debug', action='store_true',
                         help='Display some additional informations')
+    PARSER.add_argument('-f', '--fullscreen', dest='fullscreen', action='store_true',
+                        help='Fullscreen mode')
     ARGS = PARSER.parse_args()
 
     wind_resistor=None
@@ -22,7 +24,7 @@ if __name__ == "__main__":
         wind_resistor=wind()
         wind_resistor.run()
     #console=GameCanoe(wind=wind_resistor) 
-    console=GameCanoe(ARGS.debug)
+    console=GameCanoe(ARGS.debug, ARGS.fullscreen)
     mqtt_sub=mqtt_subscriber(console.message_callback, console.synchro, ['fit_and_fun/speed', 'fit_and_fun/select','fit_and_fun/down'], 
                             broker_addr=ARGS.broker)
     mqtt_sub.run()
