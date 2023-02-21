@@ -59,7 +59,7 @@ left = -1
 
 game_events = [
     (0,     "LOCK"),                    # Bloque les controles du joueur
-    (0,     "FS",   2),                 # Fixe la vitesse de défilement à 2 * VMax
+    (0,     "FS",   3),                 # Fixe la vitesse de défilement à 2 * VMax
     (0,     "DECO",   ("3.png", 0)),    # Affiche le sprite "3.png" au centre de l'écran
     (1,     "DECO",   ("2.png", 0)),    # Affiche le sprite "2.png" au centre de l'écran
     (2,     "DECO",   ("1.png", 0)),    # Affiche le sprite "1.png" au centre de l'écran

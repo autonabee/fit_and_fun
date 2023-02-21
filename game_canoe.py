@@ -19,8 +19,8 @@ from game_events import game_events, event_blocks
 
 class GameCanoe(Console):
 
-    def __init__(self, debug=False, fullscreen=False):
-        super().__init__(debug=debug, fullscreen=fullscreen)
+    def __init__(self, debug=False, fullscreen=False, timer=120):
+        super().__init__(debug=debug, fullscreen=fullscreen, timer=timer)
     
     def game(self):
         """
@@ -114,6 +114,7 @@ class GameCanoe(Console):
                         fixed_speed = event_data
                     elif event_type == "LVL_START":     # Start level (obstacles, bonuses and score recording)
                         level_started = True
+                        self.timebegin=time.time()
                     elif event_type == "DECO":      # Spawn special scenery
                         event_data = game_events[0][2]
                         for elt in special_scenery:
@@ -276,11 +277,12 @@ class GameCanoe(Console):
             
             pg.display.update()
 
-            #Check if the player is dead
-            if life_count <= 0:
-                self.score_menu(time.time() - self.time0, distance)
+            #Check if the player is dead or if the time is elapsed
+            timer_elapsed = time.time() - self.timebegin >= self.timer if self.timebegin != 0 else False
+            if life_count <= 0 or timer_elapsed:
+                self.score_menu(time.time() - self.timebegin, distance)
 
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
-                    self.score_menu(time.time() - self.time0, distance)
+                    self.score_menu(time.time() - self.timebegin, distance)

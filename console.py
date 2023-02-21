@@ -30,7 +30,7 @@ class Console():
     heart_full_img = pg.image.load(dir_img+'/heart_full.png')
     heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
     
-    def __init__(self, wind=None, debug=False, fullscreen=False):
+    def __init__(self, wind=None, debug=False, fullscreen=False, timer=120):
         """ Class constructor """
         # Min/Max speed 
         self.ROT_SPEED_MIN = 00
@@ -47,6 +47,8 @@ class Console():
         self.score=0
         # initial time when the game begins
         self.time0=0
+        # initial time when the boat pass the GO line
+        self.timebegin=0
         # Screen init
         pg.init()
         if fullscreen:
@@ -68,6 +70,7 @@ class Console():
         self.synchro = threading.Lock()
         self.debug=debug
         self.difficulty=1
+        self.timer=timer #Allowed time in seconds
         self.name='Julien'
         # Wind resistor
         self.wind_resistor = wind
@@ -198,10 +201,14 @@ class Console():
             banner: string
              contains time, speed and score
         """
-        duration=time.time() - self.time0
-        minutes, seconds = divmod(duration, 60)
+        #Timer activates only when the game begins
+        if self.timebegin == 0 :
+            minutes, seconds = divmod(self.timer, 60)
+        else:
+            duration = time.time() - self.timebegin
+            minutes, seconds = divmod(self.timer - duration, 60)
         template = "Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
-        banner= template.format(min=int(minutes), sec=int(seconds), 
+        banner = template.format(min=int(minutes), sec=int(seconds), 
                             speed=int(self.rot_speed), score=round(self.score)+int(self.energy))
         return banner
 

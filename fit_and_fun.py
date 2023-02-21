@@ -17,6 +17,8 @@ if __name__ == "__main__":
                         help='Display some additional informations')
     PARSER.add_argument('-f', '--fullscreen', dest='fullscreen', action='store_true',
                         help='Fullscreen mode')
+    PARSER.add_argument('-t', '--timer', dest='timer',
+                        help='Define the duration of a game session (in seconds)', default='120')
     ARGS = PARSER.parse_args()
 
     wind_resistor=None
@@ -24,7 +26,7 @@ if __name__ == "__main__":
         wind_resistor=wind()
         wind_resistor.run()
     #console=GameCanoe(wind=wind_resistor) 
-    console=GameCanoe(ARGS.debug, ARGS.fullscreen)
+    console=GameCanoe(ARGS.debug, ARGS.fullscreen, int(ARGS.timer))
     mqtt_sub=mqtt_subscriber(console.message_callback, console.synchro, ['fit_and_fun/speed', 'fit_and_fun/select','fit_and_fun/down'], 
                             broker_addr=ARGS.broker)
     mqtt_sub.run()
