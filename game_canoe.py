@@ -85,8 +85,8 @@ class GameCanoe(Console):
         # Entities are instanciated once to avoid garbage collection as much as possible
         player = Player(self.screen)
         bonus = Bonus(self.screen)  # Only one bonus at each moment
-        obstacles = [Obstacle(self.screen) for _ in range(16)]
-        landscape = [LandscapeProp(self.screen) for _ in range(32)]
+        obstacles = [Obstacle(self.screen) for _ in range(32)]
+        landscape = [LandscapeProp(self.screen) for _ in range(16)]
         special_scenery = [LandscapeProp(self.screen) for _ in range(8)]
 
         # Level events
