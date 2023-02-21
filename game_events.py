@@ -67,10 +67,6 @@ game_events = [
     (4.6,   "FS",   0),                 # Vitesse de défilement normale
     (4.6,   "UNLOCK"),                  # Autorise les controles du joueur
     (4.6,   "LVL_START"),               # Commence le comptage du score et l'apparition d'obstacles
- 
-    # (6,     "OBS_duck", (zone_0, right, 1.0) ),
-    # (6,     "OBS_duck" , (zone_2, left, 1.0) ),
-    # (8,     "exemple_01")
 ]
 
 

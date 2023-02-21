@@ -76,7 +76,6 @@ class GameCanoe(Console):
         bg_y = 0
         bonus_timer = 0
         distance = 0        # Virtual rowing distance (in bogo-meters)
-        event_idx = 0       # Keep track of game events
         level_started = False
         control_enabled = True
         fixed_speed = 0
@@ -86,8 +85,8 @@ class GameCanoe(Console):
         # Entities are instanciated once to avoid garbage collection as much as possible
         player = Player(self.screen)
         bonus = Bonus(self.screen)  # Only one bonus at each moment
-        obstacles = [Obstacle(self.screen) for _ in range(16)]
-        landscape = [LandscapeProp(self.screen) for _ in range(32)]
+        obstacles = [Obstacle(self.screen) for _ in range(32)]
+        landscape = [LandscapeProp(self.screen) for _ in range(16)]
         special_scenery = [LandscapeProp(self.screen) for _ in range(8)]
 
         # Level events
@@ -96,34 +95,27 @@ class GameCanoe(Console):
         # Ne pas oublier de trier la liste `game_events` après tout ajout
         # On peut aussi ajouter un bloc d'évenements à la liste en cours de partie...
 
-        t = 10
-        for i in range(10):
-            ev_block = random.choice(list(event_blocks.values()))
-            events = [ (t + te, *ev) for te, *ev in ev_block["events"] ]
-            game_events.extend(events)
-            t += ev_block["dur"]
-
         game_events.sort(key=lambda x: x[0])    # Sort by time
 
         while True:
             time_delta = clock.tick(30)
 
             ####  Scripted Game Events (see file game_events.py)  ####
-            if event_idx < len(game_events):
+            if len(game_events) > 0:
                 t = time.time() - self.time0
-                while game_events[event_idx][0] < t:
-                    event_type = game_events[event_idx][1]
+                if game_events[0][0] < t:
+                    event_type = game_events[0][1]
                     if event_type == "LOCK":      # Lock game control
                         control_enabled = False
                     elif event_type == "UNLOCK":    # Enable game control
                         control_enabled = True
                     elif event_type == "FS":    # Fixed speed
-                        event_data = game_events[event_idx][2]
+                        event_data = game_events[0][2]
                         fixed_speed = event_data
                     elif event_type == "LVL_START":     # Start level (obstacles, bonuses and score recording)
                         level_started = True
                     elif event_type == "DECO":      # Spawn special scenery
-                        event_data = game_events[event_idx][2]
+                        event_data = game_events[0][2]
                         for elt in special_scenery:
                             if not elt.alive:
                                 sprite_filename = os.path.join(self.dir_img, event_data[0])
@@ -134,11 +126,11 @@ class GameCanoe(Console):
                         else:
                             print("WARNING: special_scenery array is full")
                     elif event_type == "BONUS":
-                        h = game_events[event_idx][2]
+                        h = game_events[0][2]
                         bonus_height = self.size_y * (1.0 - h)
                         bonus.spawn(bonus_height)
                     elif event_type == "OBS_duck":
-                        indiv, h, dir, speed = game_events[event_idx][2]
+                        indiv, h, dir, speed = game_events[0][2]
                         for obs in obstacles:
                             if not obs.alive:
                                 side = dir
@@ -153,16 +145,16 @@ class GameCanoe(Console):
                         else:
                             print("WARNING: obstacle array is full")
                     else:
-                        if event_type in event_blocks:
-                            events = event_blocks[event_type]["events"]
-                            events = [ (t + te, *ev) for te, *ev in events ]
-                            game_events.extend(events)
-                            game_events.sort(key=lambda x: x[0])    # Sort by time
-                        else:
-                            print("ERROR: event type '{}' not found in event_blocks".format(event_type))
-                    event_idx += 1
-                    if event_idx >= len(game_events):
-                        break
+                        print("ERROR: event type '{}' not found in event_blocks".format(event_type))
+                    
+                    #Remove the oldest event and add a new one
+                    del game_events[0]
+                    delay = time.time() - self.time0 + random.randint(15, 20) #Values can be changed to in/decrease spawn rate
+                    if len(game_events) <= 10:
+                        ev_block = random.choice(list(event_blocks.values()))
+                        events = [ (delay + te, *ev) for te, *ev in ev_block["events"] ]
+                        game_events.extend(events)
+                        game_events.sort(key=lambda x: x[0])    # Sort by time
 
 
             # Normalizing and smoothing speed value
