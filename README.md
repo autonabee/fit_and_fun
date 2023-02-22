@@ -47,11 +47,33 @@ Some reminders to debug
 * LCD 9 pouces, 1024x600, 43 euros : <https://fr.aliexpress.com/item/32954126627.html>
 * manuel utilisateur: <https://usermanual.wiki/Pdf/ERVB800168Datasheet.1273732525/html>
 
-Modification de /boot/config.txt
+* Modification de ```/boot/config.txt```
 ```
 hdmi_cvt=1024 600 60 6 0 0 0 (ajout)
 hdmi_safe=1 (décommenter)
 ```
+
+* Modification de ```/boot/cmdline.txt```
+```
+[...] video=HDMI-A-1:1024x600M@60,margin_left=0,margin_right=0,margin_top=0,margin_bottom=0,panel_orientation=right_side_up
+```
+__Attention__ : À ajouter sur la même ligne que les autres instructions
+__Attention__ : Ajouter un espace entre le reste des instructions et celle-ci
+
+#### Démarrage automatique du prog Python
+
+* Modification de ```/etc/xdg/lxsession/LXDE-pi/autostart```, ajouter :
+```
+@lxterminal
+```
+
+* Ajouter dans le .bashrc :
+```
+systemctl start mosquitto
+python3 [your_path]/fit_and_fun/fit_and_fun.py -f
+```
+
+* S'assurer que le Raspberry se connecte automatiquement sur le réseau fit_and_fun, et que son adresse IP statique est 10.42.0.1
 
 ### M5Stick-C P
 
@@ -67,7 +89,7 @@ hdmi_safe=1 (décommenter)
 * lib mqtt: <lib https://www.arduino.cc/reference/en/libraries/pubsubclient>
 ## Démo qui tourne
 
-Avec le raspberry en wifi access-point (ssid:fit_and_fun, passwd:fun_and_fit) et un écran classique sur la raspberry. Après configuration Wifi/Mqtt coté raspberry (`sudo systemctl restart mosquitto`) et mis sous tension le capteur ESP2866+BNO05, on peut lancer le jeu: `python fit_and_fun.py -b 10.4.0.1`.
+Avec le raspberry en wifi access-point (ssid:fit_and_fun, passwd:fun_and_fit) et un écran classique sur la raspberry. Après configuration Wifi/Mqtt coté raspberry (`sudo systemctl restart mosquitto`) et mis sous tension le capteur ESP2866+BNO05, on peut lancer le jeu: `python fit_and_fun.py -b 10.42.0.1`.
 Quand le capteur tourne sur lui-même (axe Z), la rivière avance et si on passe une certaine vitesse, le personnage avance aussi. Le score augmente en fonction de la durée/vitesse et si le personnage touche les obstacles  qui traverse la rivière.
 
 On peut utiliser également le jeu avec un clavier: `python fit_and_fun_keyboard.py`
