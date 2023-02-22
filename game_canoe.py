@@ -14,7 +14,7 @@ import os
 import random
 from console import Console
 from game_entities import Player, Obstacle, Bonus, LandscapeProp
-from game_events import game_events, event_blocks
+from game_events import start_events, event_blocks
 
 
 class GameCanoe(Console):
@@ -90,10 +90,10 @@ class GameCanoe(Console):
         special_scenery = [LandscapeProp(self.screen) for _ in range(8)]
 
         # Level events
-        # Ici on peut ajouter des évenements temporels au niveau, créés à la volée
-        # ou bien piochés dans le dictionnaire `event_blocks`, du fichier `game_events.py`
-        # Ne pas oublier de trier la liste `game_events` après tout ajout
-        # On peut aussi ajouter un bloc d'évenements à la liste en cours de partie...
+        # Ici on initialise game_events avec les évènement de base du niveau (3, 2, 1, GO)
+
+        game_events = start_events.copy()
+        self.timebegin = 0
 
         game_events.sort(key=lambda x: x[0])    # Sort by time
 

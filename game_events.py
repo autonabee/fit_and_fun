@@ -57,7 +57,7 @@ left = -1
     # game_events.sort(key=lambda x: x[0])    # Sort by time
 
 
-game_events = [
+start_events = [
     (0,     "LOCK"),                    # Bloque les controles du joueur
     (0,     "FS",   3),                 # Fixe la vitesse de défilement à 2 * VMax
     (0,     "DECO",   ("3.png", 0)),    # Affiche le sprite "3.png" au centre de l'écran
