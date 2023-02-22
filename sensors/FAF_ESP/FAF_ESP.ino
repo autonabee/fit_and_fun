@@ -94,14 +94,14 @@ void loop() {
 
   /* Creation and sending of a select button message */
   buttonSelectState = digitalRead(buttonSelectPin);
-  snprintf(msg, MSG_BUFFER_SIZE, "%s", buttonSelectState == LOW ? "false" : "true");
+  snprintf(msg, MSG_BUFFER_SIZE, "%s", buttonSelectState == HIGH ? "false" : "true");
   client.publish("fit_and_fun/select", msg);
   Serial.print("mqtt publish select: ");
   Serial.println(msg);
   
   /* Creation and sending of a down button message */
   buttonDownState = digitalRead(buttonDownPin);  
-  snprintf(msg, MSG_BUFFER_SIZE, "%s", buttonDownState == LOW ? "false" : "true");
+  snprintf(msg, MSG_BUFFER_SIZE, "%s", buttonDownState == HIGH ? "false" : "true");
   client.publish("fit_and_fun/down", msg);
   Serial.print("mqtt publish down: ");
   Serial.println(msg);
