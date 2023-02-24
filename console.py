@@ -1,6 +1,6 @@
 import pygame as pg
 import pygame_menu as pg_menu
-from pygame_menu import themes, Theme
+from pygame_menu import themes, Theme, widgets
 from functools import partial
 
 import threading
@@ -10,9 +10,9 @@ import sys
 
 # Custom menu theme
 
-mytheme = pg_menu.themes.THEME_BLUE.copy()
+mytheme = pg_menu.themes.THEME_DEFAULT.copy()
 myimage = pg_menu.baseimage.BaseImage(
-    image_path=os.path.join(os.path.dirname(__file__),"images/desert.jpg"),
+    image_path=os.path.join(os.path.dirname(__file__),"images/menu_bg.png"),
     drawing_mode=pg_menu.baseimage.IMAGE_MODE_REPEAT_XY
 )
 mytheme.background_color = myimage
@@ -89,27 +89,26 @@ class Console():
         self.name=name
  
     def display_select_user_ui(self):
-        select_user_ui = pg_menu.Menu('Sélectionnez un joueur', self.size_x, self.size_y, theme=mytheme)
-        is_running = True
+        select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
         select_user_ui.add.selector('', [('Julien', 'Julien'), ('Christophe', 'Christophe')], onchange=self.set_user)
         select_user_ui.add.button('VALIDER', partial(self.display_select_game_ui, False))
         select_user_ui.add.button('CREER UN JOUEUR', self.display_create_user_ui)
         select_user_ui.add.button('MODE INVITE', partial(self.display_select_game_ui, True))
         select_user_ui.add.button('QUITTER', pg_menu.events.EXIT)
-        while is_running:
+        while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
 
             for event in events:
                 if event.type == pg.QUIT:
-                    is_running = False
+                    pg.display.quit()
+                    if self.debug : print("Quit") 
+                    self.synchro.release()
 
             select_user_ui.update(events)
 
             select_user_ui.draw(self.screen)
             pg.display.update()
-        pg.quit()
-        sys.exit()
 
     def set_game(self, game_name, game):
         self.game = game
@@ -117,19 +116,20 @@ class Console():
     def display_select_game_ui(self, is_guest): #TODO
         if is_guest:
             self.set_user('', 'Guest')
-        is_running = True
-        select_game_ui = pg_menu.Menu('Sélectionnez un jeu', self.size_x, self.size_y, theme=mytheme)
+        select_game_ui = pg_menu.Menu('SELECTIONNEZ UN JEU', self.size_x, self.size_y, theme=mytheme)
         select_game_ui.add.selector('', [('ducks', 'ducks')], onchange=self.set_game)
         select_game_ui.add.button('VALIDER', self.game) #TODO À modifier quand il y aura plusieurs jeux
         select_game_ui.add.button('STATISTIQUES', self.display_stats_ui)
         select_game_ui.add.button('CHANGER DE JOUEUR', self.display_select_user_ui)
-        while is_running:
+        while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
 
             for event in events:
                 if event.type == pg.QUIT:
-                    is_running = False
+                    pg.display.quit()
+                    if self.debug : print("Quit") 
+                    self.synchro.release()
 
             select_game_ui.update(events)
 
@@ -153,13 +153,14 @@ class Console():
  
     def display_score_ui(self, duration, distance):
         """ Open self.score_ui """
-        self.score_ui = pg_menu.Menu('Congratulations!', self.size_x, self.size_y, theme=mytheme)
+        self.score_ui = pg_menu.Menu('FELICITATIONS!', self.size_x, self.size_y, theme=mytheme)
         minutes, seconds = divmod(duration, 60)
         self.score_ui.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"")
         self.score_ui.add.label("Distance : " + str(round(distance)))
         self.score_ui.add.label("Score : " + str(round(self.score)))
-        self.score_ui.add.button('Menu', self.menu)
-        self.score_ui.add.button('Quit', pg_menu.events.EXIT)
+        self.score_ui.add.button('REJOUER', self.game)
+        self.score_ui.add.button('MENU', partial(self.display_select_game_ui, False))
+        self.score_ui.add.button('QUITTER', pg_menu.events.EXIT)
         while True:
             events = pg.event.get()
 
