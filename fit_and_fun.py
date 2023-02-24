@@ -35,5 +35,5 @@ if __name__ == "__main__":
     mqtt_sub=mqtt_subscriber(console.message_callback, console.synchro, subscribes, 
                             broker_addr=ARGS.broker)
     mqtt_sub.run()
-    console.menu()
+    console.display_select_user_ui()
  

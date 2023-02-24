@@ -1,10 +1,12 @@
 import pygame as pg
 import pygame_menu as pg_menu
 from pygame_menu import themes, Theme
+from functools import partial
 
 import threading
 import time
 import os
+import sys
 
 # Custom menu theme
 
@@ -29,6 +31,8 @@ class Console():
     #Images
     heart_full_img = pg.image.load(dir_img+'/heart_full.png')
     heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
+
+    clock = pg.time.Clock()
     
     def __init__(self, wind=None, debug=False, fullscreen=False, timer=120):
         """ Class constructor """
@@ -79,32 +83,83 @@ class Console():
         """ Activate the wind if the object exists"""
         if self.wind_resistor != None:
             self.wind_resistor.activate()
-
-    def set_level(self, value, difficulty):
-        """ callback called by self.levelmenu """
-        self.difficulty=difficulty
    
-    def set_user(self, selec_name, name): 
+    def set_user(self, username, name): 
         """ callback called by self.usermenu """
         self.name=name
-   
-    def level_menu(self): 
-        """ Open self.levelmenu """
-        self.mainmenu._open(self.levelmenu)
  
-    def user_menu(self):
-        """ Open self.usermenu """
-        self.mainmenu._open(self.usermenu)
+    def display_select_user_ui(self):
+        select_user_ui = pg_menu.Menu('Sélectionnez un joueur', self.size_x, self.size_y, theme=mytheme)
+        is_running = True
+        select_user_ui.add.selector('', [('Julien', 'Julien'), ('Christophe', 'Christophe')], onchange=self.set_user)
+        select_user_ui.add.button('VALIDER', partial(self.display_select_game_ui, False))
+        select_user_ui.add.button('CREER UN JOUEUR', self.display_create_user_ui)
+        select_user_ui.add.button('MODE INVITE', partial(self.display_select_game_ui, True))
+        select_user_ui.add.button('QUITTER', pg_menu.events.EXIT)
+        while is_running:
+            time_delta = self.clock.tick(60)/1000.0
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT:
+                    is_running = False
+
+            select_user_ui.update(events)
+
+            select_user_ui.draw(self.screen)
+            pg.display.update()
+        pg.quit()
+        sys.exit()
+
+    def set_game(self, game_name, game):
+        self.game = game
+
+    def display_select_game_ui(self, is_guest): #TODO
+        if is_guest:
+            self.set_user('', 'Guest')
+        is_running = True
+        select_game_ui = pg_menu.Menu('Sélectionnez un jeu', self.size_x, self.size_y, theme=mytheme)
+        select_game_ui.add.selector('', [('ducks', 'ducks')], onchange=self.set_game)
+        select_game_ui.add.button('VALIDER', self.game) #TODO À modifier quand il y aura plusieurs jeux
+        select_game_ui.add.button('STATISTIQUES', self.display_stats_ui)
+        select_game_ui.add.button('CHANGER DE JOUEUR', self.display_select_user_ui)
+        while is_running:
+            time_delta = self.clock.tick(60)/1000.0
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT:
+                    is_running = False
+
+            select_game_ui.update(events)
+
+            select_game_ui.draw(self.screen)
+            pg.display.update()
+
+
+        return
+    
+    def display_stats_ui(self): #TODO
+        print('Displays stats ui')
+        return
+    
+    def display_delete_user_ui(self): #TODO
+        print('Displays delet user ui')
+        return
+    
+    def display_create_user_ui(self): #TODO
+        print('Displays create user ui')
+        return
  
-    def score_menu(self, duration, distance):
-        """ Open self.scoremenu """
-        self.scoremenu = pg_menu.Menu('Congratulations!', self.size_x, self.size_y, theme=mytheme)
+    def display_score_ui(self, duration, distance):
+        """ Open self.score_ui """
+        self.score_ui = pg_menu.Menu('Congratulations!', self.size_x, self.size_y, theme=mytheme)
         minutes, seconds = divmod(duration, 60)
-        self.scoremenu.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"")
-        self.scoremenu.add.label("Distance : " + str(round(distance)))
-        self.scoremenu.add.label("Score : " + str(round(self.score)))
-        self.scoremenu.add.button('Menu', self.menu)
-        self.scoremenu.add.button('Quit', pg_menu.events.EXIT)
+        self.score_ui.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"")
+        self.score_ui.add.label("Distance : " + str(round(distance)))
+        self.score_ui.add.label("Score : " + str(round(self.score)))
+        self.score_ui.add.button('Menu', self.menu)
+        self.score_ui.add.button('Quit', pg_menu.events.EXIT)
         while True:
             events = pg.event.get()
 
@@ -117,12 +172,12 @@ class Console():
                         self.wind_resistor.stop()
                     exit()
 
-            if self.scoremenu.is_enabled():
-                self.scoremenu.update(events)
-                self.scoremenu.draw(self.screen)
+            if self.score_ui.is_enabled():
+                self.score_ui.update(events)
+                self.score_ui.draw(self.screen)
             pg.display.update()
 
-    def menu(self):
+    def menu(self): #À supprimer
         """ Menu game management """
         # Main entry menu
         self.mainmenu = pg_menu.Menu('FIT and FUN', self.size_x, self.size_y, theme=mytheme)
