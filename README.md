@@ -47,15 +47,17 @@ Some reminders to debug
 * LCD 9 pouces, 1024x600, 43 euros : <https://fr.aliexpress.com/item/32954126627.html>
 * manuel utilisateur: <https://usermanual.wiki/Pdf/ERVB800168Datasheet.1273732525/html>
 
-* Modification de ```/boot/config.txt```
+* Ajout dans ```/boot/config.txt```
 ```
-hdmi_cvt=1024 600 60 6 0 0 0 (ajout)
-hdmi_safe=1 (décommenter)
+hdmi_group=2
+hdmi_mode=87
+hdmi_cvt=1024 600 60 6 0 0 0
+hdmi_drive=1
 ```
 
 * Modification de ```/boot/cmdline.txt```
 ```
-[...] video=HDMI-A-1:1024x600M@60,margin_left=0,margin_right=0,margin_top=0,margin_bottom=0,panel_orientation=right_side_up
+[...] video=HDMI-A-1:1024x600M@60,margin_left=0,margin_right=0,margin_top=0,margin_bottom=0
 ```
 __Attention__ : À ajouter sur la même ligne que les autres instructions
 __Attention__ : Ajouter un espace entre le reste des instructions et celle-ci
@@ -69,6 +71,8 @@ __Attention__ : Ajouter un espace entre le reste des instructions et celle-ci
 
 * Ajouter dans le .bashrc :
 ```
+DISPLAY=:0 xrandr --output HDMI-1 --rotate right
+xinput set-prop 'WonderShare WS170120' 'Coordinate Transformation Matrix' 0 1 0 -1 0 1 0 0 1
 systemctl start mosquitto
 python3 [your_path]/fit_and_fun/fit_and_fun.py -f
 ```
