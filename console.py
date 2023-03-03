@@ -336,6 +336,7 @@ class Console():
                                     layout,
                                     renderer=vkboard.VKeyboardRenderer.DARK,
                                     show_text=False)
+        
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
@@ -345,6 +346,9 @@ class Console():
                     pg.display.quit()
                     if self.debug: print("Quit") 
                     self.synchro.release()
+                elif event.type == pg.FINGERDOWN:
+                    #Avoid double event (FINGERDOWN and MOUSEDOWN) when using touchscreen
+                    events.remove(event)
 
             create_user_ui.update(events)
             keyboard.update(events)
