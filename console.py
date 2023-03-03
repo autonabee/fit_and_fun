@@ -2,6 +2,9 @@ import pygame as pg
 import pygame_menu as pg_menu
 from pygame_menu import themes, Theme, widgets
 from functools import partial
+import database as db
+import pygame_vkeyboard as vkboard
+
 
 import threading
 import time
@@ -89,11 +92,16 @@ class Console():
         self.name=name
  
     def display_select_user_ui(self):
+        self.name = 'Invite'
+        list_users = [('Invite','Invite'), ('Julien','Julien'), ('Christophe','Christophe')]
+
+        #db.obtain_users_list()
+
         select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
-        select_user_ui.add.selector('', [('Julien', 'Julien'), ('Christophe', 'Christophe')], onchange=self.set_user)
-        select_user_ui.add.button('VALIDER', partial(self.display_select_game_ui, False))
-        select_user_ui.add.button('CREER UN JOUEUR', self.display_create_user_ui)
-        select_user_ui.add.button('MODE INVITE', partial(self.display_select_game_ui, True))
+        select_user_ui.add.dropselect('UTILISATEUR :', list_users, default = 0, onchange=self.set_user)
+        select_user_ui.add.button('VALIDER', self.display_select_game_ui)
+        select_user_ui.add.button('NOUVEAU JOUEUR', self.display_create_user_ui)
+        select_user_ui.add.button('HISTORIQUE', self.display_history_ui)
         select_user_ui.add.button('QUITTER', pg_menu.events.EXIT)
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -110,17 +118,52 @@ class Console():
             select_user_ui.draw(self.screen)
             pg.display.update()
 
+
     def set_game(self, game_name, game):
         self.game = game
 
-    def display_select_game_ui(self, is_guest): #TODO
-        if is_guest:
-            self.set_user('', 'Guest')
+
+    def display_select_game_ui(self):
         select_game_ui = pg_menu.Menu('SELECTIONNEZ UN JEU', self.size_x, self.size_y, theme=mytheme)
         select_game_ui.add.selector('', [('ducks', 'ducks')], onchange=self.set_game)
-        select_game_ui.add.button('VALIDER', self.game) #TODO À modifier quand il y aura plusieurs jeux
+        select_game_ui.add.button('VALIDER', self.display_select_exercise_ui)
         select_game_ui.add.button('STATISTIQUES', self.display_stats_ui)
         select_game_ui.add.button('CHANGER DE JOUEUR', self.display_select_user_ui)
+        while True:
+            time_delta = self.clock.tick(60)/1000.0
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.display.quit()
+                    if self.debug : print("Quit")
+                    self.synchro.release()
+
+            select_game_ui.update(events)
+
+            select_game_ui.draw(self.screen)
+            pg.display.update()
+
+
+    def set_exercise(self, exercise_display, exercise_value):
+        self.exercise = exercise_value
+
+    def display_define_exercise_ui(self):
+        print("Création d'un exercice")
+        return
+    
+    def display_select_exercise_ui(self):#TODO
+        self.exercise = ('Echauffement','Echauffement')
+        list_exercise = [('Echauffement','Echauffement'), ('Paliers simples','Paliers simples'), ('Pyramide','Pyramide')]
+        
+        ##import from the database
+
+        select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
+        select_exercise_ui.add.dropselect('EXERCICE :', list_exercise, default = 0, onchange=self.set_exercise)
+        select_exercise_ui.add.button('JOUER', self.set_parameters)
+        select_exercise_ui.add.button('MODIFIER EXERCICE', self.display_modify_exercise_ui) #passer en param l'exercice à modifier, peut etre un booleen si c'est modif ou nouveau is_new?? + prévoir si dropselect est vide
+        select_exercise_ui.add.button('NOUVEL EXERCICE', self.display_define_exercise_ui)
+        select_exercise_ui.add.button('CHANGER DE JEU', self.display_select_game_ui)
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
@@ -131,25 +174,178 @@ class Console():
                     if self.debug : print("Quit") 
                     self.synchro.release()
 
-            select_game_ui.update(events)
+            select_exercise_ui.update(events)
 
-            select_game_ui.draw(self.screen)
+            select_exercise_ui.draw(self.screen)
+            pg.display.update()
+
+    
+
+################ partie création d'un exercice, ne fonctionne pas
+    # def set_exercice(self, value):
+    #     self.nbseries=value
+
+
+    # def set_exercice_name(self, name):
+    #     self.name_exercice=name
+
+
+    # def display_define_exercise_ui(self):
+    #     select_define_exercise = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
+    #     select_define_exercise.add.textinput("Nom De l'exercice", input_type=str,onchange=self.set_exercise_name())
+    #     select_define_exercise.add.textinput('Nombre de séries', input_type=int,onchange=self.set_exercise())
+    #     select_define_exercise.add.button('Paramètrer', self.display_define_series_ui)
+       
+    #     while True:
+    #         time_delta = self.clock.tick(60)/1000.0
+    #         events = pg.event.get()
+
+
+    #         for event in events:
+    #             if event.type == pg.QUIT:
+    #                 pg.display.quit()
+    #                 if self.debug : print("Quit")
+    #                 self.synchro.release()
+
+
+    #         select_define_exercise.update(events)
+
+
+    #         select_define_exercise.draw(self.screen)
+    #         pg.display.update()
+
+    
+   
+    # def set_series(self, value, i, j):
+    #     self.table[i][j] = value
+
+
+    # def display_define_series_ui(self):
+    #     select_define_series = pg_menu.Menu('PARAMETREZ LES SERIES', self.size_x, self.size_y, theme=mytheme)
+
+
+    #     for i in range (0,self.nbseries):
+    #         select_define_series.add.textinput('Durée (s)', input_type=int,onchange=self.set_series(i, 0))
+    #         select_define_series.add.textinput('Vitesse', input_type=int,onchange=self.set_series(i, 1))
+    #         select_define_series.add.textinput('Force', input_type=int,onchange=self.set_series(i, 2))
+
+   
+    #     select_define_series.add.button('VALIDER', self.display_select_exercise_ui)
+   
+    #     while True:
+    #         time_delta = self.clock.tick(60)/1000.0
+    #         events = pg.event.get()
+
+
+    #         for event in events:
+    #             if event.type == pg.QUIT:
+    #                 pg.display.quit()
+    #                 if self.debug : print("Quit")
+    #                 self.synchro.release()
+
+    #         select_define_series.update(events)
+
+    #         select_define_series.draw(self.screen)
+    #         pg.display.update()
+
+
+    def display_modify_exercise_ui(self): #sur le meme modele que precedemment
+        print('Displays the options to modify the exercise selected on the dropselect widget')
+        return
+
+
+    def set_parameters(self):#TODO
+        print("set game parameters according to the selected exercise before launching the game")
+        self.game()
+    
+
+
+
+    def display_history_ui(self):#TODO
+        history_ui = pg_menu.Menu('HISTORIQUE', self.size_x, self.size_y, theme=mytheme)
+        #recherche des dernieres parties dans bdd
+        #db.general_history()
+        #bouton -> : accès au 10 parties précédentes
+        #bouton <- : accès au 10 parties suivantes
+        history_ui.add.button('RETOUR', self.display_select_user_ui)
+
+        while True:
+            time_delta = self.clock.tick(60)/1000.0
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.display.quit()
+                    if self.debug : print("Quit") 
+                    self.synchro.release()
+
+            history_ui.update(events)
+
+            history_ui.draw(self.screen)
             pg.display.update()
 
 
-        return
+
+    def display_stats_ui(self):#TODO faire le lien avec la BDD
+        stats_ui = pg_menu.Menu('STATISTIQUES', self.size_x, self.size_y, theme=mytheme)
+        #bdd
+        stats_ui.add.button('RETOUR', self.display_select_game_ui)
+
+        while True:
+            time_delta = self.clock.tick(60)/1000.0
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.display.quit()
+                    if self.debug : print("Quit") 
+                    self.synchro.release()
+
+            stats_ui.update(events)
+
+            stats_ui.draw(self.screen)
+            pg.display.update()
     
-    def display_stats_ui(self): #TODO
-        print('Displays stats ui')
-        return
-    
+
+
     def display_delete_user_ui(self): #TODO
         print('Displays delet user ui')
         return
     
+    def on_key_event(self, text):
+        print(text)
+        
     def display_create_user_ui(self): #TODO
-        print('Displays create user ui')
-        return
+
+        create_user_ui = pg_menu.Menu('NEW USER', self.size_x, self.size_y, theme=mytheme)
+        create_user_ui.add.button('VALIDER')#fonction à créer, rajouter entrée dans db
+        create_user_ui.add.button('RETOUR', self.display_select_user_ui)
+        
+        layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
+        keyboard = vkboard.VKeyboard(create_user_ui,
+                                    self.on_key_event,
+                                    layout,
+                                    renderer=vkboard.VKeyboardRenderer.DARK,
+                                    show_text=False)
+        while True:
+            time_delta = self.clock.tick(60)/1000.0
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.display.quit()
+                    if self.debug: print("Quit") 
+                    self.synchro.release()
+
+            create_user_ui.update(events)
+            keyboard.update(events)
+            create_user_ui.draw(self.screen)
+            rects = keyboard.draw(self.screen)
+
+            # Flip only the updated area
+            pg.display.update(rects)
+
+    
  
     def display_score_ui(self, duration, distance):
         """ Open self.score_ui """
@@ -159,7 +355,7 @@ class Console():
         self.score_ui.add.label("Distance : " + str(round(distance)))
         self.score_ui.add.label("Score : " + str(round(self.score)))
         self.score_ui.add.button('REJOUER', self.game)
-        self.score_ui.add.button('MENU', partial(self.display_select_game_ui, False))
+        self.score_ui.add.button('MENU', partial(self.display_select_game_ui))
         self.score_ui.add.button('QUITTER', pg_menu.events.EXIT)
         while True:
             events = pg.event.get()
@@ -178,40 +374,6 @@ class Console():
                 self.score_ui.draw(self.screen)
             pg.display.update()
 
-    def menu(self): #À supprimer
-        """ Menu game management """
-        # Main entry menu
-        self.mainmenu = pg_menu.Menu('FIT and FUN', self.size_x, self.size_y, theme=mytheme)
-        # User name 
-        self.mainmenu.add.button('User', self.user_menu)
-        self.usermenu = pg_menu.Menu('Select a User', self.size_x, self.size_y, theme=mytheme)
-        self.usermenu.add.selector('Name :', [('Julien', 'Julien'), ('Christophe', 'Christophe')], onchange=self.set_user)
-        # Launch the game
-        self.mainmenu.add.button('Play', self.game)
-        # Select the level of the game
-        self.mainmenu.add.button('Levels', self.level_menu)
-        self.levelmenu = pg_menu.Menu('Select a Level', self.size_x, self.size_y, theme=mytheme)
-        self.levelmenu.add.selector('Level :', [('Non-regular', 1), ('Regular', 2)], onchange=self.set_level)
-
-        # Quit the game
-        self.mainmenu.add.button('Quit', pg_menu.events.EXIT)
-        # Event loop
-        while True:
-            events = pg.event.get()
-            for event in events:
-                if event.type == pg.QUIT: 
-                    pg.display.quit()
-                    if self.debug : print("Quit") 
-                    self.synchro.release()
-                    if self.wind_resistor != None:
-                        self.wind_resistor.stop()
-                    exit()
-        
-            if self.mainmenu.is_enabled():
-                self.mainmenu.update(events)
-                self.mainmenu.draw(self.screen)
-            pg.display.update()
-   
 
     def draw_text(self, text, size, x, y):
         """ Print text on the panel with 

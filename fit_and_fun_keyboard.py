@@ -60,4 +60,4 @@ class KeyboardController():
 console = GameCanoe()
 virtualController = KeyboardController(console.get_speed)
 virtualController.run()
-console.menu()
+console.display_select_user_ui()
