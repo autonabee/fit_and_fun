@@ -10,34 +10,24 @@ conn = sqlite3.connect('fit_and_fun.db')
 cur = conn.cursor()
 
 
-# Define the SQL query to create the table
-query = '''DROP TABLE IF EXISTS users;'''
-# Execute the SQL query
+query = '''DROP TABLE IF EXISTS User;'''
 cur.execute(query)
-
-query = '''CREATE TABLE users (
-			id INTEGER PRIMARY KEY,
-			user_name TEXT NOT NULL UNIQUE
+query = '''CREATE TABLE User (
+			name TEXT PRIMARY KEY
 			);'''
 cur.execute(query)
 
-# table games
-
-query = '''DROP TABLE IF EXISTS games;'''
+query = '''DROP TABLE IF EXISTS Game;'''
 cur.execute(query)
-
-query = '''CREATE TABLE games (
+query = '''CREATE TABLE Game (
 			id INTEGER PRIMARY KEY,
 			game_name TEXT NOT NULL UNIQUE
 			);'''
 cur.execute(query)
 
-# table exercices
-
-query = '''DROP TABLE IF EXISTS exercices;'''
+query = '''DROP TABLE IF EXISTS Exercise;'''
 cur.execute(query)
-
-query = '''CREATE TABLE exercices (
+query = '''CREATE TABLE Exercise (
 			id INTEGER PRIMARY KEY,
 			ex_name TEXT NOT NULL UNIQUE,
 			user_id INTEGER,
@@ -45,12 +35,9 @@ query = '''CREATE TABLE exercices (
 			);'''
 cur.execute(query)
 
-# table profiles
-
-query = '''DROP TABLE IF EXISTS profiles;'''
+query = '''DROP TABLE IF EXISTS Profile;'''
 cur.execute(query)
-
-query = '''CREATE TABLE profiles (
+query = '''CREATE TABLE Profile (
 			id INTEGER PRIMARY KEY,
 			ex_id INTEGER,
 			speed INTEGER,
@@ -61,12 +48,9 @@ query = '''CREATE TABLE profiles (
 			);'''
 cur.execute(query)
 
-# tables play
-
-query = '''DROP TABLE IF EXISTS play;'''
+query = '''DROP TABLE IF EXISTS Sequence;'''
 cur.execute(query)
-
-query = '''CREATE TABLE play (
+query = '''CREATE TABLE Sequence (
 			id INTEGER PRIMARY KEY,
 			user_id INTEGER,
 			game_id INTEGER,
@@ -85,6 +69,7 @@ cur.execute(query)
 
 # Commit the changes to the database
 conn.commit()
+
 
 # Define the SQL query to retrieve column information for a table
 query = '''SELECT name FROM sqlite_master WHERE type='table';'''
@@ -113,25 +98,25 @@ for table in tables:
 	print('')
 
 # add the user by default
-values = (0,'everybody')
-query = "INSERT INTO users (id,user_name) VALUES (?,?)"
-cur.execute(query, values)
+values = 'everybody'
+query = "INSERT INTO User (name) VALUES (?)"
+cur.execute(query, [values])
 conn.commit()
 
 # verify the adding
-query = '''SELECt * FROM users;'''
+query = '''SELECt * FROM User;'''
 cur.execute(query)
 result = cur.fetchall()
 print(result)
 
 # add the fist game
 values = (0,'ducks')
-query = "INSERT INTO games (id,game_name) VALUES (?,?)"
+query = "INSERT INTO Game (id,game_name) VALUES (?,?)"
 cur.execute(query, values)
 conn.commit()
 
 # verify the adding
-query = '''SELECT * FROM games;'''
+query = '''SELECT * FROM Game;'''
 cur.execute(query)
 result = cur.fetchall()
 print(result)
@@ -139,19 +124,19 @@ print(result)
 # add the fist exercice
 current_user_name ='everybody'
 query = """SELECT *
-			FROM users
-			WHERE user_name = '""" + current_user_name + """' 
+			FROM User
+			WHERE name = '""" + current_user_name + """' 
 			;"""
 cur.execute(query)
 current_user_id = cur.fetchall()[0][0]
 new_ex_name = 'echauffement'
 values = (0,new_ex_name,current_user_id)
-query = "INSERT INTO exercices (id,ex_name,user_id) VALUES (?,?,?)"
+query = "INSERT INTO Exercise (id,ex_name,user_id) VALUES (?,?,?)"
 cur.execute(query, values)
 conn.commit()
 
 # verify the adding
-query = '''SELECT * FROM exercices;'''
+query = '''SELECT * FROM Exercise;'''
 cur.execute(query)
 result = cur.fetchall()
 print(result)

@@ -4,6 +4,7 @@ from pygame_menu import themes, Theme, widgets
 from functools import partial
 import database as db
 import pygame_vkeyboard as vkboard
+import sqlite3
 
 
 import threading
@@ -82,6 +83,12 @@ class Console():
         # Wind resistor
         self.wind_resistor = wind
 
+        # Establish a connection to the database
+        self.conn = sqlite3.connect('fit_and_fun.db')
+
+        # Create a cursor object to execute SQL queries
+        self.cur = self.conn.cursor()
+
     def set_wind(self):
         """ Activate the wind if the object exists"""
         if self.wind_resistor != None:
@@ -93,7 +100,11 @@ class Console():
  
     def display_select_user_ui(self):
         self.name = 'Invite'
-        list_users = [('Invite','Invite'), ('Julien','Julien'), ('Christophe','Christophe')]
+
+        query = '''SELECT name FROM User;'''
+        self.cur.execute(query)
+        list_users = self.cur.fetchall()
+        print(list_users)
 
         #db.obtain_users_list()
 
@@ -194,7 +205,7 @@ class Console():
     #     select_define_exercise = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
     #     select_define_exercise.add.textinput("Nom De l'exercice", input_type=str,onchange=self.set_exercise_name())
     #     select_define_exercise.add.textinput('Nombre de séries', input_type=int,onchange=self.set_exercise())
-    #     select_define_exercise.add.button('Paramètrer', self.display_define_series_ui)
+    #     select_define_exercise.add.button('Paramétrer', self.display_define_series_ui)
        
     #     while True:
     #         time_delta = self.clock.tick(60)/1000.0
@@ -315,6 +326,11 @@ class Console():
     def create_user(self, name_input):
         name = name_input.get_value()
         #TODO Ajouter à la BDD
+        values = (name)
+        query = "INSERT INTO User (name) VALUES (?)"
+        self.cur.execute(query, [values])
+        self.conn.commit()
+
         self.display_select_game_ui()
         
         
@@ -322,7 +338,7 @@ class Console():
 
         create_user_ui = pg_menu.Menu('NEW USER', self.size_x, self.size_y, theme=mytheme)
         name_input = create_user_ui.add.text_input("Nom:")
-        create_user_ui.add.button('VALIDER', partial(self.create_user, name_input))#fonction à créer, rajouter entrée dans db
+        create_user_ui.add.button('VALIDER', partial(self.create_user, name_input))
         create_user_ui.add.button('RETOUR', self.display_select_user_ui)
         
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
