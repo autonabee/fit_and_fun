@@ -250,7 +250,7 @@ class Console():
 
 
     def display_modify_exercise_ui(self): #sur le meme modele que precedemment
-        print('Displays the options to modify the exercise selected on the dropselect widget')
+        print('Modification d\'un exercice')
         return
 
 
@@ -312,18 +312,27 @@ class Console():
         print('Displays delet user ui')
         return
     
-    def on_key_event(self, text):
-        print(text)
+    def create_user(self, name_input):
+        name = name_input.get_value()
+        #TODO Ajouter à la BDD
+        self.display_select_game_ui()
+        
         
     def display_create_user_ui(self): #TODO
 
         create_user_ui = pg_menu.Menu('NEW USER', self.size_x, self.size_y, theme=mytheme)
-        create_user_ui.add.button('VALIDER')#fonction à créer, rajouter entrée dans db
+        name_input = create_user_ui.add.text_input("Nom:")
+        create_user_ui.add.button('VALIDER', partial(self.create_user, name_input))#fonction à créer, rajouter entrée dans db
         create_user_ui.add.button('RETOUR', self.display_select_user_ui)
         
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
+
+        def on_key_event(text):
+            name_input.set_value(text)
+            print(name_input.get_value())
+
         keyboard = vkboard.VKeyboard(create_user_ui,
-                                    self.on_key_event,
+                                    on_key_event,
                                     layout,
                                     renderer=vkboard.VKeyboardRenderer.DARK,
                                     show_text=False)
@@ -340,9 +349,10 @@ class Console():
             create_user_ui.update(events)
             keyboard.update(events)
             create_user_ui.draw(self.screen)
-            rects = keyboard.draw(self.screen)
+            rects = keyboard.draw(self.screen, True)
 
             # Flip only the updated area
+            pg.display.update()
             pg.display.update(rects)
 
     
