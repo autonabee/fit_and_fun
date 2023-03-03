@@ -100,53 +100,53 @@ def general_history():
         exercice_list.append(exercice[1])
     return exercice_list
 
-# query to add the finished game (automatically done)
-query = '''SELECT MAX(id) FROM play;'''
-cur.execute(query)
-result = cur.fetchall()[0][0]
-if result != None :
-	new_id = result + 1
-else :
-	new_id = 0
+# # query to add the finished game (automatically done)
+# query = '''SELECT MAX(id) FROM play;'''
+# cur.execute(query)
+# result = cur.fetchall()[0][0]
+# if result != None :
+# 	new_id = result + 1
+# else :
+# 	new_id = 0
 
-current_user_name = 'player 1'
-query = """SELECT *
-				FROM users
-				WHERE user_name = '""" + current_user_name + """'
-				;"""
-cur.execute(query)
-current_user_id = cur.fetchall()[0][0]
+# current_user_name = 'player 1'
+# query = """SELECT *
+# 				FROM users
+# 				WHERE user_name = '""" + current_user_name + """'
+# 				;"""
+# cur.execute(query)
+# current_user_id = cur.fetchall()[0][0]
 
-current_game_name = 'ducks'
-query = """SELECT *
-				FROM games
-				WHERE game_name = '""" + current_game_name + """'
-				;"""
-cur.execute(query)
-current_game_id = cur.fetchall()[0][0]
+# current_game_name = 'ducks'
+# query = """SELECT *
+# 				FROM games
+# 				WHERE game_name = '""" + current_game_name + """'
+# 				;"""
+# cur.execute(query)
+# current_game_id = cur.fetchall()[0][0]
 
-current_ex_name = 'echauffement'
-query = """SELECT *
-				FROM exercices
-				WHERE ex_name = '""" + current_ex_name + """'
-				;"""
-cur.execute(query)
-current_ex_id = cur.fetchall()[0][0]
+# current_ex_name = 'echauffement'
+# query = """SELECT *
+# 				FROM exercices
+# 				WHERE ex_name = '""" + current_ex_name + """'
+# 				;"""
+# cur.execute(query)
+# current_ex_id = cur.fetchall()[0][0]
 
-query = '''SELECT strftime('%d-%m-%Y', 'now');'''
-cur.execute(query)
-date = cur.fetchall()[0][0]
+# query = '''SELECT strftime('%d-%m-%Y', 'now');'''
+# cur.execute(query)
+# date = cur.fetchall()[0][0]
 
-score = 1000
-t_tot = 1000
-distance = 1000
-avg_speed = 10
-avg_power = 10
+# score = 1000
+# t_tot = 1000
+# distance = 1000
+# avg_speed = 10
+# avg_power = 10
 
-values = (new_id,current_game_id,current_user_id,current_ex_id,date,score,t_tot,distance,avg_speed,avg_power,)
-query = "INSERT INTO play (id,game_id,user_id,ex_id,date,score,t_tot,distance,avg_speed,avg_power) VALUES (?,?,?,?,?,?,?,?,?,?)"
-cur.execute(query, values)
-conn.commit()
+# values = (new_id,current_game_id,current_user_id,current_ex_id,date,score,t_tot,distance,avg_speed,avg_power,)
+# query = "INSERT INTO play (id,game_id,user_id,ex_id,date,score,t_tot,distance,avg_speed,avg_power) VALUES (?,?,?,?,?,?,?,?,?,?)"
+# cur.execute(query, values)
+# conn.commit()
 
 # Close the cursor and database connection
 cur.close()
