@@ -101,7 +101,7 @@ class Console():
     def display_select_user_ui(self):
         self.name = 'Invite'
 
-        query = '''SELECT name FROM User;'''
+        query = '''SELECT name, value FROM User;'''
         self.cur.execute(query)
         list_users = self.cur.fetchall()
         print(list_users)
@@ -325,10 +325,9 @@ class Console():
     
     def create_user(self, name_input):
         name = name_input.get_value()
-        #TODO Ajouter à la BDD
-        values = (name)
-        query = "INSERT INTO User (name) VALUES (?)"
-        self.cur.execute(query, [values])
+        values = (name, name)
+        query = "INSERT INTO User (name, value) VALUES (?,?)"
+        self.cur.execute(query, values)
         self.conn.commit()
 
         self.display_select_game_ui()

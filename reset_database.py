@@ -13,7 +13,8 @@ cur = conn.cursor()
 query = '''DROP TABLE IF EXISTS User;'''
 cur.execute(query)
 query = '''CREATE TABLE User (
-			name TEXT PRIMARY KEY
+			name TEXT PRIMARY KEY,
+			value NOT NULL UNIQUE
 			);'''
 cur.execute(query)
 
@@ -98,9 +99,9 @@ for table in tables:
 	print('')
 
 # add the user by default
-values = 'everybody'
-query = "INSERT INTO User (name) VALUES (?)"
-cur.execute(query, [values])
+values = ('everybody', 'everybody')
+query = "INSERT INTO User (name, value) VALUES (?,?)"
+cur.execute(query, values)
 conn.commit()
 
 # verify the adding
