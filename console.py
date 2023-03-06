@@ -204,29 +204,43 @@ class Console():
 
     def display_define_exercise_ui(self):
 
-        nb_stage = 5
+        stages = [('',''),('',''),('','')] #TODO Aller récupérer dans la BDD
+
         select_define_exercise = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
-        #TODO Regarder en détail si c'est possible d'ajouter d'autres widget managers ou si c'est possible de simuler un comportement identique
         select_define_exercise.add.text_input('Nom de l\'exercice', onchange=self.set_exercise_name, margin=(0, 50), font_color=(255, 255, 255))
 
-        for i in range(0, nb_stage):
+        def delete_step(index):
+            stages.pop(index-1)
+            select_define_exercise.remove_widget(select_define_exercise.get_widget('label' + str(index)))
+            select_define_exercise.remove_widget(select_define_exercise.get_widget('remove_button' + str(index)))
+            select_define_exercise.remove_widget(select_define_exercise.get_widget('temps' + str(index)))
+            select_define_exercise.remove_widget(select_define_exercise.get_widget('resistance' + str(index)))
+            for i in range(index+1, len(stages)+2):
+                select_define_exercise.get_widget('label'+str(i)).set_title('Etape ' + str(i-1))
+                #TODO Trouver un moyen d'update les ids ou de contourner le problème
+                #       En fait impossible de faire autrement que de les re-créer => les appels de fonction et les id (figés) sont définis à la création du menu
+                #       Donc il faut bel et bien tous les supprimer et les refaire, en espérant que ça fasse pas de gros ralenti
+                #       Voilà le plan, sans oublier de tester sur le raspi pour être sûr que ça tourne bien dessus aussi
+
+        def change_time(text, index):
+            stages[index][0] = text
+            print(stages)
+
+        def change_resistance(text, index):
+            stages[index][1] = text
+            print(stages)
+
+        for i in range(0, len(stages)):
             color = pg.Color(rand.randint(0, 150), rand.randint(0, 150), rand.randint(0, 150))
-            label = select_define_exercise.add.label('Etape ' + str(i+1), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
-            remove_button = select_define_exercise.add.button('X', align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
+            label = select_define_exercise.add.label('Etape ' + str(i+1), label_id='label'+str(i+1), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
+            remove_button = select_define_exercise.add.button('X', button_id='remove_button'+str(i+1), action=partial(delete_step, i+1), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
             label.set_margin(0, -remove_button.get_height())
-            print(remove_button.get_height())
-            temps_input = select_define_exercise.add.text_input('Temps : ', font_color=color)
-            select_define_exercise.add.text_input('Resistance : ', margin=(0, 50), font_color=color)
-        
+            select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i+1), onchange=partial(change_time, i), font_color=color)
+            select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i+1), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
 
-        def update_ui(self):
-            for i in range(0, nb_stage-1):
-                nb_stage[i] = select_define_exercise.add.text_input('', onchange=None)
-
-
-        select_define_exercise.add.text_input('Nombre de series', onchange=update_ui)
         while True:
             time_delta = self.clock.tick(60)/1000.0
+
             events = pg.event.get()
 
             for event in events:
