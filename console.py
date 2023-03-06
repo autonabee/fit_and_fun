@@ -5,6 +5,7 @@ from functools import partial
 import database as db
 import pygame_vkeyboard as vkboard
 import sqlite3
+import random as rand
 
 
 import threading
@@ -104,7 +105,7 @@ class Console():
         query = '''SELECT name, value FROM User;'''
         self.cur.execute(query)
         list_users = self.cur.fetchall()
-        print(list_users)
+        if self.debug: print('Liste des utilisateurs :' + list_users)
 
         #db.obtain_users_list()
 
@@ -192,38 +193,54 @@ class Console():
 
     
 
-################ partie création d'un exercice, ne fonctionne pas
-    # def set_exercice(self, value):
-    #     self.nbseries=value
+############### partie création d'un exercice, ne fonctionne pas
+    def set_exercise(self, value):
+        self.nbseries=value
 
 
-    # def set_exercice_name(self, name):
-    #     self.name_exercice=name
+    def set_exercise_name(self, name):
+        self.name_exercice=name
 
 
-    # def display_define_exercise_ui(self):
-    #     select_define_exercise = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
-    #     select_define_exercise.add.textinput("Nom De l'exercice", input_type=str,onchange=self.set_exercise_name())
-    #     select_define_exercise.add.textinput('Nombre de séries', input_type=int,onchange=self.set_exercise())
-    #     select_define_exercise.add.button('Paramétrer', self.display_define_series_ui)
-       
-    #     while True:
-    #         time_delta = self.clock.tick(60)/1000.0
-    #         events = pg.event.get()
+    def display_define_exercise_ui(self):
+
+        nb_stage = 5
+        select_define_exercise = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
+        #TODO Regarder en détail si c'est possible d'ajouter d'autres widget managers ou si c'est possible de simuler un comportement identique
+        select_define_exercise.add.text_input('Nom de l\'exercice', onchange=self.set_exercise_name, margin=(0, 50), font_color=(255, 255, 255))
+
+        for i in range(0, nb_stage):
+            color = pg.Color(rand.randint(0, 150), rand.randint(0, 150), rand.randint(0, 150))
+            label = select_define_exercise.add.label('Etape ' + str(i+1), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
+            remove_button = select_define_exercise.add.button('X', align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
+            label.set_margin(0, -remove_button.get_height())
+            print(remove_button.get_height())
+            temps_input = select_define_exercise.add.text_input('Temps : ', font_color=color)
+            select_define_exercise.add.text_input('Resistance : ', margin=(0, 50), font_color=color)
+        
+
+        def update_ui(self):
+            for i in range(0, nb_stage-1):
+                nb_stage[i] = select_define_exercise.add.text_input('', onchange=None)
 
 
-    #         for event in events:
-    #             if event.type == pg.QUIT:
-    #                 pg.display.quit()
-    #                 if self.debug : print("Quit")
-    #                 self.synchro.release()
+        select_define_exercise.add.text_input('Nombre de series', onchange=update_ui)
+        while True:
+            time_delta = self.clock.tick(60)/1000.0
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.display.quit()
+                    if self.debug : print("Quit")
+                    self.synchro.release()
 
 
-    #         select_define_exercise.update(events)
+            select_define_exercise.update(events)
 
 
-    #         select_define_exercise.draw(self.screen)
-    #         pg.display.update()
+            select_define_exercise.draw(self.screen)
+            pg.display.update()
 
     
    
@@ -333,7 +350,7 @@ class Console():
         self.display_select_game_ui()
         
         
-    def display_create_user_ui(self): #TODO
+    def display_create_user_ui(self):
 
         create_user_ui = pg_menu.Menu('NEW USER', self.size_x, self.size_y, theme=mytheme)
         name_input = create_user_ui.add.text_input("Nom:")
@@ -344,7 +361,7 @@ class Console():
 
         def on_key_event(text):
             name_input.set_value(text)
-            print(name_input.get_value())
+            if self.debug: print(name_input.get_value())
 
         keyboard = vkboard.VKeyboard(create_user_ui,
                                     on_key_event,
