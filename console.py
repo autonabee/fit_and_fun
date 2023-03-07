@@ -105,9 +105,6 @@ class Console():
         query = '''SELECT name, value FROM User;'''
         self.cur.execute(query)
         list_users = self.cur.fetchall()
-        if self.debug: print('Liste des utilisateurs :' + list_users)
-
-        #db.obtain_users_list()
 
         select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
         select_user_ui.add.dropselect('UTILISATEUR :', list_users, default = 0, onchange=self.set_user)
@@ -168,7 +165,7 @@ class Console():
         self.exercise = ('Echauffement','Echauffement')
         list_exercise = [('Echauffement','Echauffement'), ('Paliers simples','Paliers simples'), ('Pyramide','Pyramide')]
         
-        ##import from the database
+        ##TODO import from the database
 
         select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
         select_exercise_ui.add.dropselect('EXERCICE :', list_exercise, default = 0, onchange=self.set_exercise)
@@ -191,9 +188,6 @@ class Console():
             select_exercise_ui.draw(self.screen)
             pg.display.update()
 
-    
-
-############### partie création d'un exercice, ne fonctionne pas
     def set_exercise(self, value):
         self.nbseries=value
 
@@ -203,24 +197,37 @@ class Console():
 
 
     def display_define_exercise_ui(self):
+        """Displays the exercise definition ui"""
 
         stages = [('',''),('',''),('','')] #TODO Aller récupérer dans la BDD
 
         select_define_exercise = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
         select_define_exercise.add.text_input('Nom de l\'exercice', onchange=self.set_exercise_name, margin=(0, 50), font_color=(255, 255, 255))
 
-        def delete_step(index):
+        def delete_stage(index):
+            """Delete the desired stage from the exercise definition ui
+
+            Args:
+                index (int): Index of the stage to be deleted (Warning: starting at 1, not 0)
+            """
+            color_saves = []
+            
+            for i in range(index, len(stages)+1):
+                # Supprime tous les stages supérieurs à celui qu'on souhaite retirer
+                if i != index: color_saves = color_saves + [select_define_exercise.get_widget('label' + str(i)).get_font_info()["color"]]
+                select_define_exercise.remove_widget(select_define_exercise.get_widget('label' + str(i)))
+                select_define_exercise.remove_widget(select_define_exercise.get_widget('remove_button' + str(i)))
+                select_define_exercise.remove_widget(select_define_exercise.get_widget('temps' + str(i)))
+                select_define_exercise.remove_widget(select_define_exercise.get_widget('resistance' + str(i)))  
             stages.pop(index-1)
-            select_define_exercise.remove_widget(select_define_exercise.get_widget('label' + str(index)))
-            select_define_exercise.remove_widget(select_define_exercise.get_widget('remove_button' + str(index)))
-            select_define_exercise.remove_widget(select_define_exercise.get_widget('temps' + str(index)))
-            select_define_exercise.remove_widget(select_define_exercise.get_widget('resistance' + str(index)))
-            for i in range(index+1, len(stages)+2):
-                select_define_exercise.get_widget('label'+str(i)).set_title('Etape ' + str(i-1))
-                #TODO Trouver un moyen d'update les ids ou de contourner le problème
-                #       En fait impossible de faire autrement que de les re-créer => les appels de fonction et les id (figés) sont définis à la création du menu
-                #       Donc il faut bel et bien tous les supprimer et les refaire, en espérant que ça fasse pas de gros ralenti
-                #       Voilà le plan, sans oublier de tester sur le raspi pour être sûr que ça tourne bien dessus aussi
+            for i in range(index, len(stages)+1):
+                # Re-crée tous les stages supérieurs à celui qu'on vient de retirer, avec les bons id et en conservant la couleur
+                color = color_saves[i-index-1]
+                label = select_define_exercise.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
+                remove_button = select_define_exercise.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
+                label.set_margin(0, -remove_button.get_height())
+                select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
+                select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
 
         def change_time(text, index):
             stages[index][0] = text
@@ -230,13 +237,13 @@ class Console():
             stages[index][1] = text
             print(stages)
 
-        for i in range(0, len(stages)):
+        for i in range(1, len(stages)+1):
             color = pg.Color(rand.randint(0, 150), rand.randint(0, 150), rand.randint(0, 150))
-            label = select_define_exercise.add.label('Etape ' + str(i+1), label_id='label'+str(i+1), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
-            remove_button = select_define_exercise.add.button('X', button_id='remove_button'+str(i+1), action=partial(delete_step, i+1), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
+            label = select_define_exercise.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
+            remove_button = select_define_exercise.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
             label.set_margin(0, -remove_button.get_height())
-            select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i+1), onchange=partial(change_time, i), font_color=color)
-            select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i+1), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
+            select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
+            select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
 
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -255,40 +262,6 @@ class Console():
 
             select_define_exercise.draw(self.screen)
             pg.display.update()
-
-    
-   
-    # def set_series(self, value, i, j):
-    #     self.table[i][j] = value
-
-
-    # def display_define_series_ui(self):
-    #     select_define_series = pg_menu.Menu('PARAMETREZ LES SERIES', self.size_x, self.size_y, theme=mytheme)
-
-
-    #     for i in range (0,self.nbseries):
-    #         select_define_series.add.textinput('Durée (s)', input_type=int,onchange=self.set_series(i, 0))
-    #         select_define_series.add.textinput('Vitesse', input_type=int,onchange=self.set_series(i, 1))
-    #         select_define_series.add.textinput('Force', input_type=int,onchange=self.set_series(i, 2))
-
-   
-    #     select_define_series.add.button('VALIDER', self.display_select_exercise_ui)
-   
-    #     while True:
-    #         time_delta = self.clock.tick(60)/1000.0
-    #         events = pg.event.get()
-
-
-    #         for event in events:
-    #             if event.type == pg.QUIT:
-    #                 pg.display.quit()
-    #                 if self.debug : print("Quit")
-    #                 self.synchro.release()
-
-    #         select_define_series.update(events)
-
-    #         select_define_series.draw(self.screen)
-    #         pg.display.update()
 
 
     def display_modify_exercise_ui(self): #sur le meme modele que precedemment
