@@ -218,22 +218,57 @@ class Console():
                 select_define_exercise.remove_widget(select_define_exercise.get_widget('label' + str(i)))
                 select_define_exercise.remove_widget(select_define_exercise.get_widget('remove_button' + str(i)))
                 select_define_exercise.remove_widget(select_define_exercise.get_widget('temps' + str(i)))
-                select_define_exercise.remove_widget(select_define_exercise.get_widget('resistance' + str(i)))  
+                select_define_exercise.remove_widget(select_define_exercise.get_widget('resistance' + str(i)))
+                
+            select_define_exercise.remove_widget(select_define_exercise.get_widget('add_stage_button'))
+                  
             stages.pop(index-1)
             for i in range(index, len(stages)+1):
                 # Re-crée tous les stages supérieurs à celui qu'on vient de retirer, avec les bons id et en conservant la couleur
-                color = color_saves[i-index-1]
+                color = color_saves[i-index]
                 label = select_define_exercise.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
                 remove_button = select_define_exercise.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
                 label.set_margin(0, -remove_button.get_height())
                 select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
                 select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
+            
+            select_define_exercise.add.button('+', button_id='add_stage_button', action=add_stage, align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
+
+        def add_stage():
+            """Add new stage into the exercise"""
+            stages.append(('', ''))
+            
+            # On retire le bouton "Ajouter"
+            select_define_exercise.remove_widget(select_define_exercise.get_widget('add_stage_button'))
+            
+            i = len(stages)
+            color = pg.Color(rand.randint(0, 150), rand.randint(0, 150), rand.randint(0, 150))
+            label = select_define_exercise.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
+            remove_button = select_define_exercise.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
+            label.set_margin(0, -remove_button.get_height())
+            select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
+            select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
+            
+            # On replace le bouton "Ajouter"
+            select_define_exercise.add.button('+', button_id='add_stage_button', action=add_stage, align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
 
         def change_time(text, index):
+            """Update time parameter in stages table
+
+            Args:
+                text (str): time value for this stage
+                index (int): index of the stage you want to update
+            """
             stages[index][0] = text
             print(stages)
 
         def change_resistance(text, index):
+            """Update resistance parameter in stages table
+
+            Args:
+                text (str): resistance value for this stage
+                index (int): index of the stage you want to update
+            """
             stages[index][1] = text
             print(stages)
 
@@ -244,6 +279,8 @@ class Console():
             label.set_margin(0, -remove_button.get_height())
             select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
             select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
+        
+        select_define_exercise.add.button('+', button_id='add_stage_button', action=add_stage, align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
 
         while True:
             time_delta = self.clock.tick(60)/1000.0
