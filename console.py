@@ -90,15 +90,18 @@ class Console():
         # Create a cursor object to execute SQL queries
         self.cur = self.conn.cursor()
 
+
     def set_wind(self):
         """ Activate the wind if the object exists"""
         if self.wind_resistor != None:
             self.wind_resistor.activate()
    
+
     def set_user(self, username, name): 
         """ callback called by self.usermenu """
         self.name=name
  
+
     def display_select_user_ui(self):
         self.name = 'Invite'
 
@@ -157,10 +160,7 @@ class Console():
     def set_exercise(self, exercise_display, exercise_value):
         self.exercise = exercise_value
 
-    def display_define_exercise_ui(self):
-        print("Création d'un exercice")
-        return
-    
+
     def display_select_exercise_ui(self):#TODO
         self.exercise = ('Echauffement','Echauffement')
         list_exercise = [('Echauffement','Echauffement'), ('Paliers simples','Paliers simples'), ('Pyramide','Pyramide')]
@@ -188,6 +188,7 @@ class Console():
             select_exercise_ui.draw(self.screen)
             pg.display.update()
 
+
     def set_exercise(self, value):
         self.nbseries=value
 
@@ -201,8 +202,9 @@ class Console():
 
         stages = [('',''),('',''),('','')] #TODO Aller récupérer dans la BDD
 
-        select_define_exercise = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
-        select_define_exercise.add.text_input('Nom de l\'exercice', onchange=self.set_exercise_name, margin=(0, 50), font_color=(255, 255, 255))
+        define_exercise_ui = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
+        
+        define_exercise_ui.add.text_input('Nom de l\'exercice :', onchange=self.set_exercise_name, margin=(0, 50), font_color=(0, 0, 0))
 
         def delete_stage(index):
             """Delete the desired stage from the exercise definition ui
@@ -214,43 +216,43 @@ class Console():
             
             for i in range(index, len(stages)+1):
                 # Supprime tous les stages supérieurs à celui qu'on souhaite retirer
-                if i != index: color_saves = color_saves + [select_define_exercise.get_widget('label' + str(i)).get_font_info()["color"]]
-                select_define_exercise.remove_widget(select_define_exercise.get_widget('label' + str(i)))
-                select_define_exercise.remove_widget(select_define_exercise.get_widget('remove_button' + str(i)))
-                select_define_exercise.remove_widget(select_define_exercise.get_widget('temps' + str(i)))
-                select_define_exercise.remove_widget(select_define_exercise.get_widget('resistance' + str(i)))
+                if i != index: color_saves = color_saves + [define_exercise_ui.get_widget('label' + str(i)).get_font_info()["color"]]
+                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('label' + str(i)))
+                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('remove_button' + str(i)))
+                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('temps' + str(i)))
+                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('resistance' + str(i)))
                 
-            select_define_exercise.remove_widget(select_define_exercise.get_widget('add_stage_button'))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('add_stage_button'))
                   
             stages.pop(index-1)
             for i in range(index, len(stages)+1):
                 # Re-crée tous les stages supérieurs à celui qu'on vient de retirer, avec les bons id et en conservant la couleur
                 color = color_saves[i-index]
-                label = select_define_exercise.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
-                remove_button = select_define_exercise.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
+                label = define_exercise_ui.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
+                remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
                 label.set_margin(0, -remove_button.get_height())
-                select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
-                select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
+                define_exercise_ui.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
+                define_exercise_ui.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
             
-            select_define_exercise.add.button('+', button_id='add_stage_button', action=add_stage, align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
+            define_exercise_ui.add.button('+', button_id='add_stage_button', action=add_stage, align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
 
         def add_stage():
             """Add new stage into the exercise"""
             stages.append(('', ''))
             
             # On retire le bouton "Ajouter"
-            select_define_exercise.remove_widget(select_define_exercise.get_widget('add_stage_button'))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('add_stage_button'))
             
             i = len(stages)
             color = pg.Color(rand.randint(0, 150), rand.randint(0, 150), rand.randint(0, 150))
-            label = select_define_exercise.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
-            remove_button = select_define_exercise.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
+            label = define_exercise_ui.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
+            remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
             label.set_margin(0, -remove_button.get_height())
-            select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
-            select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
+            define_exercise_ui.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
+            define_exercise_ui.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
             
             # On replace le bouton "Ajouter"
-            select_define_exercise.add.button('+', button_id='add_stage_button', action=add_stage, align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
+            define_exercise_ui.add.button('+', button_id='add_stage_button', action=add_stage, align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
 
         def change_time(text, index):
             """Update time parameter in stages table
@@ -274,13 +276,26 @@ class Console():
 
         for i in range(1, len(stages)+1):
             color = pg.Color(rand.randint(0, 150), rand.randint(0, 150), rand.randint(0, 150))
-            label = select_define_exercise.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
-            remove_button = select_define_exercise.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
+            label = define_exercise_ui.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=color)
+            remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, margin=(0, -20), font_color=color)
             label.set_margin(0, -remove_button.get_height())
-            select_define_exercise.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
-            select_define_exercise.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
+            define_exercise_ui.add.text_input('Temps : ', textinput_id='temps'+str(i), onchange=partial(change_time, i), font_color=color)
+            define_exercise_ui.add.text_input('Resistance : ', textinput_id='resistance'+str(i), onchange=partial(change_resistance, i), margin=(0, 50), font_color=color)
+
+        define_exercise_ui.add.button('+', button_id='add_stage_button', action=add_stage, align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
+
+
+        layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.NUMBER)
+        def on_key_event(text):
+            # name_input.set_value(text)
+            # if self.debug: print(name_input.get_value())
+            return
         
-        select_define_exercise.add.button('+', button_id='add_stage_button', action=add_stage, align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
+        keyboard = vkboard.VKeyboard(define_exercise_ui,
+                                    on_key_event,
+                                    layout,
+                                    renderer=vkboard.VKeyboardRenderer.DARK,
+                                    show_text=False)
 
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -292,13 +307,18 @@ class Console():
                     pg.display.quit()
                     if self.debug : print("Quit")
                     self.synchro.release()
+                elif event.type == pg.FINGERDOWN:
+                    #Avoid double event (FINGERDOWN and MOUSEDOWN) when using touchscreen
+                    events.remove(event)
 
+            define_exercise_ui.update(events)
+            keyboard.update(events)
+            define_exercise_ui.draw(self.screen)
+            #rects = keyboard.draw(self.screen, True)
 
-            select_define_exercise.update(events)
-
-
-            select_define_exercise.draw(self.screen)
+            # Flip only the updated area
             pg.display.update()
+            #pg.display.update(rects)
 
 
     def display_modify_exercise_ui(self): #sur le meme modele que precedemment
@@ -310,8 +330,6 @@ class Console():
         print("set game parameters according to the selected exercise before launching the game")
         self.game()
     
-
-
 
     def display_history_ui(self):#TODO
         history_ui = pg_menu.Menu('HISTORIQUE', self.size_x, self.size_y, theme=mytheme)
@@ -337,7 +355,6 @@ class Console():
             pg.display.update()
 
 
-
     def display_stats_ui(self):#TODO faire le lien avec la BDD
         stats_ui = pg_menu.Menu('STATISTIQUES', self.size_x, self.size_y, theme=mytheme)
         #bdd
@@ -357,13 +374,13 @@ class Console():
 
             stats_ui.draw(self.screen)
             pg.display.update()
-    
 
 
     def display_delete_user_ui(self): #TODO
         print('Displays delet user ui')
         return
-    
+
+
     def create_user(self, name_input):
         name = name_input.get_value()
         values = (name, name)
@@ -463,6 +480,7 @@ class Console():
         text_rect.midtop = (x, y)
         self.screen.blit(text_surface, text_rect)
 
+
     def draw_life(self, life_count):
         """ Print life counter in the top left corner with 
 
@@ -480,6 +498,7 @@ class Console():
             self.screen.blit(self.heart_full_img, (5, 92))
         else:
             self.screen.blit(self.heart_empty_img, (5, 92))
+
 
     def get_banner(self):
         """ Format textual information
@@ -499,6 +518,7 @@ class Console():
         banner = template.format(min=int(minutes), sec=int(seconds), 
                             speed=int(self.rot_speed), score=round(self.score)+int(self.energy))
         return banner
+
 
     def message_callback(self, client, userdata, message):
         """ executes the function corresponding to the called topic
