@@ -283,27 +283,26 @@ class Console():
             # On replace le bouton "Ajouter"
             define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
 
-        def change_time(text, index):
+        def change_time(index, value):
             """Update time parameter in stages table
 
             Args:
                 text (str): time value for this stage
                 index (int): index of the stage you want to update
             """
-            # stages[index][0] = text
-            # print(stages)
-            print(str(text) + ' = ' + str(index))
+            if self.debug and value != stages[index-1]["temps"]: print('Temps of stage ' + str(index) + " changed to " + str(value))
+            stages[index-1]["temps"] = value
 
-        def change_resistance(text, index):
+        def change_resistance(index, value):
             """Update resistance parameter in stages table
 
             Args:
                 text (str): resistance value for this stage
                 index (int): index of the stage you want to update
             """
-            # stages[index][1] = text
-            # print(stages)
-            print(str(text) + ' = ' + str(index))
+
+            if self.debug and value != stages[index-1]["resistance"]: print('Resistance of stage ' + str(index) + " changed to " + str(value))
+            stages[index-1]["resistance"] = value
 
         stages = [] # Is filled in add stage, no need to fill it beforehand
 
@@ -312,14 +311,14 @@ class Console():
         define_exercise_ui.add.text_input('Nom de l\'exercice :', onchange=self.set_exercise_name, margin=(0, 50), font_color=(0, 0, 0))
         define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
 
-        # Add all stages, the values given are fetched from the DB
+        # Add all existing stages, the values given are fetched from the DB
         stored_stages = [dict(temps = 20, resistance = 0),
                          dict(temps = 20, resistance = 0),
                          dict(temps = 20, resistance = 0)] #TODO Fetch them from the DB
         for i in range(0, len(stored_stages)):
             add_stage(stored_stages[i])
 
-        layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.NUMBER)
+        layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
         def on_key_event(text):
             # name_input.set_value(text)
             # if self.debug: print(name_input.get_value())
@@ -342,8 +341,7 @@ class Console():
                     if self.debug : print("Quit")
                     self.synchro.release()
                 elif event.type == pg.FINGERDOWN:
-                    #Avoid double event (FINGERDOWN and MOUSEDOWN) when using touchscreen
-                    events.remove(event)
+                    events.remove(event) # Avoid double event (FINGERDOWN and MOUSEDOWN) when using touchscreen
 
             define_exercise_ui.update(events)
             keyboard.update(events)
