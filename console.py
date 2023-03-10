@@ -204,46 +204,23 @@ class Console():
     def display_define_exercise_ui(self):
         """Displays the exercise definition ui"""
 
-        def delete_stage(index):
+        def delete_stage(id):
             """Delete the desired stage from the exercise definition ui
 
             Args:
                 index (int): Index of the stage to be deleted (Warning: starting at 1, not 0)
             """
-            temps_save = []
-            resistance_save = []
-            
-            for i in range(index, len(stages)+1):
-                # Supprime tous les stages supérieurs à celui qu'on souhaite retirer
-                if i != index: temps_save = temps_save + [define_exercise_ui.get_widget('temps' + str(i)).get_value()]
-                if i != index: resistance_save = resistance_save + [define_exercise_ui.get_widget('resistance' + str(i)).get_value()]
-                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('label' + str(i)))
-                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('remove_button' + str(i)))
-                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('temps' + str(i)))
-                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('resistance' + str(i)))
-                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_global' + str(i)))
-                define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_param' + str(i)))
-                
-            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('add_stage_button'))
-                  
-            stages.pop(index-1)
-            for i in range(index, len(stages)+1):
-                # Re-crée tous les stages supérieurs à celui qu'on vient de retirer, avec les bons id et en conservant les valeurs
-                color = COLOR_STAGE
-                label = define_exercise_ui.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(230, 230, 230))
-                remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(230, 230, 230))
-                temps = define_exercise_ui.add.range_slider('Temps : ', rangeslider_id='temps'+str(i), onchange=partial(change_time, i), font_color=(230, 230, 230), default=temps_save[i-index], range_text_value_enabled=False, range_values=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80])
-                resistance = define_exercise_ui.add.range_slider('Resistance : ', rangeslider_id='resistance'+str(i), onchange=partial(change_resistance, i), font_color=(230, 230, 230), default=resistance_save[i-index], range_text_value_enabled=False, range_values=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
-                frame_global = define_exercise_ui.add.frame_h(580, 140, frame_id='frame_global'+str(i), background_color=color, margin=(0,5))
-                frame_global.relax(True)
-                frame_global.pack(label, align=pg_menu.locals.ALIGN_LEFT)
-                frame_global.pack(remove_button, align=pg_menu.locals.ALIGN_RIGHT)
-                frame_param = define_exercise_ui.add.frame_v(400, 100, frame_id='frame_param'+str(i))
-                frame_param.pack(temps, align=pg_menu.locals.ALIGN_CENTER)
-                frame_param.pack(resistance, align=pg_menu.locals.ALIGN_CENTER)
-                frame_global.pack(frame_param, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
-            
-            define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
+            index_label = label_widgets.index(define_exercise_ui.get_widget('label'+str(id)))
+            for i in range(index_label + 1, len(label_widgets)) :
+                define_exercise_ui.get_widget(label_widgets[i].get_id()).set_title('Etape ' + str(i))
+            label_widgets.pop(index_label)
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('label' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('remove_button' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('temps' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('resistance' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_global' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_param' + str(id)))
+
 
         def add_stage(stage_values):
             """Add new stage into the exercise
@@ -252,20 +229,20 @@ class Console():
                 stage_values (dict): dict containing "temps" and "resistance" values, None if new stage
             """
             if stage_values == None :
-                stages.append(dict(temps=20, resistance=0))
+                stages_data.append(dict(temps=20, resistance=0))
             else :
-                stages.append(stage_values)
+                stages_data.append(stage_values)
             
             # On retire le bouton "Ajouter"
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('add_stage_button'))
             
             try:
-                i = len(stages)
+                i = len(stages_data)
                 color = COLOR_STAGE
-                label = define_exercise_ui.add.label('Etape ' + str(i), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(230, 230, 230))
+                label = define_exercise_ui.add.label('Etape ' + str(len(label_widgets)+1), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(230, 230, 230))
                 remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(230, 230, 230))
-                temps = define_exercise_ui.add.range_slider('Temps : ', rangeslider_id='temps'+str(i), onchange=partial(change_time, i), font_color=(230, 230, 230), default=stages[i-1]["temps"], range_text_value_enabled=False, range_values=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80])
-                resistance = define_exercise_ui.add.range_slider('Resistance : ', rangeslider_id='resistance'+str(i), onchange=partial(change_resistance, i), font_color=(230, 230, 230), default=stages[i-1]["resistance"], range_text_value_enabled=False, range_values=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+                temps = define_exercise_ui.add.range_slider('Temps : ', rangeslider_id='temps'+str(i), onchange=partial(change_time, i), font_color=(230, 230, 230), default=stages_data[i-1]["temps"], range_text_value_enabled=False, range_values=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80])
+                resistance = define_exercise_ui.add.range_slider('Resistance : ', rangeslider_id='resistance'+str(i), onchange=partial(change_resistance, i), font_color=(230, 230, 230), default=stages_data[i-1]["resistance"], range_text_value_enabled=False, range_values=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
                 frame_global = define_exercise_ui.add.frame_h(580, 140, frame_id='frame_global'+str(i), background_color=color, margin=(0,5))
                 frame_global.relax(True)
                 frame_global.pack(label, align=pg_menu.locals.ALIGN_LEFT)
@@ -274,6 +251,7 @@ class Console():
                 frame_param.pack(temps, align=pg_menu.locals.ALIGN_CENTER)
                 frame_param.pack(resistance, align=pg_menu.locals.ALIGN_CENTER)
                 frame_global.pack(frame_param, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+                label_widgets.append(label)
             except KeyError:
                 print("Wrong dictionary format when adding new stage")
                 pg.display.quit()
@@ -290,8 +268,8 @@ class Console():
                 text (str): time value for this stage
                 index (int): index of the stage you want to update
             """
-            if self.debug and value != stages[index-1]["temps"]: print('Temps of stage ' + str(index) + " changed to " + str(value))
-            stages[index-1]["temps"] = value
+            if self.debug and value != stages_data[index-1]["temps"]: print('Temps of stage ' + str(index) + " changed to " + str(value))
+            stages_data[index-1]["temps"] = value
 
         def change_resistance(index, value):
             """Update resistance parameter in stages table
@@ -301,10 +279,12 @@ class Console():
                 index (int): index of the stage you want to update
             """
 
-            if self.debug and value != stages[index-1]["resistance"]: print('Resistance of stage ' + str(index) + " changed to " + str(value))
-            stages[index-1]["resistance"] = value
+            if self.debug and value != stages_data[index-1]["resistance"]: print('Resistance of stage ' + str(index) + " changed to " + str(value))
+            stages_data[index-1]["resistance"] = value
 
-        stages = [] # Is filled in add stage, no need to fill it beforehand
+        stages_data = [] # Is filled in add stage, no need to fill it beforehand
+
+        label_widgets = []
 
         define_exercise_ui = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
         
@@ -312,9 +292,9 @@ class Console():
         define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
 
         # Add all existing stages, the values given are fetched from the DB
-        stored_stages = [dict(temps = 20, resistance = 0),
-                         dict(temps = 20, resistance = 0),
-                         dict(temps = 20, resistance = 0)] #TODO Fetch them from the DB
+        stored_stages = [dict(temps = 20, resistance = 1),
+                         dict(temps = 20, resistance = 1),
+                         dict(temps = 20, resistance = 1)] #TODO Fetch them from the DB
         for i in range(0, len(stored_stages)):
             add_stage(stored_stages[i])
 
