@@ -13,7 +13,8 @@ cur = conn.cursor()
 query = '''DROP TABLE IF EXISTS User;'''
 cur.execute(query)
 query = '''CREATE TABLE User (
-			name TEXT PRIMARY KEY,
+			id INTEGER PRIMARY KEY,
+			user_name TEXT NOT NULL UNIQUE,
 			value NOT NULL UNIQUE
 			);'''
 cur.execute(query)
@@ -32,7 +33,19 @@ query = '''CREATE TABLE Exercise (
 			id INTEGER PRIMARY KEY,
 			ex_name TEXT NOT NULL UNIQUE,
 			user_id INTEGER,
-			FOREIGN KEY(user_id) REFERENCES users(id)
+			FOREIGN KEY(user_id) REFERENCES User(id)
+			);'''
+cur.execute(query)
+
+query = '''DROP TABLE IF EXISTS Stage;'''
+cur.execute(query)
+query = '''CREATE TABLE Stage (
+			id INTEGER,
+			ex_id INTEGER,
+			time INTEGER,
+			resistance INTEGER,
+			PRIMARY KEY(id, ex_id)
+			FOREIGN KEY(ex_id) REFERENCES Exercise(id)
 			);'''
 cur.execute(query)
 
@@ -45,7 +58,7 @@ query = '''CREATE TABLE Profile (
 			torque INTEGER,
 			t_init REAL,
 			t_f REAL,
-			FOREIGN KEY(ex_id) REFERENCES exercices(id)
+			FOREIGN KEY(ex_id) REFERENCES Exercise(id)
 			);'''
 cur.execute(query)
 
@@ -62,9 +75,9 @@ query = '''CREATE TABLE Sequence (
 			distance INTEGER,
 			avg_speed REAL,
 			avg_power REAL,
-			FOREIGN KEY(user_id) REFERENCES users(id),
-			FOREIGN KEY(game_id) REFERENCES games(id),
-			FOREIGN KEY(ex_id) REFERENCES exercices(id)
+			FOREIGN KEY(user_id) REFERENCES User(id),
+			FOREIGN KEY(game_id) REFERENCES Game(id),
+			FOREIGN KEY(ex_id) REFERENCES Exercise(id)
 			);'''
 cur.execute(query)
 
@@ -99,8 +112,8 @@ for table in tables:
 	print('')
 
 # add the user by default
-values = ('everybody', 'everybody')
-query = "INSERT INTO User (name, value) VALUES (?,?)"
+values = (0, 'everybody', 'everybody')
+query = "INSERT INTO User (id, user_name, value) VALUES (?,?,?)"
 cur.execute(query, values)
 conn.commit()
 
@@ -122,11 +135,11 @@ cur.execute(query)
 result = cur.fetchall()
 print(result)
 
-# add the fist exercice
+# add the first exercice
 current_user_name ='everybody'
 query = """SELECT *
 			FROM User
-			WHERE name = '""" + current_user_name + """' 
+			WHERE user_name = '""" + current_user_name + """' 
 			;"""
 cur.execute(query)
 current_user_id = cur.fetchall()[0][0]
@@ -134,10 +147,18 @@ new_ex_name = 'echauffement'
 values = (0,new_ex_name,current_user_id)
 query = "INSERT INTO Exercise (id,ex_name,user_id) VALUES (?,?,?)"
 cur.execute(query, values)
+# with 1 stage
+values = (0, 0, 90, 1)
+query = "INSERT INTO Stage (id,ex_id,time,resistance) VALUES (?,?,?,?)"
+cur.execute(query, values)
 conn.commit()
 
 # verify the adding
 query = '''SELECT * FROM Exercise;'''
+cur.execute(query)
+result = cur.fetchall()
+print(result)
+query = '''SELECT * FROM Stage;'''
 cur.execute(query)
 result = cur.fetchall()
 print(result)

@@ -21,6 +21,8 @@ if __name__ == "__main__":
                         help='Define the duration of a game session (in seconds)', default='120')
     PARSER.add_argument('-c', '--controls', dest='controls', action='store_true',
                         help='Activates button controling')
+    PARSER.add_argument('-l', '--local', dest='local', action='store_true',
+                        help='Doesn\'t make the connection with MQTT broker')
     ARGS = PARSER.parse_args()
 
     wind_resistor=None
@@ -32,8 +34,9 @@ if __name__ == "__main__":
     subscribes = ['fit_and_fun/speed']
     if ARGS.controls:
         subscribes += ['fit_and_fun/select','fit_and_fun/down']
-    mqtt_sub=mqtt_subscriber(console.message_callback, console.synchro, subscribes, 
-                            broker_addr=ARGS.broker)
-    mqtt_sub.run()
+    if not ARGS.local:
+        mqtt_sub=mqtt_subscriber(console.message_callback, console.synchro, subscribes, 
+                                 broker_addr=ARGS.broker)
+        mqtt_sub.run()
     console.display_select_user_ui()
  

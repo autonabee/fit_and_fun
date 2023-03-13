@@ -1,103 +1,178 @@
 import sqlite3
 
 
-# Establish a connection to the database
-conn = sqlite3.connect('fit_and_fun.db')
-
-# Create a cursor object to execute SQL queries
-cur = conn.cursor()
-
 # query to obtain the list of registered users
-def obtain_users_list():
-    query = '''SELECT * FROM users;'''
+def get_users_list():
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT * FROM User;"
     cur.execute(query)
     users = cur.fetchall()
     user_list = [('Invite','Invite')]
     for user in users :
         user_list.append((user[1],user[1]))
+    cur.close()
+    conn.close()
     return(user_list)
 
+# query to obtain the list of registered users
+def get_exercises_list():
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT ex_name FROM Exercise;"
+    cur.execute(query)
+    exercises = cur.fetchall()
+    exercises_list = []
+    for ex in exercises :
+        exercises_list.append((ex[0], ex[0]))
+    cur.close()
+    conn.close()
+    return(exercises_list)
+
 # query to create a new user
-def create_new_user_in_db(new_user_name):
-    query = '''SELECT MAX(id) FROM users;'''
+def create_new_user(new_user_name):
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT MAX(id) FROM User"
     cur.execute(query)
     new_id = cur.fetchall()[0][0] + 1
-    values = (new_id,new_user_name)
-    query = "INSERT INTO users (id,user_name) VALUES (?,?)"
+    values = (new_id, new_user_name, new_user_name)
+    query = "INSERT INTO User (id, user_name, value) VALUES (?,?,?)"
     cur.execute(query, values)
     conn.commit()
+    cur.close()
+    conn.close()
 
-# query to obtain the list of registered games
-def list_games():
-    query = '''SELECT * FROM games;'''
+def create_new_exercise(ex_name, user_name):
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT id FROM User WHERE user_name=?"
+    cur.execute(query, (user_name,))
+    user_id = cur.fetchall()[0][0]
+    query = "SELECT MAX(id) FROM Exercise;"
     cur.execute(query)
-    games = cur.fetchall()
-    game_list = []
-    for game in games :
-        game_list.append(game[1])
-    return(game_list)
+    new_id = cur.fetchall()[0][0] + 1
+    values = (new_id, ex_name, user_id)
+    query = "INSERT INTO Exercise (id, ex_name, user_id) VALUES (?,?,?)"
+    cur.execute(query, values)
+    conn.commit()
+    cur.close()
+    conn.close()
 
-# query to obtain the highest score
-def high_score():
-    query = '''SELECT MAX(score) FROM play;'''
+def create_new_stage(ex_name, time, resistance):
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT id FROM Exercise WHERE ex_name=?"
+    cur.execute(query, (ex_name,))
+    res = cur.fetchall()
+    ex_id = res[0][0]
+    query = "SELECT MAX(id) FROM Stage;"
     cur.execute(query)
-    result = cur.fetchall()[0][0]
-    if result != None:
-        high_score = result
-    else :
-        high_score = 0
-    return(high_score)
+    new_id = cur.fetchall()[0][0] + 1
+    values = (new_id, ex_id, time, resistance)
+    query = "INSERT INTO Stage (id, ex_id, time, resistance) VALUES (?,?,?,?)"
+    cur.execute(query, values)
+    conn.commit()
+    cur.close()
+    conn.close()
 
-# query to obtain the list of registered exercises for the current user
-def list_exercises_current_user():
-    current_user_name = 'player 1'
-    query = '''SELECT * 
-                FROM exercices
-                JOIN users
-                ON users.id = user_id
-                WHERE user_name = 'everybody'
-                OR user_name = ' ''' + current_user_name + ''' '
-                ;'''
-    cur.execute(query)
-    exercices = cur.fetchall()
-    exercice_list = []
-    for exercice in exercices :
-        exercice_list.append(exercice[1])
-    return(exercice_list)
+def delete_all_stages_from_ex(ex_name):
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT id FROM Exercise WHERE ex_name=?"
+    cur.execute(query, (ex_name,))
+    ex_id = cur.fetchall()[0][0]
+    query = "DELETE FROM Stage WHERE ex_id=?"
+    cur.execute(query, (ex_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
 
-# query to obtain the history of the current user
-def history_current_user(current_user_name):
-    query = '''SELECT * 
-			    FROM play
-			    JOIN users
-			    ON users.id = user_id
-			    WHERE user_name = ' ''' + current_user_name + ''' '
-			    ORDER BY date DESC
-			    LIMIT 20
-			    ;'''
-    cur.execute(query)
-    history = cur.fetchall()
-    exercice_list = []
-    for exercice in history :
-        exercice_list.append(exercice[1])
-    return(exercice_list)
+def get_all_stages_from_ex(ex_name):
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT id FROM Exercise WHERE ex_name=?"
+    cur.execute(query, (ex_name,))
+    res = cur.fetchall()
+    ex_id = res[0][0]
+    query = "SELECT * FROM Stage WHERE ex_id=?"
+    cur.execute(query, (ex_id,))
+    res = cur.fetchall()
+    cur.close()
+    conn.close()
+    return res
 
-# query to obtain the history of last days
-def general_history():
-    n_days = 3
-    query = '''SELECT strftime('%d-%m-%Y', 'now', '-'''+ str(n_days) +''' days');'''
-    cur.execute(query)
-    history_date = cur.fetchall()[0][0]
-    query = '''SELECT * 
-	    		FROM play
-		    	WHERE date >= ' ''' + history_date + ''' ' 
-			    ORDER BY date DESC
-			    ;'''
-    cur.execute(query)
-    history = cur.fetchall()
-    exercice_list = []
-    for exercice in history :
-        exercice_list.append(exercice[1])
+# # query to obtain the list of registered games
+# def list_games():
+#     query = '''SELECT * FROM Game;'''
+#     cur.execute(query)
+#     games = cur.fetchall()
+#     game_list = []
+#     for game in games :
+#         game_list.append(game[1])
+#     return(game_list)
+
+# # query to obtain the highest score
+# def high_score():
+#     query = '''SELECT MAX(score) FROM Play;'''
+#     cur.execute(query)
+#     result = cur.fetchall()[0][0]
+#     if result != None:
+#         high_score = result
+#     else :
+#         high_score = 0
+#     return(high_score)
+
+# # query to obtain the list of registered exercises for the current user
+# def list_exercises_current_user():
+#     current_user_name = 'player 1'
+#     query = '''SELECT * 
+#                 FROM Exercise
+#                 JOIN User
+#                 ON User.id = user_id
+#                 WHERE user_name = 'everybody'
+#                 OR user_name = ' ''' + current_user_name + ''' '
+#                 ;'''
+#     cur.execute(query)
+#     exercices = cur.fetchall()
+#     exercice_list = []
+#     for exercice in exercices :
+#         exercice_list.append(exercice[1])
+#     return(exercice_list)
+
+# # query to obtain the history of the current user
+# def history_current_user(current_user_name):
+#     query = '''SELECT * 
+# 			    FROM Play
+# 			    JOIN User
+# 			    ON User.id = user_id
+# 			    WHERE user_name = ' ''' + current_user_name + ''' '
+# 			    ORDER BY date DESC
+# 			    LIMIT 20
+# 			    ;'''
+#     cur.execute(query)
+#     history = cur.fetchall()
+#     exercice_list = []
+#     for exercice in history :
+#         exercice_list.append(exercice[1])
+#     return(exercice_list)
+
+# # query to obtain the history of last days
+# def general_history():
+#     n_days = 3
+#     query = '''SELECT strftime('%d-%m-%Y', 'now', '-'''+ str(n_days) +''' days');'''
+#     cur.execute(query)
+#     history_date = cur.fetchall()[0][0]
+#     query = '''SELECT * 
+# 	    		FROM Play
+# 		    	WHERE date >= ' ''' + history_date + ''' ' 
+# 			    ORDER BY date DESC
+# 			    ;'''
+#     cur.execute(query)
+#     history = cur.fetchall()
+#     exercice_list = []
+#     for exercice in history :
+#         exercice_list.append(exercice[1])
     return exercice_list
 
 # # query to add the finished game (automatically done)
@@ -147,7 +222,3 @@ def general_history():
 # query = "INSERT INTO play (id,game_id,user_id,ex_id,date,score,t_tot,distance,avg_speed,avg_power) VALUES (?,?,?,?,?,?,?,?,?,?)"
 # cur.execute(query, values)
 # conn.commit()
-
-# Close the cursor and database connection
-cur.close()
-conn.close()

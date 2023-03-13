@@ -24,7 +24,7 @@ mytheme.background_color = myimage
 mytheme.widget_font=pg_menu.font.FONT_NEVIS
 
 COLOR_STAGE = pg.Color(115, 180, 20)
-VALUES_TEMPS = [5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80]
+VALUES_TEMPS = [5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90]
 VALUES_RESISTANCE = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
 
 
@@ -84,15 +84,9 @@ class Console():
         self.debug=debug
         self.difficulty=1
         self.timer=timer #Allowed time in seconds
-        self.name='Julien'
+        self.current_user='Julien'
         # Wind resistor
         self.wind_resistor = wind
-
-        # Establish a connection to the database
-        self.conn = sqlite3.connect('fit_and_fun.db')
-
-        # Create a cursor object to execute SQL queries
-        self.cur = self.conn.cursor()
 
 
     def set_wind(self):
@@ -103,15 +97,13 @@ class Console():
 
     def set_user(self, username, name): 
         """ callback called by self.usermenu """
-        self.name=name
+        self.current_user=name
  
 
     def display_select_user_ui(self):
-        self.name = 'Invite'
+        self.current_user = 'Invite'
 
-        query = '''SELECT name, value FROM User;'''
-        self.cur.execute(query)
-        list_users = self.cur.fetchall()
+        list_users = db.get_users_list()
 
         select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
         select_user_ui.add.dropselect('UTILISATEUR :', list_users, default = 0, onchange=self.set_user)
@@ -162,20 +154,20 @@ class Console():
 
 
     def set_exercise(self, exercise_display, exercise_value):
-        self.exercise = exercise_value
+        self.current_exercise = exercise_value
 
 
-    def display_select_exercise_ui(self):#TODO
-        self.exercise = ('Echauffement','Echauffement')
-        list_exercise = [('Echauffement','Echauffement'), ('Paliers simples','Paliers simples'), ('Pyramide','Pyramide')]
-        
-        ##TODO import from the database
+    def display_select_exercise_ui(self):
+
+        list_exercises = db.get_exercises_list()
+
+        self.current_exercise = list_exercises[0][0]
 
         select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
-        select_exercise_ui.add.dropselect('EXERCICE :', list_exercise, default = 0, onchange=self.set_exercise)
+        select_exercise_ui.add.dropselect('EXERCICE :', list_exercises, default = 0, onchange=self.set_exercise)
         select_exercise_ui.add.button('JOUER', self.set_parameters)
-        select_exercise_ui.add.button('MODIFIER EXERCICE', self.display_modify_exercise_ui) #passer en param l'exercice à modifier, peut etre un booleen si c'est modif ou nouveau is_new?? + prévoir si dropselect est vide
-        select_exercise_ui.add.button('NOUVEL EXERCICE', self.display_define_exercise_ui)
+        select_exercise_ui.add.button('MODIFIER EXERCICE', partial(self.display_define_exercise_ui, False, self.current_exercise))
+        select_exercise_ui.add.button('NOUVEL EXERCICE', partial(self.display_define_exercise_ui, True, ''))
         select_exercise_ui.add.button('CHANGER DE JEU', self.display_select_game_ui)
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -193,16 +185,12 @@ class Console():
             pg.display.update()
 
 
-    def set_exercise(self, value):
-        self.nbseries=value
-
-
-    def set_exercise_name(self, name):
-        self.name_exercice=name
-
-
-    def display_define_exercise_ui(self):
-        """Displays the exercise definition ui"""
+    def display_define_exercise_ui(self, is_new_exercise, name_ex):
+        """Displays the exercise definition ui
+        
+        Args:
+            is_new_exercise (bool): if True, create a new exercise. If False, edit one existing
+        """
 
         def delete_stage(id):
             """Delete the desired stage from the exercise definition ui
@@ -214,13 +202,13 @@ class Console():
             for i in range(index_label + 1, len(label_widgets)) :
                 define_exercise_ui.get_widget(label_widgets[i].get_id()).set_title('Etape ' + str(i))
             label_widgets.pop(index_label)
+            stages_data.pop(index_label)
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('label' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('remove_button' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('temps' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('resistance' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_global' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_param' + str(id)))
-
 
         def add_stage(stage_values):
             """Add new stage into the exercise
@@ -229,7 +217,7 @@ class Console():
                 stage_values (dict): dict containing "temps" and "resistance" values, None if new stage
             """
             if stage_values == None :
-                stages_data.append(dict(temps=20, resistance=0))
+                stages_data.append(dict(temps=20, resistance=1))
             else :
                 stages_data.append(stage_values)
             
@@ -237,12 +225,13 @@ class Console():
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('add_stage_button'))
             
             try:
-                i = len(stages_data)
+                i = id_counter[0]
+                id_counter[0] = id_counter[0] + 1
                 color = COLOR_STAGE
                 label = define_exercise_ui.add.label('Etape ' + str(len(label_widgets)+1), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(230, 230, 230))
                 remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(230, 230, 230))
-                temps = define_exercise_ui.add.range_slider('Temps : ', rangeslider_id='temps'+str(i), onchange=partial(change_time, i), font_color=(230, 230, 230), default=stages_data[i-1]["temps"], range_text_value_enabled=False, range_values=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80])
-                resistance = define_exercise_ui.add.range_slider('Resistance : ', rangeslider_id='resistance'+str(i), onchange=partial(change_resistance, i), font_color=(230, 230, 230), default=stages_data[i-1]["resistance"], range_text_value_enabled=False, range_values=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15])
+                temps = define_exercise_ui.add.range_slider('Temps : ', rangeslider_id='temps'+str(i), onchange=partial(change_time, i), font_color=(230, 230, 230), default=stages_data[-1]["temps"], range_text_value_enabled=False, range_values=VALUES_TEMPS)
+                resistance = define_exercise_ui.add.range_slider('Resistance : ', rangeslider_id='resistance'+str(i), onchange=partial(change_resistance, i), font_color=(230, 230, 230), default=stages_data[-1]["resistance"], range_text_value_enabled=False, range_values=VALUES_RESISTANCE)
                 frame_global = define_exercise_ui.add.frame_h(580, 140, frame_id='frame_global'+str(i), background_color=color, margin=(0,5))
                 frame_global.relax(True)
                 frame_global.pack(label, align=pg_menu.locals.ALIGN_LEFT)
@@ -251,6 +240,7 @@ class Console():
                 frame_param.pack(temps, align=pg_menu.locals.ALIGN_CENTER)
                 frame_param.pack(resistance, align=pg_menu.locals.ALIGN_CENTER)
                 frame_global.pack(frame_param, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+                define_exercise_ui.select_widget(None)
                 label_widgets.append(label)
             except KeyError:
                 print("Wrong dictionary format when adding new stage")
@@ -268,8 +258,9 @@ class Console():
                 text (str): time value for this stage
                 index (int): index of the stage you want to update
             """
-            if self.debug and value != stages_data[index-1]["temps"]: print('Temps of stage ' + str(index) + " changed to " + str(value))
-            stages_data[index-1]["temps"] = value
+            id = label_widgets.index(define_exercise_ui.get_widget('label'+str(index)))
+            if self.debug and value != stages_data[id]["temps"]: print('Temps of stage ' + str(id+1) + " changed to " + str(value))
+            stages_data[id]["temps"] = value
 
         def change_resistance(index, value):
             """Update resistance parameter in stages table
@@ -278,30 +269,64 @@ class Console():
                 text (str): resistance value for this stage
                 index (int): index of the stage you want to update
             """
+            id = label_widgets.index(define_exercise_ui.get_widget('label'+str(index)))
+            if self.debug and value != stages_data[id]["resistance"]: print('Resistance of stage ' + str(id+1) + " changed to " + str(value))
+            stages_data[id]["resistance"] = value
 
-            if self.debug and value != stages_data[index-1]["resistance"]: print('Resistance of stage ' + str(index) + " changed to " + str(value))
-            stages_data[index-1]["resistance"] = value
+        def quit_ui(is_saved):
+            """Returns to previous ui
+
+            Args:
+                is_saved (bool): if True, save changes made to steps into the database
+            """
+            if is_saved:
+                if is_new_exercise:
+                    self.current_exercise = name_exercise.get_value()
+                    db.create_new_exercise(name_exercise.get_value(), self.current_user)
+                    for s_data in stages_data:
+                        db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"])
+                else:
+                    db.delete_all_stages_from_ex(self.current_exercise)
+                    for s_data in stages_data:
+                        db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"])
+                self.display_select_exercise_ui()
+            else:
+                self.display_select_exercise_ui()
 
         stages_data = [] # Is filled in add stage, no need to fill it beforehand
 
         label_widgets = []
 
+        self.current_exercise = name_ex
+
+        id_counter = [1] # For all widgets to have an different id
+
         define_exercise_ui = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
         
-        define_exercise_ui.add.text_input('Nom de l\'exercice :', onchange=self.set_exercise_name, margin=(0, 50), font_color=(0, 0, 0))
+        if is_new_exercise:
+            name_exercise = define_exercise_ui.add.text_input('Nom de l\'exercice :', margin=(0, 50), font_color=(0, 0, 0), background_color=(50,50,50,150))
+        else:
+            name_exercise = define_exercise_ui.add.label(name_ex, margin=(0, 50), font_color=(0, 0, 0), background_color=(50,50,50,150))
         define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
-
-        # Add all existing stages, the values given are fetched from the DB
-        stored_stages = [dict(temps = 20, resistance = 1),
-                         dict(temps = 20, resistance = 1),
-                         dict(temps = 20, resistance = 1)] #TODO Fetch them from the DB
-        for i in range(0, len(stored_stages)):
-            add_stage(stored_stages[i])
+        define_exercise_ui.add.button('Annuler', action=partial(quit_ui, False))
+        define_exercise_ui.add.button('Valider', action=partial(quit_ui, True))
+        
+        stored_stages = []
+        if not is_new_exercise:
+            stages_from_db = db.get_all_stages_from_ex(name_ex)
+            print(stages_from_db)
+            for stage in stages_from_db:
+                stored_stages.append(dict(temps = stage[2], resistance = stage[3]))
+            for i in range(0, len(stored_stages)):
+                add_stage(stored_stages[i])
+        else :
+            for i in range(0, 3):
+                add_stage(None)
 
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
         def on_key_event(text):
-            # name_input.set_value(text)
-            # if self.debug: print(name_input.get_value())
+            name_exercise.set_value(text)
+            if self.debug: print(name_exercise.get_value())
             return
         
         keyboard = vkboard.VKeyboard(define_exercise_ui,
@@ -312,6 +337,11 @@ class Console():
 
         while True:
             time_delta = self.clock.tick(60)/1000.0
+
+            if is_new_exercise:
+                is_kb_active = name_exercise.get_selected_time() != 0
+            else:
+                is_kb_active = False
 
             events = pg.event.get()
 
@@ -324,13 +354,13 @@ class Console():
                     events.remove(event) # Avoid double event (FINGERDOWN and MOUSEDOWN) when using touchscreen
 
             define_exercise_ui.update(events)
-            keyboard.update(events)
+            if is_kb_active: keyboard.update(events)
             define_exercise_ui.draw(self.screen)
-            #rects = keyboard.draw(self.screen, True)
+            if is_kb_active: rects = keyboard.draw(self.screen, True)
 
             # Flip only the updated area
             pg.display.update()
-            #pg.display.update(rects)
+            if is_kb_active: pg.display.update(rects)
 
 
     def display_modify_exercise_ui(self): #sur le meme modele que precedemment
@@ -389,16 +419,13 @@ class Console():
 
 
     def display_delete_user_ui(self): #TODO
-        print('Displays delet user ui')
+        print('Displays delete user ui')
         return
 
 
     def create_user(self, name_input):
         name = name_input.get_value()
-        values = (name, name)
-        query = "INSERT INTO User (name, value) VALUES (?,?)"
-        self.cur.execute(query, values)
-        self.conn.commit()
+        db.create_new_user(name)
 
         self.display_select_game_ui()
         
@@ -443,7 +470,6 @@ class Console():
             # Flip only the updated area
             pg.display.update()
             pg.display.update(rects)
-
     
  
     def display_score_ui(self, duration, distance):
