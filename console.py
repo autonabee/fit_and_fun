@@ -103,7 +103,7 @@ class Console():
     def display_select_user_ui(self):
         self.current_user = 'Invite'
 
-        list_users = db.get_users_list()
+        list_users = db.get_all_user_tuples()
 
         select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
         select_user_ui.add.dropselect('UTILISATEUR :', list_users, default = 0, onchange=self.set_user)
@@ -159,15 +159,15 @@ class Console():
 
     def display_select_exercise_ui(self):
 
-        list_exercises = db.get_exercises_list()
+        list_exercises = db.get_all_exercise_tuples()
 
-        self.current_exercise = list_exercises[0][0]
+        #self.current_exercise = list_exercises[0][0]
 
         select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
         select_exercise_ui.add.dropselect('EXERCICE :', list_exercises, default = 0, onchange=self.set_exercise)
         select_exercise_ui.add.button('JOUER', self.set_parameters)
-        select_exercise_ui.add.button('MODIFIER EXERCICE', partial(self.display_define_exercise_ui, False, self.current_exercise))
-        select_exercise_ui.add.button('NOUVEL EXERCICE', partial(self.display_define_exercise_ui, True, ''))
+        select_exercise_ui.add.button('MODIFIER EXERCICE', partial(self.display_define_exercise_ui, False))
+        select_exercise_ui.add.button('NOUVEL EXERCICE', partial(self.display_define_exercise_ui, True))
         select_exercise_ui.add.button('CHANGER DE JEU', self.display_select_game_ui)
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -185,7 +185,7 @@ class Console():
             pg.display.update()
 
 
-    def display_define_exercise_ui(self, is_new_exercise, name_ex):
+    def display_define_exercise_ui(self, is_new_exercise):
         """Displays the exercise definition ui
         
         Args:
@@ -279,25 +279,34 @@ class Console():
             Args:
                 is_saved (bool): if True, save changes made to steps into the database
             """
-            if is_saved:
-                if is_new_exercise:
-                    self.current_exercise = name_exercise.get_value()
-                    db.create_new_exercise(name_exercise.get_value(), self.current_user)
-                    for s_data in stages_data:
-                        db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"])
+            if is_save_active:
+                if is_saved:
+                    if is_new_exercise:
+                        self.current_exercise = name_exercise.get_value()
+                        db.create_new_exercise(name_exercise.get_value(), self.current_user)
+                        for s_data in stages_data:
+                            db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"])
+                    else:
+                        db.delete_all_stages_from_ex(self.current_exercise)
+                        for s_data in stages_data:
+                            db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"])
+                    self.display_select_exercise_ui()
                 else:
-                    db.delete_all_stages_from_ex(self.current_exercise)
-                    for s_data in stages_data:
-                        db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"])
-                self.display_select_exercise_ui()
-            else:
-                self.display_select_exercise_ui()
+                    self.display_select_exercise_ui()
+            else :
+                #TODO Add a little feedback
+                if self.debug: print("Exercise name alreadung existing in the database")
+                return 
 
         stages_data = [] # Is filled in add stage, no need to fill it beforehand
 
         label_widgets = []
 
-        self.current_exercise = name_ex
+        if is_new_exercise: self.current_exercise = ''
+
+        # Used to determined whether the prompted name is already existing or not
+        existing_names = db.get_all_exercise_names()
+        is_save_active = True
 
         id_counter = [1] # For all widgets to have an different id
 
@@ -306,14 +315,14 @@ class Console():
         if is_new_exercise:
             name_exercise = define_exercise_ui.add.text_input('Nom de l\'exercice :', margin=(0, 50), font_color=(0, 0, 0), background_color=(50,50,50,150))
         else:
-            name_exercise = define_exercise_ui.add.label(name_ex, margin=(0, 50), font_color=(0, 0, 0), background_color=(50,50,50,150))
+            name_exercise = define_exercise_ui.add.label(self.current_exercise, margin=(0, 50), font_color=(0, 0, 0), background_color=(50,50,50,150))
         define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
         define_exercise_ui.add.button('Annuler', action=partial(quit_ui, False))
-        define_exercise_ui.add.button('Valider', action=partial(quit_ui, True))
+        button_save = define_exercise_ui.add.button('Enregistrer', action=partial(quit_ui, True))
         
         stored_stages = []
         if not is_new_exercise:
-            stages_from_db = db.get_all_stages_from_ex(name_ex)
+            stages_from_db = db.get_all_stages_from_ex(self.current_exercise)
             print(stages_from_db)
             for stage in stages_from_db:
                 stored_stages.append(dict(temps = stage[2], resistance = stage[3]))
@@ -342,6 +351,13 @@ class Console():
                 is_kb_active = name_exercise.get_selected_time() != 0
             else:
                 is_kb_active = False
+
+            if is_new_exercise and (name_exercise.get_value() == '' or name_exercise.get_value() in existing_names):
+                is_save_active = False
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+            else:
+                is_save_active = True
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (0,204,0), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
 
             events = pg.event.get()
 

@@ -1,8 +1,7 @@
 import sqlite3
 
 
-# query to obtain the list of registered users
-def get_users_list():
+def get_all_user_tuples():
     conn = sqlite3.connect('fit_and_fun.db')
     cur = conn.cursor()
     query = "SELECT * FROM User;"
@@ -15,8 +14,7 @@ def get_users_list():
     conn.close()
     return(user_list)
 
-# query to obtain the list of registered users
-def get_exercises_list():
+def get_all_exercise_tuples():
     conn = sqlite3.connect('fit_and_fun.db')
     cur = conn.cursor()
     query = "SELECT ex_name FROM Exercise;"
@@ -29,7 +27,19 @@ def get_exercises_list():
     conn.close()
     return(exercises_list)
 
-# query to create a new user
+def get_all_exercise_names():
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT ex_name FROM Exercise;"
+    cur.execute(query)
+    exercises = cur.fetchall()
+    exercises_list = []
+    for ex in exercises :
+        exercises_list.append(ex[0])
+    cur.close()
+    conn.close()
+    return(exercises_list)
+
 def create_new_user(new_user_name):
     conn = sqlite3.connect('fit_and_fun.db')
     cur = conn.cursor()
