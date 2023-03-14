@@ -310,6 +310,7 @@ class Console():
                     if self.debug: print("Exercise name alreadung existing in the database")
                     return
             else:
+                self.current_exercise = 'Echauffement'
                 self.display_select_exercise_ui()
             
 
@@ -449,7 +450,6 @@ class Console():
         print('Displays delete user ui')
         return
 
-        
         
     def display_create_user_ui(self):
 
