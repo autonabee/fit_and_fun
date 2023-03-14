@@ -88,6 +88,10 @@ class Console():
         # Wind resistor
         self.wind_resistor = wind
 
+        self.current_exercise = 'Echauffement'
+
+        self.guest_mode = False
+
 
     def set_wind(self):
         """ Activate the wind if the object exists"""
@@ -98,7 +102,12 @@ class Console():
     def set_user(self, username, name): 
         """ callback called by self.usermenu """
         self.current_user=name
- 
+
+
+    def go_to_select_game_ui(self, is_guest_mode):
+        self.guest_mode = is_guest_mode
+        self.display_select_game_ui()
+
 
     def display_select_user_ui(self):
         self.current_user = 'Invite'
@@ -107,8 +116,9 @@ class Console():
 
         select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
         select_user_ui.add.dropselect('UTILISATEUR :', list_users, default = 0, onchange=self.set_user)
-        select_user_ui.add.button('VALIDER', self.display_select_game_ui)
+        select_user_ui.add.button('VALIDER', partial(self.go_to_select_game_ui, False))
         select_user_ui.add.button('NOUVEAU JOUEUR', self.display_create_user_ui)
+        select_user_ui.add.button('MODE INVITE', partial(self.go_to_select_game_ui, True))
         select_user_ui.add.button('HISTORIQUE', self.display_history_ui)
         select_user_ui.add.button('QUITTER', pg_menu.events.EXIT)
         while True:
@@ -132,10 +142,16 @@ class Console():
 
 
     def display_select_game_ui(self):
+
+        list_games = db.get_all_game_tuples()
+
         select_game_ui = pg_menu.Menu('SELECTIONNEZ UN JEU', self.size_x, self.size_y, theme=mytheme)
-        select_game_ui.add.selector('', [('ducks', 'ducks')], onchange=self.set_game)
-        select_game_ui.add.button('VALIDER', self.display_select_exercise_ui)
-        select_game_ui.add.button('STATISTIQUES', self.display_stats_ui)
+        select_game_ui.add.selector('', list_games, default=0, onchange=self.set_game)
+        if not self.guest_mode:
+            select_game_ui.add.button('VALIDER', self.display_select_exercise_ui)
+        else:
+            select_game_ui.add.button('VALIDER', self.set_parameters)
+        if not self.guest_mode: select_game_ui.add.button('STATISTIQUES', self.display_stats_ui)
         select_game_ui.add.button('CHANGER DE JOUEUR', self.display_select_user_ui)
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -161,10 +177,8 @@ class Console():
 
         list_exercises = db.get_all_exercise_tuples()
 
-        #self.current_exercise = list_exercises[0][0]
-
         select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
-        select_exercise_ui.add.dropselect('EXERCICE :', list_exercises, default = 0, onchange=self.set_exercise)
+        select_exercise_ui.add.dropselect('EXERCICE :', list_exercises, default = list_exercises.index((self.current_exercise, self.current_exercise)), onchange=self.set_exercise)
         select_exercise_ui.add.button('JOUER', self.set_parameters)
         select_exercise_ui.add.button('MODIFIER EXERCICE', partial(self.display_define_exercise_ui, False))
         select_exercise_ui.add.button('NOUVEL EXERCICE', partial(self.display_define_exercise_ui, True))
@@ -279,8 +293,8 @@ class Console():
             Args:
                 is_saved (bool): if True, save changes made to steps into the database
             """
-            if is_save_active:
-                if is_saved:
+            if is_saved:
+                if is_save_active:
                     if is_new_exercise:
                         self.current_exercise = name_exercise.get_value()
                         db.create_new_exercise(name_exercise.get_value(), self.current_user)
@@ -292,11 +306,12 @@ class Console():
                             db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"])
                     self.display_select_exercise_ui()
                 else:
-                    self.display_select_exercise_ui()
-            else :
-                #TODO Add a little feedback
-                if self.debug: print("Exercise name alreadung existing in the database")
-                return 
+                    #TODO Add a little feedback
+                    if self.debug: print("Exercise name alreadung existing in the database")
+                    return
+            else:
+                self.display_select_exercise_ui()
+            
 
         stages_data = [] # Is filled in add stage, no need to fill it beforehand
 
@@ -317,8 +332,9 @@ class Console():
         else:
             name_exercise = define_exercise_ui.add.label(self.current_exercise, margin=(0, 50), font_color=(0, 0, 0), background_color=(50,50,50,150))
         define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
-        define_exercise_ui.add.button('Annuler', action=partial(quit_ui, False))
-        button_save = define_exercise_ui.add.button('Enregistrer', action=partial(quit_ui, True))
+        button_cancel = define_exercise_ui.add.button('ANNULER', action=partial(quit_ui, False))
+        button_cancel.set_font(pg_menu.font.FONT_NEVIS, 24, (0,0,0), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
+        button_save = define_exercise_ui.add.button('ENREGISTRER', action=partial(quit_ui, True))
         
         stored_stages = []
         if not is_new_exercise:
@@ -379,11 +395,6 @@ class Console():
             if is_kb_active: pg.display.update(rects)
 
 
-    def display_modify_exercise_ui(self): #sur le meme modele que precedemment
-        print('Modification d\'un exercice')
-        return
-
-
     def set_parameters(self):#TODO
         print("set game parameters according to the selected exercise before launching the game")
         self.game()
@@ -438,19 +449,23 @@ class Console():
         print('Displays delete user ui')
         return
 
-
-    def create_user(self, name_input):
-        name = name_input.get_value()
-        db.create_new_user(name)
-
-        self.display_select_game_ui()
         
         
     def display_create_user_ui(self):
 
+        def create_user(name_input):
+            if is_save_active:
+                name = name_input.get_value()
+                db.create_new_user(name)
+                self.display_select_game_ui()
+            else:
+                #TODO Add a little feedback
+                if self.debug: print("Exercise name alreadung existing in the database")
+                return
+
         create_user_ui = pg_menu.Menu('NEW USER', self.size_x, self.size_y, theme=mytheme)
-        name_input = create_user_ui.add.text_input("Nom:")
-        create_user_ui.add.button('VALIDER', partial(self.create_user, name_input))
+        name_input = create_user_ui.add.text_input("Nom : ")
+        button_save = create_user_ui.add.button('VALIDER', action=partial(create_user, name_input))
         create_user_ui.add.button('RETOUR', self.display_select_user_ui)
         
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
@@ -465,9 +480,19 @@ class Console():
                                     renderer=vkboard.VKeyboardRenderer.DARK,
                                     show_text=False)
         
+        is_save_active = False
+        existing_names = db.get_all_user_names()
+
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
+
+            if name_input.get_value() == '' or name_input.get_value() in existing_names:
+                is_save_active = False
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+            else:
+                is_save_active = True
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (0,204,0), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
 
             for event in events:
                 if event.type == pg.QUIT:

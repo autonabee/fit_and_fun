@@ -7,12 +7,25 @@ def get_all_user_tuples():
     query = "SELECT * FROM User;"
     cur.execute(query)
     users = cur.fetchall()
-    user_list = [('Invite','Invite')]
+    user_list = []
     for user in users :
         user_list.append((user[1],user[1]))
     cur.close()
     conn.close()
     return(user_list)
+
+def get_all_user_names():
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT user_name FROM User;"
+    cur.execute(query)
+    users = cur.fetchall()
+    users_list = []
+    for ex in users :
+        users_list.append(ex[0])
+    cur.close()
+    conn.close()
+    return(users_list)
 
 def get_all_exercise_tuples():
     conn = sqlite3.connect('fit_and_fun.db')
@@ -39,6 +52,32 @@ def get_all_exercise_names():
     cur.close()
     conn.close()
     return(exercises_list)
+
+def get_all_game_tuples():
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT game_name FROM Game;"
+    cur.execute(query)
+    games = cur.fetchall()
+    games_list = []
+    for ex in games :
+        games_list.append((ex[0], ex[0]))
+    cur.close()
+    conn.close()
+    return(games_list)
+
+def get_all_exercise_names():
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "SELECT game_name FROM Game;"
+    cur.execute(query)
+    games = cur.fetchall()
+    games_list = []
+    for ex in games :
+        games_list.append(ex[0])
+    cur.close()
+    conn.close()
+    return(games_list)
 
 def create_new_user(new_user_name):
     conn = sqlite3.connect('fit_and_fun.db')

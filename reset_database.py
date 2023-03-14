@@ -124,7 +124,7 @@ result = cur.fetchall()
 print(result)
 
 # add the fist game
-values = (0,'ducks')
+values = (0,'What The Duck')
 query = "INSERT INTO Game (id,game_name) VALUES (?,?)"
 cur.execute(query, values)
 conn.commit()
@@ -143,7 +143,7 @@ query = """SELECT *
 			;"""
 cur.execute(query)
 current_user_id = cur.fetchall()[0][0]
-new_ex_name = 'echauffement'
+new_ex_name = 'Echauffement'
 values = (0,new_ex_name,current_user_id)
 query = "INSERT INTO Exercise (id,ex_name,user_id) VALUES (?,?,?)"
 cur.execute(query, values)
