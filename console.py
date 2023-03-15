@@ -110,9 +110,8 @@ class Console():
 
 
     def display_select_user_ui(self):
-        self.current_user = 'Invite'
-
         list_users = db.get_all_user_tuples()
+        self.current_user = list_users[0][0]
 
         select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
         select_user_ui.add.dropselect('UTILISATEUR :', list_users, default = 0, onchange=self.set_user)
@@ -152,7 +151,7 @@ class Console():
         else:
             select_game_ui.add.button('VALIDER', self.set_parameters)
         if not self.guest_mode: select_game_ui.add.button('STATISTIQUES', self.display_stats_ui)
-        select_game_ui.add.button('CHANGER DE JOUEUR', self.display_select_user_ui)
+        select_game_ui.add.button('RETOUR', self.display_select_user_ui)
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
@@ -176,16 +175,39 @@ class Console():
     def display_select_exercise_ui(self):
 
         list_exercises = db.get_all_exercise_tuples()
+        
+        is_default_ex_selected = self.current_exercise == 'Echauffement'
+        
+        def delete_exercise():
+            if not is_default_ex_selected:
+                db.delete_all_stages_from_ex(self.current_exercise)
+                db.delete_exercise(self.current_exercise)
+                list_exercises = db.get_all_exercise_tuples()
+                self.current_exercise = 'Echauffement'
+                exercise_dropselect.update_items(list_exercises)
+            else:
+                #TODO Add a little feedback
+                if self.debug: print("Can't delete default exercise")
+                return
+            
 
         select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
-        select_exercise_ui.add.dropselect('EXERCICE :', list_exercises, default = list_exercises.index((self.current_exercise, self.current_exercise)), onchange=self.set_exercise)
+        exercise_dropselect = select_exercise_ui.add.dropselect('EXERCICE :', list_exercises, default = list_exercises.index((self.current_exercise, self.current_exercise)), onchange=self.set_exercise)
         select_exercise_ui.add.button('JOUER', self.set_parameters)
         select_exercise_ui.add.button('MODIFIER EXERCICE', partial(self.display_define_exercise_ui, False))
         select_exercise_ui.add.button('NOUVEL EXERCICE', partial(self.display_define_exercise_ui, True))
-        select_exercise_ui.add.button('CHANGER DE JEU', self.display_select_game_ui)
+        button_delete = select_exercise_ui.add.button('SUPPRIMER', delete_exercise)
+        select_exercise_ui.add.button('RETOUR', self.display_select_game_ui)
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
+            
+            is_default_ex_selected = self.current_exercise == 'Echauffement'
+            
+            if not is_default_ex_selected:
+                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (204,0,0,0), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+            else:
+                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
 
             for event in events:
                 if event.type == pg.QUIT:
@@ -307,7 +329,7 @@ class Console():
                     self.display_select_exercise_ui()
                 else:
                     #TODO Add a little feedback
-                    if self.debug: print("Exercise name alreadung existing in the database")
+                    if self.debug: print("Exercise name already existing in the database")
                     return
             else:
                 self.current_exercise = 'Echauffement'
