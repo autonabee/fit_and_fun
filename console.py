@@ -40,6 +40,11 @@ class Console():
     #Images
     heart_full_img = pg.image.load(dir_img+'/heart_full.png')
     heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
+    green_button = pg_menu.baseimage.BaseImage(dir_img+'/button_green.png')
+    yellow_button = pg_menu.baseimage.BaseImage(dir_img+'/button_yellow.png')
+    red_button = pg_menu.baseimage.BaseImage(dir_img+'/button_red.png')
+    gray_button = pg_menu.baseimage.BaseImage(dir_img+'/button_gray.png')
+    stone_background = pg_menu.baseimage.BaseImage(dir_img+'/stone_background.png')
 
     clock = pg.time.Clock()
     
@@ -114,19 +119,23 @@ class Console():
         self.current_user = list_users[0][0]
 
         select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
-        select_user_ui.add.label('NOM D\'UTILISATEUR')
+        user_label = select_user_ui.add.label('NOM D\'UTILISATEUR')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
-        user_dropselect = select_user_ui.add.dropselect('', list_users, default = 0, onchange=self.set_user, open_middle=True, placeholder_add_to_selection_box=False)
+        user_dropselect = select_user_ui.add.dropselect('', list_users, default = 0, onchange=self.set_user, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
         user_dropselect.set_selection_effect(selection_effect)
+        frame = select_user_ui.add.frame_v(max(user_label.get_width(), user_dropselect.get_width()) + 30, user_label.get_height() + user_dropselect.get_height() + 30, background_color=self.stone_background)
         select_user_ui.add.vertical_margin(10)
-        select_user_ui.add.button('VALIDER', partial(self.go_to_select_game_ui, False))
+        select_user_ui.add.button('VALIDER', partial(self.go_to_select_game_ui, False), background_color=self.green_button)
         select_user_ui.add.vertical_margin(30)
-        select_user_ui.add.button('NOUVEAU JOUEUR', self.display_create_user_ui)
-        select_user_ui.add.button('MODE INVITE', partial(self.go_to_select_game_ui, True))
+        select_user_ui.add.button('NOUVEAU JOUEUR', self.display_create_user_ui, background_color=self.yellow_button)
+        select_user_ui.add.button('MODE INVITE', partial(self.go_to_select_game_ui, True), background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
-        select_user_ui.add.button('HISTORIQUE', self.display_history_ui)
+        select_user_ui.add.button('HISTORIQUE', self.display_history_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
-        select_user_ui.add.button('QUITTER', pg_menu.events.EXIT)
+        select_user_ui.add.button('QUITTER', pg_menu.events.EXIT, background_color=self.red_button)
+
+        frame.pack(user_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(user_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
@@ -140,6 +149,7 @@ class Console():
             select_user_ui.update(events)
 
             select_user_ui.draw(self.screen)
+            user_dropselect.draw_after_if_selected(self.screen)
             pg.display.update()
 
 
