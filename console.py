@@ -114,11 +114,18 @@ class Console():
         self.current_user = list_users[0][0]
 
         select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
-        select_user_ui.add.dropselect('UTILISATEUR :', list_users, default = 0, onchange=self.set_user)
+        select_user_ui.add.label('NOM D\'UTILISATEUR')
+        selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
+        user_dropselect = select_user_ui.add.dropselect('', list_users, default = 0, onchange=self.set_user, open_middle=True, placeholder_add_to_selection_box=False)
+        user_dropselect.set_selection_effect(selection_effect)
+        select_user_ui.add.vertical_margin(10)
         select_user_ui.add.button('VALIDER', partial(self.go_to_select_game_ui, False))
+        select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('NOUVEAU JOUEUR', self.display_create_user_ui)
         select_user_ui.add.button('MODE INVITE', partial(self.go_to_select_game_ui, True))
+        select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('HISTORIQUE', self.display_history_ui)
+        select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('QUITTER', pg_menu.events.EXIT)
         while True:
             time_delta = self.clock.tick(60)/1000.0
