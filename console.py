@@ -124,6 +124,8 @@ class Console():
         user_dropselect = select_user_ui.add.dropselect('', list_users, default = 0, onchange=self.set_user, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
         user_dropselect.set_selection_effect(selection_effect)
         frame = select_user_ui.add.frame_v(max(user_label.get_width(), user_dropselect.get_width()) + 30, user_label.get_height() + user_dropselect.get_height() + 30, background_color=self.stone_background)
+        frame.pack(user_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(user_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         select_user_ui.add.vertical_margin(10)
         select_user_ui.add.button('VALIDER', partial(self.go_to_select_game_ui, False), background_color=self.green_button)
         select_user_ui.add.vertical_margin(30)
@@ -133,9 +135,6 @@ class Console():
         select_user_ui.add.button('HISTORIQUE', self.display_history_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('QUITTER', pg_menu.events.EXIT, background_color=self.red_button)
-
-        frame.pack(user_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
-        frame.pack(user_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
@@ -162,13 +161,23 @@ class Console():
         list_games = db.get_all_game_tuples()
 
         select_game_ui = pg_menu.Menu('SELECTIONNEZ UN JEU', self.size_x, self.size_y, theme=mytheme)
-        select_game_ui.add.selector('', list_games, default=0, onchange=self.set_game)
+
+        game_label = select_game_ui.add.label('CHOIX DU JEU')
+        selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
+        game_dropselect = select_game_ui.add.dropselect('', list_games, default = 0, onchange=self.set_game, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
+        game_dropselect.set_selection_effect(selection_effect)
+        frame = select_game_ui.add.frame_v(max(game_label.get_width(), game_dropselect.get_width()) + 30, game_label.get_height() + game_dropselect.get_height() + 30, background_color=self.stone_background)
+        frame.pack(game_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(game_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        select_game_ui.add.vertical_margin(10)
         if not self.guest_mode:
-            select_game_ui.add.button('VALIDER', self.display_select_exercise_ui)
+            select_game_ui.add.button('VALIDER', self.display_select_exercise_ui, background_color=self.green_button)
         else:
-            select_game_ui.add.button('VALIDER', self.set_parameters)
-        if not self.guest_mode: select_game_ui.add.button('STATISTIQUES', self.display_stats_ui)
-        select_game_ui.add.button('RETOUR', self.display_select_user_ui)
+            select_game_ui.add.button('VALIDER', self.set_parameters, background_color=self.green_button)
+        select_game_ui.add.vertical_margin(30)
+        if not self.guest_mode: select_game_ui.add.button('STATISTIQUES', self.display_stats_ui, background_color=self.yellow_button)
+        select_game_ui.add.vertical_margin(30)
+        select_game_ui.add.button('RETOUR', self.display_select_user_ui, background_color=self.yellow_button)
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
@@ -446,7 +455,7 @@ class Console():
         #db.general_history()
         #bouton -> : accès au 10 parties précédentes
         #bouton <- : accès au 10 parties suivantes
-        history_ui.add.button('RETOUR', self.display_select_user_ui)
+        history_ui.add.button('RETOUR', self.display_select_user_ui, background_color=self.yellow_button)
 
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -467,7 +476,7 @@ class Console():
     def display_stats_ui(self):#TODO faire le lien avec la BDD
         stats_ui = pg_menu.Menu('STATISTIQUES', self.size_x, self.size_y, theme=mytheme)
         #bdd
-        stats_ui.add.button('RETOUR', self.display_select_game_ui)
+        stats_ui.add.button('RETOUR', self.display_select_game_ui, background_color=self.yellow_button)
 
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -498,14 +507,20 @@ class Console():
                 db.create_new_user(name)
                 self.display_select_game_ui()
             else:
-                #TODO Add a little feedback
                 if self.debug: print("Exercise name alreadung existing in the database")
                 return
 
-        create_user_ui = pg_menu.Menu('NEW USER', self.size_x, self.size_y, theme=mytheme)
-        name_input = create_user_ui.add.text_input("Nom : ")
-        button_save = create_user_ui.add.button('VALIDER', action=partial(create_user, name_input))
-        create_user_ui.add.button('RETOUR', self.display_select_user_ui)
+        create_user_ui = pg_menu.Menu('NOUVEL UTILISATEUR', self.size_x, self.size_y, theme=mytheme)
+        name_label = create_user_ui.add.label("NOM")
+        name_input = create_user_ui.add.text_input('', maxwidth=300, maxchar=20)
+
+        frame = create_user_ui.add.frame_v(400, name_label.get_height() + name_input.get_height() + 30, background_color=self.stone_background)
+        frame.pack(name_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(name_input, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        create_user_ui.add.vertical_margin(10)
+        button_save = create_user_ui.add.button('VALIDER', action=partial(create_user, name_input), background_color=self.green_button)
+        create_user_ui.add.vertical_margin(30)
+        create_user_ui.add.button('RETOUR', self.display_select_user_ui, background_color=self.yellow_button)
         
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
 
@@ -529,9 +544,11 @@ class Console():
             if name_input.get_value() == '' or name_input.get_value() in existing_names:
                 is_save_active = False
                 button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_background_color(self.gray_button)
             else:
                 is_save_active = True
-                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (0,204,0), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (255,255,255), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_background_color(self.green_button)
 
             for event in events:
                 if event.type == pg.QUIT:
