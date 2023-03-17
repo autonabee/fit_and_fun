@@ -191,6 +191,7 @@ class Console():
             select_game_ui.update(events)
 
             select_game_ui.draw(self.screen)
+            game_dropselect.draw_after_if_selected(self.screen)
             pg.display.update()
 
 
@@ -210,7 +211,7 @@ class Console():
                 db.delete_exercise(self.current_exercise)
                 list_exercises = db.get_all_exercise_tuples()
                 self.current_exercise = 'Echauffement'
-                exercise_dropselect.update_items(list_exercises)
+                ex_dropselect.update_items(list_exercises)
             else:
                 #TODO Add a little feedback
                 if self.debug: print("Can't delete default exercise")
@@ -218,12 +219,25 @@ class Console():
             
 
         select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
-        exercise_dropselect = select_exercise_ui.add.dropselect('EXERCICE :', list_exercises, default = list_exercises.index((self.current_exercise, self.current_exercise)), onchange=self.set_exercise)
-        select_exercise_ui.add.button('JOUER', self.set_parameters)
-        select_exercise_ui.add.button('MODIFIER EXERCICE', partial(self.display_define_exercise_ui, False))
-        select_exercise_ui.add.button('NOUVEL EXERCICE', partial(self.display_define_exercise_ui, True))
+
+        selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
+        ex_label = select_exercise_ui.add.label('EXERCICE')
+        ex_dropselect = select_exercise_ui.add.dropselect('', list_exercises, default = list_exercises.index((self.current_exercise, self.current_exercise)),
+                                                                    onchange=self.set_exercise, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
+        ex_dropselect.set_selection_effect(selection_effect)
+        frame = select_exercise_ui.add.frame_v(max(ex_label.get_width(), ex_dropselect.get_width()) + 30, ex_label.get_height() + ex_dropselect.get_height() + 30, background_color=self.stone_background)
+        frame.pack(ex_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(ex_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        select_exercise_ui.add.vertical_margin(10)
+        select_exercise_ui.add.button('JOUER', self.set_parameters, background_color=self.green_button)
+        select_exercise_ui.add.vertical_margin(30)
+        select_exercise_ui.add.button('MODIFIER EXERCICE', partial(self.display_define_exercise_ui, False), background_color=self.yellow_button)
+        select_exercise_ui.add.vertical_margin(5)
+        select_exercise_ui.add.button('NOUVEL EXERCICE', partial(self.display_define_exercise_ui, True), background_color=self.green_button)
+        select_exercise_ui.add.vertical_margin(30)
         button_delete = select_exercise_ui.add.button('SUPPRIMER', delete_exercise)
-        select_exercise_ui.add.button('RETOUR', self.display_select_game_ui)
+        select_exercise_ui.add.vertical_margin(30)
+        select_exercise_ui.add.button('RETOUR', self.display_select_game_ui, background_color=self.yellow_button)
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
@@ -231,9 +245,11 @@ class Console():
             is_default_ex_selected = self.current_exercise == 'Echauffement'
             
             if not is_default_ex_selected:
-                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (204,0,0,0), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (80,80,80), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_delete.set_background_color(self.red_button)
             else:
                 button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_delete.set_background_color(self.gray_button)
 
             for event in events:
                 if event.type == pg.QUIT:
@@ -244,6 +260,7 @@ class Console():
             select_exercise_ui.update(events)
 
             select_exercise_ui.draw(self.screen)
+            ex_dropselect.draw_after_if_selected(self.screen)
             pg.display.update()
 
 
