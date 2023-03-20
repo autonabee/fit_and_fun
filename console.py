@@ -45,6 +45,7 @@ class Console():
     red_button = pg_menu.baseimage.BaseImage(dir_img+'/button_red.png')
     gray_button = pg_menu.baseimage.BaseImage(dir_img+'/button_gray.png')
     stone_background = pg_menu.baseimage.BaseImage(dir_img+'/stone_background.png')
+    wood_background = pg_menu.baseimage.BaseImage(dir_img+'/wood_background.png')
 
     clock = pg.time.Clock()
     
@@ -119,10 +120,12 @@ class Console():
         self.current_user = list_users[0][0]
 
         select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
+        
         user_label = select_user_ui.add.label('NOM D\'UTILISATEUR')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
         user_dropselect = select_user_ui.add.dropselect('', list_users, default = 0, onchange=self.set_user, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
         user_dropselect.set_selection_effect(selection_effect)
+        
         frame = select_user_ui.add.frame_v(max(user_label.get_width(), user_dropselect.get_width()) + 30, user_label.get_height() + user_dropselect.get_height() + 30, background_color=self.stone_background)
         frame.pack(user_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(user_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
@@ -130,6 +133,7 @@ class Console():
         select_user_ui.add.button('VALIDER', partial(self.go_to_select_game_ui, False), background_color=self.green_button)
         select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('NOUVEAU JOUEUR', self.display_create_user_ui, background_color=self.yellow_button)
+        select_user_ui.add.vertical_margin(5)
         select_user_ui.add.button('MODE INVITE', partial(self.go_to_select_game_ui, True), background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('HISTORIQUE', self.display_history_ui, background_color=self.yellow_button)
@@ -220,10 +224,10 @@ class Console():
 
         select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
 
-        selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
         ex_label = select_exercise_ui.add.label('EXERCICE')
+        selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
         ex_dropselect = select_exercise_ui.add.dropselect('', list_exercises, default = list_exercises.index((self.current_exercise, self.current_exercise)),
-                                                                    onchange=self.set_exercise, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
+                                                                    onchange=self.set_exercise, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
         ex_dropselect.set_selection_effect(selection_effect)
         frame = select_exercise_ui.add.frame_v(max(ex_label.get_width(), ex_dropselect.get_width()) + 30, ex_label.get_height() + ex_dropselect.get_height() + 30, background_color=self.stone_background)
         frame.pack(ex_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
@@ -254,7 +258,7 @@ class Console():
             for event in events:
                 if event.type == pg.QUIT:
                     pg.display.quit()
-                    if self.debug : print("Quit") 
+                    if self.debug : print("Quit")
                     self.synchro.release()
 
             select_exercise_ui.update(events)
@@ -309,9 +313,11 @@ class Console():
                 color = COLOR_STAGE
                 label = define_exercise_ui.add.label('Etape ' + str(len(label_widgets)+1), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(230, 230, 230))
                 remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(230, 230, 230))
-                temps = define_exercise_ui.add.range_slider('Temps : ', rangeslider_id='temps'+str(i), onchange=partial(change_time, i), font_color=(230, 230, 230), default=stages_data[-1]["temps"], range_text_value_enabled=False, range_values=VALUES_TEMPS)
-                resistance = define_exercise_ui.add.range_slider('Resistance : ', rangeslider_id='resistance'+str(i), onchange=partial(change_resistance, i), font_color=(230, 230, 230), default=stages_data[-1]["resistance"], range_text_value_enabled=False, range_values=VALUES_RESISTANCE)
-                frame_global = define_exercise_ui.add.frame_h(580, 140, frame_id='frame_global'+str(i), background_color=color, margin=(0,5))
+                temps = define_exercise_ui.add.range_slider('Temps : ', rangeslider_id='temps'+str(i), onchange=partial(change_time, i), font_color=(230, 230, 230),
+                                                            default=stages_data[-1]["temps"], range_text_value_enabled=False, range_values=VALUES_TEMPS)
+                resistance = define_exercise_ui.add.range_slider('Resistance : ', rangeslider_id='resistance'+str(i), onchange=partial(change_resistance, i), font_color=(230, 230, 230),
+                                                                 default=stages_data[-1]["resistance"], range_text_value_enabled=False, range_values=VALUES_RESISTANCE)
+                frame_global = define_exercise_ui.add.frame_h(580, 140, frame_id='frame_global'+str(i), background_color=self.wood_background, margin=(0,5))
                 frame_global.relax(True)
                 frame_global.pack(label, align=pg_menu.locals.ALIGN_LEFT)
                 frame_global.pack(remove_button, align=pg_menu.locals.ALIGN_RIGHT)
@@ -328,7 +334,7 @@ class Console():
                 self.synchro.release()
             
             # On replace le bouton "Ajouter"
-            define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
+            define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
 
         def change_time(index, value):
             """Update time parameter in stages table
@@ -361,8 +367,8 @@ class Console():
             if is_saved:
                 if is_save_active:
                     if is_new_exercise:
-                        self.current_exercise = name_exercise.get_value()
-                        db.create_new_exercise(name_exercise.get_value(), self.current_user)
+                        self.current_exercise = name_exercise_input.get_value()
+                        db.create_new_exercise(name_exercise_input.get_value(), self.current_user)
                         for s_data in stages_data:
                             db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"])
                     else:
@@ -394,13 +400,20 @@ class Console():
         define_exercise_ui = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
         
         if is_new_exercise:
-            name_exercise = define_exercise_ui.add.text_input('Nom de l\'exercice :', margin=(0, 50), font_color=(0, 0, 0), background_color=(50,50,50,150))
+            name_exercise_label = define_exercise_ui.add.label('Nom de l\'exercice', font_color=(255,255,255))
+            name_exercise_input = define_exercise_ui.add.text_input('', font_color=(255,255,255), border_color=(255,255,255), border_width=1)
+            frame = define_exercise_ui.add.frame_v(400, name_exercise_label.get_height() + name_exercise_input.get_height() + 30, background_color=self.stone_background)
+            frame.pack(name_exercise_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+            frame.pack(name_exercise_input, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         else:
-            name_exercise = define_exercise_ui.add.label(self.current_exercise, margin=(0, 50), font_color=(0, 0, 0), background_color=(50,50,50,150))
-        define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=(0,255,0,100))
-        button_cancel = define_exercise_ui.add.button('ANNULER', action=partial(quit_ui, False))
+            name_exercise_input = define_exercise_ui.add.label(self.current_exercise, font_color=(255,255,255), background_color=self.stone_background)
+        define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
+        define_exercise_ui.add.vertical_margin(30)
+        button_cancel = define_exercise_ui.add.button('RETOUR', partial(quit_ui, False), background_color=self.yellow_button)
+        define_exercise_ui.add.vertical_margin(5)
         button_cancel.set_font(pg_menu.font.FONT_NEVIS, 24, (0,0,0), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
-        button_save = define_exercise_ui.add.button('ENREGISTRER', action=partial(quit_ui, True))
+        button_save = define_exercise_ui.add.button('ENREGISTRER', partial(quit_ui, True), background_color=self.green_button)
+        define_exercise_ui.add.vertical_margin(30)
         
         stored_stages = []
         if not is_new_exercise:
@@ -416,8 +429,8 @@ class Console():
 
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
         def on_key_event(text):
-            name_exercise.set_value(text)
-            if self.debug: print(name_exercise.get_value())
+            name_exercise_input.set_value(text)
+            if self.debug: print(name_exercise_input.get_value())
             return
         
         keyboard = vkboard.VKeyboard(define_exercise_ui,
@@ -430,16 +443,18 @@ class Console():
             time_delta = self.clock.tick(60)/1000.0
 
             if is_new_exercise:
-                is_kb_active = name_exercise.get_selected_time() != 0
+                is_kb_active = name_exercise_input.get_selected_time() != 0
             else:
                 is_kb_active = False
 
-            if is_new_exercise and (name_exercise.get_value() == '' or name_exercise.get_value() in existing_names):
+            if is_new_exercise and (name_exercise_input.get_value() == '' or name_exercise_input.get_value() in existing_names):
                 is_save_active = False
                 button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_background_color(self.gray_button)
             else:
                 is_save_active = True
-                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (0,204,0), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (255,255,255), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_background_color(self.green_button)
 
             events = pg.event.get()
 
