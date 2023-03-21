@@ -619,15 +619,23 @@ class Console():
     
  
     def display_score_ui(self, duration, distance):
-        """ Open self.score_ui """
-        self.score_ui = pg_menu.Menu('FELICITATIONS!', self.size_x, self.size_y, theme=mytheme)
+        """ Open score_ui """
+        score_ui = pg_menu.Menu('FELICITATIONS!', self.size_x, self.size_y, theme=mytheme)
         minutes, seconds = divmod(duration, 60)
-        self.score_ui.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"")
-        self.score_ui.add.label("Distance : " + str(round(distance)))
-        self.score_ui.add.label("Score : " + str(round(self.score)))
-        self.score_ui.add.button('REJOUER', self.game)
-        self.score_ui.add.button('MENU', partial(self.display_select_game_ui))
-        self.score_ui.add.button('QUITTER', pg_menu.events.EXIT)
+
+        label_time = score_ui.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=(255,255,255))
+        label_distance = score_ui.add.label("Distance : " + str(round(distance)), font_color=(255,255,255))
+        label_score = score_ui.add.label("Score : " + str(round(self.score)), font_color=(255,255,255))
+        frame = score_ui.add.frame_v(400, label_time.get_height() * 3 + 30, background_color=self.stone_background)
+        frame.pack(label_time, align=pg_menu.locals.ALIGN_CENTER)
+        frame.pack(label_distance, align=pg_menu.locals.ALIGN_CENTER)
+        frame.pack(label_score, align=pg_menu.locals.ALIGN_CENTER)
+        score_ui.add.vertical_margin(30)
+        score_ui.add.button('REJOUER', self.game, background_color=self.green_button)
+        score_ui.add.vertical_margin(30)
+        score_ui.add.button('MENU', partial(self.display_select_game_ui), background_color=self.yellow_button)
+        score_ui.add.vertical_margin(30)
+        score_ui.add.button('QUITTER', pg_menu.events.EXIT, background_color=self.red_button)
         while True:
             events = pg.event.get()
 
@@ -640,9 +648,9 @@ class Console():
                         self.wind_resistor.stop()
                     exit()
 
-            if self.score_ui.is_enabled():
-                self.score_ui.update(events)
-                self.score_ui.draw(self.screen)
+            if score_ui.is_enabled():
+                score_ui.update(events)
+                score_ui.draw(self.screen)
             pg.display.update()
 
 

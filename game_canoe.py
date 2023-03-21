@@ -280,9 +280,17 @@ class GameCanoe(Console):
             #Check if the player is dead or if the time is elapsed
             timer_elapsed = time.time() - self.timebegin >= self.timer if self.timebegin != 0 else False
             if life_count <= 0 or timer_elapsed:
-                self.display_score_ui(time.time() - self.timebegin, distance)
+                time_elapsed = time.time() - self.timebegin
+                if time_elapsed > 1000:
+                    self.display_score_ui(0, distance)
+                else:
+                    self.display_score_ui(time.time() - self.timebegin, distance)
 
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
-                    self.display_score_ui(time.time() - self.timebegin, distance)
+                    time_elapsed = time.time() - self.timebegin
+                    if time_elapsed > 1000:
+                        self.display_score_ui(0, distance)
+                    else:
+                        self.display_score_ui(time.time() - self.timebegin, distance)
