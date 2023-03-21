@@ -24,9 +24,6 @@ mytheme.background_color = myimage
 mytheme.widget_font=pg_menu.font.FONT_NEVIS
 
 COLOR_STAGE = pg.Color(115, 180, 20)
-VALUES_TEMPS = [5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90]
-VALUES_RESISTANCE = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-
 
 class Console():
     """ Class Console to manage the game
@@ -57,6 +54,15 @@ class Console():
         # rot speed max = 700, screen speed max = 3 => 3/600
         # Ratio between effective speed and apparent score
         self.SCORE_RATIO=0.02
+
+        # Used in exercise creation
+        self.VALUES_TEMPS = []
+        for i in range(5,121,5):
+            self.VALUES_TEMPS.append((str(i)+'s', i))
+        self.VALUES_RESISTANCE = []
+        for i in range(1,16):
+            self.VALUES_RESISTANCE.append((str(i)+'/15', i))
+
         # Control variable
         self._on_message = None
         # raw speed value received from the mqtt sensor
@@ -217,9 +223,16 @@ class Console():
                 self.current_exercise = 'Echauffement'
                 ex_dropselect.update_items(list_exercises)
             else:
-                #TODO Add a little feedback
                 if self.debug: print("Can't delete default exercise")
                 return
+            
+        def edit_exercise():
+            if not is_default_ex_selected:
+                self.display_define_exercise_ui(False)
+            else:
+                if self.debug: print("Can't edit default exercise")
+                return
+
             
 
         select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
@@ -235,7 +248,7 @@ class Console():
         select_exercise_ui.add.vertical_margin(10)
         select_exercise_ui.add.button('JOUER', self.set_parameters, background_color=self.green_button)
         select_exercise_ui.add.vertical_margin(30)
-        select_exercise_ui.add.button('MODIFIER EXERCICE', partial(self.display_define_exercise_ui, False), background_color=self.yellow_button)
+        button_edit = select_exercise_ui.add.button('MODIFIER EXERCICE', edit_exercise, background_color=self.yellow_button)
         select_exercise_ui.add.vertical_margin(5)
         select_exercise_ui.add.button('NOUVEL EXERCICE', partial(self.display_define_exercise_ui, True), background_color=self.green_button)
         select_exercise_ui.add.vertical_margin(30)
@@ -249,11 +262,15 @@ class Console():
             is_default_ex_selected = self.current_exercise == 'Echauffement'
             
             if not is_default_ex_selected:
-                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (80,80,80), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (80,80,80), (255,255,255,50), (255,255,255), (255,255,255), (255,255,255,0))
                 button_delete.set_background_color(self.red_button)
+                button_edit.set_font(pg_menu.font.FONT_NEVIS, 28, (80,80,80), (255,255,255,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_edit.set_background_color(self.yellow_button)
             else:
-                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (255,255,255,50), (255,255,255), (255,255,255), (255,255,255,0))
                 button_delete.set_background_color(self.gray_button)
+                button_edit.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200), (255,255,255,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_edit.set_background_color(self.gray_button)
 
             for event in events:
                 if event.type == pg.QUIT:
@@ -312,11 +329,12 @@ class Console():
                 id_counter[0] = id_counter[0] + 1
                 color = COLOR_STAGE
                 label = define_exercise_ui.add.label('Etape ' + str(len(label_widgets)+1), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(230, 230, 230))
+                label_widgets.append(label)
                 remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(230, 230, 230))
-                temps = define_exercise_ui.add.range_slider('Temps : ', rangeslider_id='temps'+str(i), onchange=partial(change_time, i), font_color=(230, 230, 230),
-                                                            default=stages_data[-1]["temps"], range_text_value_enabled=False, range_values=VALUES_TEMPS)
-                resistance = define_exercise_ui.add.range_slider('Resistance : ', rangeslider_id='resistance'+str(i), onchange=partial(change_resistance, i), font_color=(230, 230, 230),
-                                                                 default=stages_data[-1]["resistance"], range_text_value_enabled=False, range_values=VALUES_RESISTANCE)
+                temps = define_exercise_ui.add.selector('Temps : ', self.VALUES_TEMPS, default=self.VALUES_TEMPS.index((str(stages_data[-1]["temps"])+'s', stages_data[-1]["temps"])), selector_id='temps'+str(i),
+                                                        onchange=partial(change_time, i), font_color=(230, 230, 230))
+                resistance = define_exercise_ui.add.selector('Resistance : ', self.VALUES_RESISTANCE, default=self.VALUES_RESISTANCE.index((str(stages_data[-1]["resistance"])+'/15', stages_data[-1]["resistance"])), selector_id='resistance'+str(i),
+                                                        onchange=partial(change_resistance, i), font_color=(230, 230, 230))
                 frame_global = define_exercise_ui.add.frame_h(580, 140, frame_id='frame_global'+str(i), background_color=self.wood_background, margin=(0,5))
                 frame_global.relax(True)
                 frame_global.pack(label, align=pg_menu.locals.ALIGN_LEFT)
@@ -326,7 +344,6 @@ class Console():
                 frame_param.pack(resistance, align=pg_menu.locals.ALIGN_CENTER)
                 frame_global.pack(frame_param, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 define_exercise_ui.select_widget(None)
-                label_widgets.append(label)
             except KeyError:
                 print("Wrong dictionary format when adding new stage")
                 pg.display.quit()
@@ -336,7 +353,7 @@ class Console():
             # On replace le bouton "Ajouter"
             define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
 
-        def change_time(index, value):
+        def change_time(index, item, value):
             """Update time parameter in stages table
 
             Args:
@@ -347,7 +364,7 @@ class Console():
             if self.debug and value != stages_data[id]["temps"]: print('Temps of stage ' + str(id+1) + " changed to " + str(value))
             stages_data[id]["temps"] = value
 
-        def change_resistance(index, value):
+        def change_resistance(index, item, value):
             """Update resistance parameter in stages table
 
             Args:
