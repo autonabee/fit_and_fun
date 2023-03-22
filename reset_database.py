@@ -40,11 +40,11 @@ cur.execute(query)
 query = '''DROP TABLE IF EXISTS Stage;'''
 cur.execute(query)
 query = '''CREATE TABLE Stage (
-			id INTEGER,
 			ex_id INTEGER,
+			id INTEGER,
 			time INTEGER,
 			resistance INTEGER,
-			PRIMARY KEY(id, ex_id)
+			PRIMARY KEY(ex_id, id)
 			FOREIGN KEY(ex_id) REFERENCES Exercise(id)
 			);'''
 cur.execute(query)

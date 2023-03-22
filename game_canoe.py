@@ -19,10 +19,10 @@ from game_events import start_events, event_blocks
 
 class GameCanoe(Console):
 
-    def __init__(self, debug=False, fullscreen=False, timer=120):
-        super().__init__(debug=debug, fullscreen=fullscreen, timer=timer)
+    def __init__(self, debug=False, fullscreen=False):
+        super().__init__(debug=debug, fullscreen=fullscreen)
     
-    def game(self):
+    def game(self, stages):
         """
         game panel. A character go headed on a scrolled side game depending
         on its speed. If it reaches muschroom the score is decrease.
@@ -81,6 +81,12 @@ class GameCanoe(Console):
         fixed_speed = 0
         self.score = 0.0
         life_count = 3
+
+        # Exercise stages
+        self.stages = []
+        for stage in stages:
+            self.stages.append((stage[1], stage[2], stage[3]))
+        self.current_stage = self.stages[0]
         
         # Entities are instanciated once to avoid garbage collection as much as possible
         player = Player(self.screen)
@@ -94,6 +100,7 @@ class GameCanoe(Console):
 
         game_events = start_events.copy()
         self.timebegin = 0
+        is_game_started = False
 
         game_events.sort(key=lambda x: x[0])    # Sort by time
 
@@ -115,6 +122,7 @@ class GameCanoe(Console):
                     elif event_type == "LVL_START":     # Start level (obstacles, bonuses and score recording)
                         level_started = True
                         self.timebegin=time.time()
+                        is_game_started = True
                     elif event_type == "DECO":      # Spawn special scenery
                         event_data = game_events[0][2]
                         for elt in special_scenery:
@@ -150,7 +158,7 @@ class GameCanoe(Console):
                     
                     #Remove the oldest event and add a new one
                     del game_events[0]
-                    delay = time.time() - self.time0 + random.randint(15, 20) #Values can be changed to in/decrease spawn rate
+                    delay = time.time() - self.time0 + random.randint(30 - 2*self.current_stage[2], 32 - 2*self.current_stage[2]) #Values can be changed to in/decrease spawn rate
                     if len(game_events) <= 10:
                         ev_block = random.choice(list(event_blocks.values()))
                         events = [ (delay + te, *ev) for te, *ev in ev_block["events"] ]
@@ -278,19 +286,24 @@ class GameCanoe(Console):
             pg.display.update()
 
             #Check if the player is dead or if the time is elapsed
-            timer_elapsed = time.time() - self.timebegin >= self.timer if self.timebegin != 0 else False
-            if life_count <= 0 or timer_elapsed:
-                time_elapsed = time.time() - self.timebegin
-                if time_elapsed > 1000:
-                    self.display_score_ui(0, distance)
-                else:
-                    self.display_score_ui(time.time() - self.timebegin, distance)
+            time_elapsed = time.time() - self.timebegin
 
+            if is_game_started:
+                if time_elapsed >= self.current_stage[1]:
+                    index_current_stage = self.stages.index(self.current_stage)
+                    if index_current_stage < len(self.stages) - 1:
+                        self.current_stage = self.stages[index_current_stage+1]
+                        self.timebegin = time.time()
+                        if self.debug: print("Passage à l'étape " + str(self.current_stage))
+                    else:
+                        self.display_score_ui(time_elapsed, distance)
+
+            if life_count <= 0:
+                self.display_score_ui(time.time() - self.timebegin, distance)
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
-                    time_elapsed = time.time() - self.timebegin
-                    if time_elapsed > 1000:
+                    if not is_game_started:
                         self.display_score_ui(0, distance)
                     else:
                         self.display_score_ui(time.time() - self.timebegin, distance)

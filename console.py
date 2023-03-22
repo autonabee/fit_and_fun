@@ -46,7 +46,7 @@ class Console():
 
     clock = pg.time.Clock()
     
-    def __init__(self, wind=None, debug=False, fullscreen=False, timer=120):
+    def __init__(self, wind=None, debug=False, fullscreen=False):
         """ Class constructor """
         # Min/Max speed 
         self.ROT_SPEED_MIN = 00
@@ -95,12 +95,13 @@ class Console():
         self.synchro = threading.Lock()
         self.debug=debug
         self.difficulty=1
-        self.timer=timer #Allowed time in seconds
         self.current_user='Julien'
         # Wind resistor
         self.wind_resistor = wind
 
         self.current_exercise = 'Echauffement'
+        self.current_stage = None
+        self.stages = None # Initialization in game_canoe
 
         self.guest_mode = False
 
@@ -232,6 +233,9 @@ class Console():
             else:
                 if self.debug: print("Can't edit default exercise")
                 return
+            
+        def launch_game():
+            self.game(db.get_all_stages_from_ex(self.current_exercise))
 
             
 
@@ -246,7 +250,7 @@ class Console():
         frame.pack(ex_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(ex_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         select_exercise_ui.add.vertical_margin(10)
-        select_exercise_ui.add.button('JOUER', self.set_parameters, background_color=self.green_button)
+        select_exercise_ui.add.button('JOUER', launch_game, background_color=self.green_button)
         select_exercise_ui.add.vertical_margin(30)
         button_edit = select_exercise_ui.add.button('MODIFIER EXERCICE', edit_exercise, background_color=self.yellow_button)
         select_exercise_ui.add.vertical_margin(5)
@@ -491,11 +495,6 @@ class Console():
             # Flip only the updated area
             pg.display.update()
             if is_kb_active: pg.display.update(rects)
-
-
-    def set_parameters(self):#TODO
-        print("set game parameters according to the selected exercise before launching the game")
-        self.game()
     
 
     def display_history_ui(self):#TODO
@@ -702,13 +701,12 @@ class Console():
         """
         #Timer activates only when the game begins
         if self.timebegin == 0 :
-            minutes, seconds = divmod(self.timer, 60)
+            minutes, seconds = divmod(self.current_stage[1], 60)
         else:
             duration = time.time() - self.timebegin
-            minutes, seconds = divmod(self.timer - duration, 60)
-        template = "Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
-        banner = template.format(min=int(minutes), sec=int(seconds), 
-                            speed=int(self.rot_speed), score=round(self.score)+int(self.energy))
+            minutes, seconds = divmod(self.current_stage[1]+1 - duration, 60)
+        template = "Etape {etape:01d}/{max_etape:01d} - Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
+        banner = template.format(etape=self.current_stage[0], max_etape=len(self.stages), min=int(minutes), sec=int(seconds), speed=int(self.rot_speed), score=round(self.score)+int(self.energy))
         return banner
 
 
