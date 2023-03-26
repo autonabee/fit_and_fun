@@ -14,7 +14,6 @@ import os
 import sys
 
 # Custom menu theme
-
 mytheme = pg_menu.themes.THEME_DEFAULT.copy()
 myimage = pg_menu.baseimage.BaseImage(
     image_path=os.path.join(os.path.dirname(__file__),"images/menu_bg.png"),
@@ -23,8 +22,6 @@ myimage = pg_menu.baseimage.BaseImage(
 mytheme.background_color = myimage
 mytheme.widget_font=pg_menu.font.FONT_NEVIS
 
-COLOR_STAGE = pg.Color(115, 180, 20)
-
 class Console():
     """ Class Console to manage the game
         using a single input rot_speed
@@ -32,9 +29,9 @@ class Console():
         of the class to read a 'sensor value'
     """
     
-    dir_img=os.path.join(os.path.dirname(__file__), 'images')
-
     #Images
+    dir_img=os.path.join(os.path.dirname(__file__), 'images')
+    
     heart_full_img = pg.image.load(dir_img+'/heart_full.png')
     heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
     green_button = pg_menu.baseimage.BaseImage(dir_img+'/button_green.png')
@@ -52,16 +49,17 @@ class Console():
         self.ROT_SPEED_MIN = 00
         self.ROT_SPEED_MAX = 15
         # rot speed max = 700, screen speed max = 3 => 3/600
+        
         # Ratio between effective speed and apparent score
         self.SCORE_RATIO=0.02
 
-        # Used in exercise creation
+        # Selectable values in exercise definition
         self.VALUES_TEMPS = []
         for i in range(5,121,5):
-            self.VALUES_TEMPS.append((str(i)+'s', i))
+            self.VALUES_TEMPS.append((str(i)+'s', i)) # Between 5 and 120 seconds
         self.VALUES_RESISTANCE = []
         for i in range(1,16):
-            self.VALUES_RESISTANCE.append((str(i)+'/15', i))
+            self.VALUES_RESISTANCE.append((str(i)+'/15', i)) # Between 1 and 15 (arbitrary values)
 
         # Control variable
         self._on_message = None
@@ -74,6 +72,7 @@ class Console():
         self.time0=0
         # initial time when the boat pass the GO line
         self.timebegin=0
+        
         # Screen init
         pg.init()
         if fullscreen:
@@ -91,14 +90,15 @@ class Console():
         self.font_name = pg.font.match_font('arial')
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
+        
         # lock for synchro to kill the sensor speed client
         self.synchro = threading.Lock()
         self.debug=debug
         self.difficulty=1
-        self.current_user='Julien'
         # Wind resistor
         self.wind_resistor = wind
 
+        self.current_user='everybody'
         self.current_exercise = 'Echauffement'
         self.current_stage = None
         self.stages = None # Initialization in game_canoe
@@ -113,16 +113,24 @@ class Console():
    
 
     def set_user(self, username, name): 
-        """ callback called by self.usermenu """
+        """ Update current user name with data coming from a dropselect """
         self.current_user=name
 
 
     def go_to_select_game_ui(self, is_guest_mode):
+        """ Displays the game selection ui
+        
+        Args:
+            is_guest_mode (bool): if True, displays a light version of the interface which doesn't have any link with the database
+        """
         self.guest_mode = is_guest_mode
         self.display_select_game_ui()
 
 
     def display_select_user_ui(self):
+        """ Displays the user selection ui """
+        
+        # Fetch existing users in the database
         list_users = db.get_all_user_tuples()
         self.current_user = list_users[0][0]
 
@@ -146,6 +154,7 @@ class Console():
         select_user_ui.add.button('HISTORIQUE', self.display_history_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('QUITTER', pg_menu.events.EXIT, background_color=self.red_button)
+        
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
@@ -164,11 +173,14 @@ class Console():
 
 
     def set_game(self, game_name, game):
-        self.game = game
+        """ Update current game name with data coming from a dropselect """
+        self.current_game = game
 
 
     def display_select_game_ui(self):
+        """ Displays the game selection ui """
 
+        # Fetch existing games in the database
         list_games = db.get_all_game_tuples()
 
         select_game_ui = pg_menu.Menu('SELECTIONNEZ UN JEU', self.size_x, self.size_y, theme=mytheme)
@@ -207,16 +219,22 @@ class Console():
 
 
     def set_exercise(self, exercise_display, exercise_value):
+        """ Update current exercise name with data coming from a dropselect"""
         self.current_exercise = exercise_value
 
 
     def display_select_exercise_ui(self):
+        """ Displays the exercise selection ui """
 
-        list_exercises = db.get_all_exercise_tuples()
-        
+        # Fetch existing exercises in the database
+        list_exercises = db.get_all_exercise_tuples()     
         is_default_ex_selected = self.current_exercise == 'Echauffement'
+        # Note : For now, the 'Echauffement' exercise is here as a default value
+        # Thus, it is impossible to either delete it or to edit it via the user interface
         
         def delete_exercise():
+            """ Delete the selected exercise from the db and reload the dropselect """
+            
             if not is_default_ex_selected:
                 db.delete_all_stages_from_ex(self.current_exercise)
                 db.delete_exercise(self.current_exercise)
@@ -228,6 +246,9 @@ class Console():
                 return
             
         def edit_exercise():
+            """ Displays the exercise edition interface """
+            
+            # Check if the selected exercise is 'Echauffement'
             if not is_default_ex_selected:
                 self.display_define_exercise_ui(False)
             else:
@@ -235,9 +256,8 @@ class Console():
                 return
             
         def launch_game():
+            """ Launch the game applying configuration from the selected exercise """
             self.game(db.get_all_stages_from_ex(self.current_exercise))
-
-            
 
         select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
 
@@ -259,21 +279,22 @@ class Console():
         button_delete = select_exercise_ui.add.button('SUPPRIMER', delete_exercise)
         select_exercise_ui.add.vertical_margin(30)
         select_exercise_ui.add.button('RETOUR', self.display_select_game_ui, background_color=self.yellow_button)
+        
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
             
+            # Doesn't allow deletion or edition if select exercise is 'Echauffement'
             is_default_ex_selected = self.current_exercise == 'Echauffement'
-            
             if not is_default_ex_selected:
-                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (80,80,80), (255,255,255,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (80,80,80), self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
                 button_delete.set_background_color(self.red_button)
-                button_edit.set_font(pg_menu.font.FONT_NEVIS, 28, (80,80,80), (255,255,255,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_edit.set_font(pg_menu.font.FONT_NEVIS, 28, (80,80,80), self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
                 button_edit.set_background_color(self.yellow_button)
             else:
-                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (255,255,255,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_delete.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
                 button_delete.set_background_color(self.gray_button)
-                button_edit.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200), (255,255,255,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_edit.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200), self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
                 button_edit.set_background_color(self.gray_button)
 
             for event in events:
@@ -325,13 +346,12 @@ class Console():
             else :
                 stages_data.append(stage_values)
             
-            # On retire le bouton "Ajouter"
+            # Remove 'add' button to replace it at the end
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('add_stage_button'))
             
             try:
                 i = id_counter[0]
                 id_counter[0] = id_counter[0] + 1
-                color = COLOR_STAGE
                 label = define_exercise_ui.add.label('Etape ' + str(len(label_widgets)+1), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(230, 230, 230))
                 label_widgets.append(label)
                 remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(230, 230, 230))
@@ -354,7 +374,7 @@ class Console():
                 if self.debug: print("Quit") 
                 self.synchro.release()
             
-            # On replace le bouton "Ajouter"
+            # Replace 'add' button
             define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
 
         def change_time(index, item, value):
@@ -398,19 +418,14 @@ class Console():
                             db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"])
                     self.display_select_exercise_ui()
                 else:
-                    #TODO Add a little feedback
                     if self.debug: print("Exercise name already existing in the database")
                     return
             else:
-                self.current_exercise = 'Echauffement'
                 self.display_select_exercise_ui()
             
 
         stages_data = [] # Is filled in add stage, no need to fill it beforehand
-
         label_widgets = []
-
-        if is_new_exercise: self.current_exercise = ''
 
         # Used to determined whether the prompted name is already existing or not
         existing_names = db.get_all_exercise_names()
@@ -421,18 +436,18 @@ class Console():
         define_exercise_ui = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
         
         if is_new_exercise:
-            name_exercise_label = define_exercise_ui.add.label('Nom de l\'exercice', font_color=(255,255,255))
-            name_exercise_input = define_exercise_ui.add.text_input('', font_color=(255,255,255), border_color=(255,255,255), border_width=1)
+            name_exercise_label = define_exercise_ui.add.label('Nom de l\'exercice', font_color=self.WHITE)
+            name_exercise_input = define_exercise_ui.add.text_input('', font_color=self.WHITE, border_color=self.WHITE, border_width=1)
             frame = define_exercise_ui.add.frame_v(400, name_exercise_label.get_height() + name_exercise_input.get_height() + 30, background_color=self.stone_background)
             frame.pack(name_exercise_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
             frame.pack(name_exercise_input, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         else:
-            name_exercise_input = define_exercise_ui.add.label(self.current_exercise, font_color=(255,255,255), background_color=self.stone_background)
+            name_exercise_input = define_exercise_ui.add.label(self.current_exercise, font_color=self.WHITE, background_color=self.stone_background)
         define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
         define_exercise_ui.add.vertical_margin(30)
         button_cancel = define_exercise_ui.add.button('RETOUR', partial(quit_ui, False), background_color=self.yellow_button)
         define_exercise_ui.add.vertical_margin(5)
-        button_cancel.set_font(pg_menu.font.FONT_NEVIS, 24, (0,0,0), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
+        button_cancel.set_font(pg_menu.font.FONT_NEVIS, 24, self.BLACK, self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
         button_save = define_exercise_ui.add.button('ENREGISTRER', partial(quit_ui, True), background_color=self.green_button)
         define_exercise_ui.add.vertical_margin(30)
         
@@ -463,18 +478,20 @@ class Console():
         while True:
             time_delta = self.clock.tick(60)/1000.0
 
+            # Check if name input is selected
             if is_new_exercise:
                 is_kb_active = name_exercise_input.get_selected_time() != 0
             else:
                 is_kb_active = False
 
+            # Doesn't allow an already existing name for the exercise
             if is_new_exercise and (name_exercise_input.get_value() == '' or name_exercise_input.get_value() in existing_names):
                 is_save_active = False
-                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, self.WHITE, self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
                 button_save.set_background_color(self.gray_button)
             else:
                 is_save_active = True
-                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (255,255,255), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, self.WHITE, self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
                 button_save.set_background_color(self.green_button)
 
             events = pg.event.get()
@@ -494,6 +511,7 @@ class Console():
 
             # Flip only the updated area
             pg.display.update()
+            # Displays keyboard only if the name input is selected
             if is_kb_active: pg.display.update(rects)
     
 
@@ -523,7 +541,6 @@ class Console():
 
     def display_stats_ui(self):#TODO faire le lien avec la BDD
         stats_ui = pg_menu.Menu('STATISTIQUES', self.size_x, self.size_y, theme=mytheme)
-        #bdd
         stats_ui.add.button('RETOUR', self.display_select_game_ui, background_color=self.yellow_button)
 
         while True:
@@ -548,14 +565,20 @@ class Console():
 
         
     def display_create_user_ui(self):
+        """ Displays the user creation ui """
 
         def create_user(name_input):
+            """ Add the new user in the database and displays game selection ui
+        
+            Args:
+                name_input (string): name of the new user
+            """
             if is_save_active:
                 name = name_input.get_value()
                 db.create_new_user(name)
                 self.display_select_game_ui()
             else:
-                if self.debug: print("Exercise name alreadung existing in the database")
+                if self.debug: print("Exercise name already exists in the database")
                 return
 
         create_user_ui = pg_menu.Menu('NOUVEL UTILISATEUR', self.size_x, self.size_y, theme=mytheme)
@@ -589,13 +612,14 @@ class Console():
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
 
+            # Doesn't allow an already existing name
             if name_input.get_value() == '' or name_input.get_value() in existing_names:
                 is_save_active = False
-                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (200,200,200,50), (200,200,200,50), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, self.WHITE, self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
                 button_save.set_background_color(self.gray_button)
             else:
                 is_save_active = True
-                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, (255,255,255), (255,255,255), (255,255,255), (255,255,255), (255,255,255,0))
+                button_save.set_font(pg_menu.font.FONT_NEVIS, 28, self.WHITE, self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
                 button_save.set_background_color(self.green_button)
 
             for event in events:
@@ -619,18 +643,19 @@ class Console():
  
     def display_score_ui(self, duration, distance):
         """ Open score_ui """
+        
         score_ui = pg_menu.Menu('FELICITATIONS!', self.size_x, self.size_y, theme=mytheme)
         minutes, seconds = divmod(duration, 60)
 
-        label_time = score_ui.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=(255,255,255))
-        label_distance = score_ui.add.label("Distance : " + str(round(distance)), font_color=(255,255,255))
-        label_score = score_ui.add.label("Score : " + str(round(self.score)), font_color=(255,255,255))
+        label_time = score_ui.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=self.WHITE)
+        label_distance = score_ui.add.label("Distance : " + str(round(distance)), font_color=self.WHITE)
+        label_score = score_ui.add.label("Score : " + str(round(self.score)), font_color=self.WHITE)
         frame = score_ui.add.frame_v(400, label_time.get_height() * 3 + 30, background_color=self.stone_background)
         frame.pack(label_time, align=pg_menu.locals.ALIGN_CENTER)
         frame.pack(label_distance, align=pg_menu.locals.ALIGN_CENTER)
         frame.pack(label_score, align=pg_menu.locals.ALIGN_CENTER)
         score_ui.add.vertical_margin(30)
-        score_ui.add.button('REJOUER', self.game, background_color=self.green_button)
+        score_ui.add.button('REJOUER', self.current_game, background_color=self.green_button)
         score_ui.add.vertical_margin(30)
         score_ui.add.button('MENU', partial(self.display_select_game_ui), background_color=self.yellow_button)
         score_ui.add.vertical_margin(30)
