@@ -184,7 +184,7 @@ class Console():
         if not self.guest_mode:
             select_game_ui.add.button('VALIDER', self.display_select_exercise_ui, background_color=self.green_button)
         else:
-            select_game_ui.add.button('VALIDER', self.set_parameters, background_color=self.green_button)
+            select_game_ui.add.button('VALIDER', partial(self.game, db.get_all_stages_from_ex(self.current_exercise)), background_color=self.green_button)
         select_game_ui.add.vertical_margin(30)
         if not self.guest_mode: select_game_ui.add.button('STATISTIQUES', self.display_stats_ui, background_color=self.yellow_button)
         select_game_ui.add.vertical_margin(30)
