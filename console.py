@@ -54,9 +54,14 @@ class Console():
         self.SCORE_RATIO=0.02
 
         # Selectable values in exercise definition
-        self.VALUES_TEMPS = []
-        for i in range(5,121,5):
-            self.VALUES_TEMPS.append((str(i)+'s', i)) # Between 5 and 120 seconds
+        self.VALUES_TEMPS_M = []
+        for i in range(0,31,1):
+            self.VALUES_TEMPS_M.append((str(i)+'m', i)) # Between 0 and 30 minutes
+            
+        self.VALUES_TEMPS_S = []
+        for i in range(0,56,5):
+            self.VALUES_TEMPS_S.append((str(i)+'s', i)) # Between 0 and 55 seconds
+
         self.VALUES_RESISTANCE = []
         for i in range(1,16):
             self.VALUES_RESISTANCE.append((str(i)+'/15', i)) # Between 1 and 15 (arbitrary values)
@@ -99,6 +104,7 @@ class Console():
         self.wind_resistor = wind
 
         self.current_user='everybody'
+        self.current_game='What The Duck'
         self.current_exercise = 'Echauffement'
         self.current_stage = None
         self.stages = None # Initialization in game_canoe
@@ -330,7 +336,10 @@ class Console():
             stages_data.pop(index_label)
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('label' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('remove_button' + str(id)))
-            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('temps' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('label_temps' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('temps_m' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('temps_s' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_temps' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('resistance' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_global' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_param' + str(id)))
@@ -352,20 +361,29 @@ class Console():
             try:
                 i = id_counter[0]
                 id_counter[0] = id_counter[0] + 1
-                label = define_exercise_ui.add.label('Etape ' + str(len(label_widgets)+1), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(230, 230, 230))
+                label = define_exercise_ui.add.label('Etape ' + str(len(label_widgets)+1), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(82, 41, 11))
                 label_widgets.append(label)
-                remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(230, 230, 230))
-                temps = define_exercise_ui.add.selector('Temps : ', self.VALUES_TEMPS, default=self.VALUES_TEMPS.index((str(stages_data[-1]["temps"])+'s', stages_data[-1]["temps"])), selector_id='temps'+str(i),
-                                                        onchange=partial(change_time, i), font_color=(230, 230, 230))
+                remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(82, 41, 11))
+                temps_label = define_exercise_ui.add.label('Temps :', label_id='label_temps'+str(i), font_color=(230, 230, 230))
+                temps_m = define_exercise_ui.add.selector('', self.VALUES_TEMPS_M, default=self.VALUES_TEMPS_M.index((str(stages_data[-1]["temps"]//60)+'m', stages_data[-1]["temps"]//60)), selector_id='temps_m'+str(i),
+                                                       onchange=partial(change_time_m, i), font_color=(230, 230, 230))
+                temps_s = define_exercise_ui.add.selector('', self.VALUES_TEMPS_S, default=self.VALUES_TEMPS_S.index((str(stages_data[-1]["temps"]%60)+'s', stages_data[-1]["temps"]%60)), selector_id='temps_s'+str(i),
+                                                       onchange=partial(change_time_s, i), font_color=(230, 230, 230))
+
+
                 resistance = define_exercise_ui.add.selector('Resistance : ', self.VALUES_RESISTANCE, default=self.VALUES_RESISTANCE.index((str(stages_data[-1]["resistance"])+'/15', stages_data[-1]["resistance"])), selector_id='resistance'+str(i),
                                                         onchange=partial(change_resistance, i), font_color=(230, 230, 230))
                 frame_global = define_exercise_ui.add.frame_h(580, 140, frame_id='frame_global'+str(i), background_color=self.wood_background, margin=(0,5))
                 frame_global.relax(True)
-                frame_global.pack(label, align=pg_menu.locals.ALIGN_LEFT)
-                frame_global.pack(remove_button, align=pg_menu.locals.ALIGN_RIGHT)
-                frame_param = define_exercise_ui.add.frame_v(400, 100, frame_id='frame_param'+str(i))
-                frame_param.pack(temps, align=pg_menu.locals.ALIGN_CENTER)
-                frame_param.pack(resistance, align=pg_menu.locals.ALIGN_CENTER)
+                frame_global.pack(label, align=pg_menu.locals.ALIGN_LEFT, vertical_position=pg_menu.locals.POSITION_NORTH)
+                frame_global.pack(remove_button, align=pg_menu.locals.ALIGN_RIGHT, vertical_position=pg_menu.locals.POSITION_NORTH)
+                frame_param = define_exercise_ui.add.frame_v(500, 150, frame_id='frame_param'+str(i))
+                frame_temps = define_exercise_ui.add.frame_h(450, 70, frame_id='frame_temps'+str(i), padding=(20,0,0,0))
+                frame_temps.pack(temps_label, align=pg_menu.locals.ALIGN_CENTER)
+                frame_temps.pack(temps_m, align=pg_menu.locals.ALIGN_CENTER)
+                frame_temps.pack(temps_s, align=pg_menu.locals.ALIGN_CENTER)
+                frame_param.pack(frame_temps, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+                frame_param.pack(resistance, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 frame_global.pack(frame_param, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 define_exercise_ui.select_widget(None)
             except KeyError:
@@ -377,16 +395,27 @@ class Console():
             # Replace 'add' button
             define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
 
-        def change_time(index, item, value):
+        def change_time_m(index, item, value):
             """Update time parameter in stages table
 
             Args:
-                text (str): time value for this stage
                 index (int): index of the stage you want to update
             """
             id = label_widgets.index(define_exercise_ui.get_widget('label'+str(index)))
-            if self.debug and value != stages_data[id]["temps"]: print('Temps of stage ' + str(id+1) + " changed to " + str(value))
-            stages_data[id]["temps"] = value
+            val_sec = stages_data[id]["temps"] % 60
+            if self.debug and value != stages_data[id]["temps"] - val_sec: print('Duration of stage ' + str(id+1) + " changed to " + str(value*60 + val_sec) + " seconds")
+            stages_data[id]["temps"] = value * 60 + val_sec
+
+        def change_time_s(index, item, value):
+            """Update time parameter in stages table
+
+            Args:
+                index (int): index of the stage you want to update
+            """
+            id = label_widgets.index(define_exercise_ui.get_widget('label'+str(index)))
+            val_min = stages_data[id]["temps"] // 60
+            if self.debug and value != stages_data[id]["temps"] - val_min*60: print('Duration of stage ' + str(id+1) + " changed to " + str(val_min*60 + value) + " seconds")
+            stages_data[id]["temps"] = val_min * 60 + value
 
         def change_resistance(index, item, value):
             """Update resistance parameter in stages table
@@ -655,7 +684,7 @@ class Console():
         frame.pack(label_distance, align=pg_menu.locals.ALIGN_CENTER)
         frame.pack(label_score, align=pg_menu.locals.ALIGN_CENTER)
         score_ui.add.vertical_margin(30)
-        score_ui.add.button('REJOUER', self.current_game, background_color=self.green_button)
+        score_ui.add.button('REJOUER', partial(self.game, db.get_all_stages_from_ex(self.current_exercise)), background_color=self.green_button) #TODO Erreur
         score_ui.add.vertical_margin(30)
         score_ui.add.button('MENU', partial(self.display_select_game_ui), background_color=self.yellow_button)
         score_ui.add.vertical_margin(30)
