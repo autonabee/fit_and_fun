@@ -28,6 +28,15 @@ class GameCanoe(Console):
         on its speed. If it reaches muschroom the score is decrease.
         """
 
+        def flush_events_queue():
+            game_events.clear()
+            while len(game_events) <= 10:
+                delay = time.time() - self.time0 + random.randint(30 - 2*self.current_stage[3], 32 - 2*self.current_stage[3]) #Values can be changed to in/decrease spawn rate
+                ev_block = random.choice(list(event_blocks.values()))
+                events = [ (delay + te, *ev) for te, *ev in ev_block["events"] ]
+                game_events.extend(events)
+                game_events.sort(key=lambda x: x[0])    # Sort by time
+
         # Constants
         SCROLL_SPEED_MAX = 0.2      # Raise value for a faster river current
         SCROLL_SPEED_MIN = 0.02     # Minimum current speed of the river
@@ -294,6 +303,7 @@ class GameCanoe(Console):
                     if index_current_stage < len(self.stages) - 1:
                         self.current_stage = self.stages[index_current_stage+1]
                         self.timebegin = time.time()
+                        flush_events_queue()
                         if self.debug: print("Passage à l'étape " + str(self.current_stage))
                     else:
                         self.display_score_ui(time_elapsed, distance)
