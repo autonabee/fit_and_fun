@@ -34,6 +34,7 @@ class Console():
     
     heart_full_img = pg.image.load(dir_img+'/heart_full.png')
     heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
+    hourglass = pg.image.load(dir_img+'/hourglass.png')
     green_button = pg_menu.baseimage.BaseImage(dir_img+'/button_green.png')
     yellow_button = pg_menu.baseimage.BaseImage(dir_img+'/button_yellow.png')
     red_button = pg_menu.baseimage.BaseImage(dir_img+'/button_red.png')
@@ -251,15 +252,24 @@ class Console():
                 if self.debug: print("Can't delete default exercise")
                 return
             
-        def edit_exercise():
+        def define_exercise(is_new):
             """ Displays the exercise edition interface """
             
-            # Check if the selected exercise is 'Echauffement'
-            if not is_default_ex_selected:
-                self.display_define_exercise_ui(False)
+            if is_new:
+                self.screen.blit(self.hourglass, (250,452))
+                pg.display.update()
+                select_exercise_ui.draw(self.screen)
+                self.display_define_exercise_ui(True)
             else:
-                if self.debug: print("Can't edit default exercise")
-                return
+                # Check if the selected exercise is 'Echauffement'
+                if not is_default_ex_selected:
+                    self.screen.blit(self.hourglass, (250,452))
+                    pg.display.update()
+                    select_exercise_ui.draw(self.screen)
+                    self.display_define_exercise_ui(False)
+                else:
+                    if self.debug: print("Can't edit default exercise")
+                    return
             
         def launch_game():
             """ Launch the game applying configuration from the selected exercise """
@@ -278,9 +288,9 @@ class Console():
         select_exercise_ui.add.vertical_margin(10)
         select_exercise_ui.add.button('JOUER', launch_game, background_color=self.green_button)
         select_exercise_ui.add.vertical_margin(30)
-        button_edit = select_exercise_ui.add.button('MODIFIER EXERCICE', edit_exercise, background_color=self.yellow_button)
+        button_edit = select_exercise_ui.add.button('MODIFIER EXERCICE', partial(define_exercise, False), background_color=self.yellow_button)
         select_exercise_ui.add.vertical_margin(5)
-        select_exercise_ui.add.button('NOUVEL EXERCICE', partial(self.display_define_exercise_ui, True), background_color=self.green_button)
+        select_exercise_ui.add.button('NOUVEL EXERCICE', partial(define_exercise, True), background_color=self.green_button)
         select_exercise_ui.add.vertical_margin(30)
         button_delete = select_exercise_ui.add.button('SUPPRIMER', delete_exercise)
         select_exercise_ui.add.vertical_margin(30)
