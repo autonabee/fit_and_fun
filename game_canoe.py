@@ -85,7 +85,7 @@ class GameCanoe(Console):
         # Exercise stages
         self.stages = []
         for stage in stages:
-            self.stages.append((stage[1], stage[2], stage[3]))
+            self.stages.append((stage[1], stage[2], stage[3], stage[4]))
         self.current_stage = self.stages[0]
         
         # Entities are instanciated once to avoid garbage collection as much as possible
@@ -158,7 +158,7 @@ class GameCanoe(Console):
                     
                     #Remove the oldest event and add a new one
                     del game_events[0]
-                    delay = time.time() - self.time0 + random.randint(30 - 2*self.current_stage[2], 32 - 2*self.current_stage[2]) #Values can be changed to in/decrease spawn rate
+                    delay = time.time() - self.time0 + random.randint(30 - 2*self.current_stage[3], 32 - 2*self.current_stage[3]) #Values can be changed to in/decrease spawn rate
                     if len(game_events) <= 10:
                         ev_block = random.choice(list(event_blocks.values()))
                         events = [ (delay + te, *ev) for te, *ev in ev_block["events"] ]

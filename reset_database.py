@@ -44,7 +44,8 @@ query = '''CREATE TABLE Stage (
 			id INTEGER,
 			time INTEGER,
 			resistance INTEGER,
-			PRIMARY KEY(ex_id, id)
+			difficulte INTEGER,
+			PRIMARY KEY(ex_id, id),
 			FOREIGN KEY(ex_id) REFERENCES Exercise(id)
 			);'''
 cur.execute(query)
@@ -148,8 +149,8 @@ values = (0,new_ex_name,current_user_id)
 query = "INSERT INTO Exercise (id,ex_name,user_id) VALUES (?,?,?)"
 cur.execute(query, values)
 # with 1 stage
-values = (0, 0, 90, 1)
-query = "INSERT INTO Stage (id,ex_id,time,resistance) VALUES (?,?,?,?)"
+values = (0, 0, 90, 1, 1)
+query = "INSERT INTO Stage (id,ex_id,time,resistance, difficulte) VALUES (?,?,?,?,?)"
 cur.execute(query, values)
 conn.commit()
 
