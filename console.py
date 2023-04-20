@@ -108,9 +108,10 @@ class Console():
         self.current_game='What The Duck'
         self.current_exercise = 'Echauffement'
         self.current_stage = None
+        self.current_diff = None # Used only in demo mode
         self.stages = None # Initialization in game_canoe
 
-        self.guest_mode = False
+        self.demo_mode = False
 
 
     def set_wind(self):
@@ -124,14 +125,63 @@ class Console():
         self.current_user=name
 
 
-    def go_to_select_game_ui(self, is_guest_mode):
+    def go_to_select_game_ui(self, is_demo_mode):
         """ Displays the game selection ui
         
         Args:
-            is_guest_mode (bool): if True, displays a light version of the interface which doesn't have any link with the database
+            is_demo_mode (bool): if True, displays a light version of the interface which doesn't have any link with the database
         """
-        self.guest_mode = is_guest_mode
-        self.display_select_game_ui()
+        self.demo_mode = is_demo_mode
+        if is_demo_mode:
+            self.display_select_difficulty_ui()
+        else:
+            self.display_select_game_ui()
+
+
+    def display_select_difficulty_ui(self):
+        """ Displays the difficulty selection ui """
+
+        self.current_diff = (0,1,120,1,1)
+
+        def set_diff(selected_tuple, value):
+            self.current_diff = value
+            if self.debug: print('Difficulty set to ' + selected_tuple[0][0])
+
+        def launch_game():
+            """ Launch the game applying configuration from the selected difficulty """
+            self.game([self.current_diff])
+
+        select_diff_ui = pg_menu.Menu('MODE DEMO', self.size_x, self.size_y, theme=mytheme)
+        
+        selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
+        diff_label = select_diff_ui.add.label('DIFFICULTE')
+        diff_dropselect = select_diff_ui.add.dropselect('', [('Facile',(0,1,120,1,1)),('Moyen',(0,1,120,1,5)),('Difficile',(0,1,120,1,10)),('Chaotique',(0,1,120,1,15))],
+                                                    default = 0, onchange=set_diff, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=4)
+        diff_dropselect.set_selection_effect(selection_effect)
+        frame = select_diff_ui.add.frame_v(max(diff_label.get_width(), diff_dropselect.get_width()) + 30, diff_label.get_height() + diff_dropselect.get_height() + 30, background_color=self.stone_background)
+        frame.pack(diff_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(diff_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        select_diff_ui.add.vertical_margin(30)
+
+        select_diff_ui.add.button('JOUER', launch_game, background_color=self.green_button)
+        select_diff_ui.add.vertical_margin(30)
+        select_diff_ui.add.button('RETOUR', self.display_select_user_ui, background_color=self.yellow_button)
+        
+        while True:
+            time_delta = self.clock.tick(60)/1000.0
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.display.quit()
+                    if self.debug : print("Quit") 
+                    self.synchro.release()
+
+            select_diff_ui.update(events)
+
+            select_diff_ui.draw(self.screen)
+            diff_dropselect.draw_after_if_selected(self.screen)
+            pg.display.update()
 
 
     def display_select_user_ui(self):
@@ -156,7 +206,7 @@ class Console():
         select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('NOUVEAU JOUEUR', self.display_create_user_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(5)
-        select_user_ui.add.button('MODE INVITE', partial(self.go_to_select_game_ui, True), background_color=self.yellow_button)
+        select_user_ui.add.button('MODE DEMO', partial(self.go_to_select_game_ui, True), background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('HISTORIQUE', self.display_history_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
@@ -200,12 +250,9 @@ class Console():
         frame.pack(game_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(game_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         select_game_ui.add.vertical_margin(10)
-        if not self.guest_mode:
-            select_game_ui.add.button('VALIDER', self.display_select_exercise_ui, background_color=self.green_button)
-        else:
-            select_game_ui.add.button('VALIDER', partial(self.game, db.get_all_stages_from_ex(self.current_exercise)), background_color=self.green_button)
+        select_game_ui.add.button('VALIDER', self.display_select_exercise_ui, background_color=self.green_button)
         select_game_ui.add.vertical_margin(30)
-        if not self.guest_mode: select_game_ui.add.button('STATISTIQUES', self.display_stats_ui, background_color=self.yellow_button)
+        select_game_ui.add.button('STATISTIQUES', self.display_stats_ui, background_color=self.yellow_button)
         select_game_ui.add.vertical_margin(30)
         select_game_ui.add.button('RETOUR', self.display_select_user_ui, background_color=self.yellow_button)
         while True:
@@ -707,9 +754,11 @@ class Console():
         frame.pack(label_distance, align=pg_menu.locals.ALIGN_CENTER)
         frame.pack(label_score, align=pg_menu.locals.ALIGN_CENTER)
         score_ui.add.vertical_margin(30)
-        score_ui.add.button('REJOUER', partial(self.game, db.get_all_stages_from_ex(self.current_exercise)), background_color=self.green_button) #TODO Erreur
+        if self.demo_mode:  score_ui.add.button('REJOUER', partial(self.game, [self.current_diff]), background_color=self.green_button)
+        else:               score_ui.add.button('REJOUER', partial(self.game, db.get_all_stages_from_ex(self.current_exercise)), background_color=self.green_button)
         score_ui.add.vertical_margin(30)
-        score_ui.add.button('MENU', partial(self.display_select_game_ui), background_color=self.yellow_button)
+        if self.demo_mode:  score_ui.add.button('MENU', partial(self.display_select_difficulty_ui), background_color=self.yellow_button)
+        else :              score_ui.add.button('MENU', partial(self.display_select_game_ui), background_color=self.yellow_button)
         score_ui.add.vertical_margin(30)
         score_ui.add.button('QUITTER', pg_menu.events.EXIT, background_color=self.red_button)
         while True:

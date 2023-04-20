@@ -168,7 +168,7 @@ class GameCanoe(Console):
                     #Remove the oldest event and add a new one
                     del game_events[0]
                     delay = time.time() - self.time0 + random.randint(30 - 2*self.current_stage[3], 32 - 2*self.current_stage[3]) #Values can be changed to in/decrease spawn rate
-                    if len(game_events) <= 10:
+                    if len(game_events) <= 10 and is_game_started:
                         ev_block = random.choice(list(event_blocks.values()))
                         events = [ (delay + te, *ev) for te, *ev in ev_block["events"] ]
                         game_events.extend(events)
