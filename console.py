@@ -829,7 +829,7 @@ class Console():
         if self.timebegin == 0 :
             minutes, seconds = divmod(self.current_stage[1], 60)
         else:
-            duration = time.time() - self.timebegin
+            duration = time.time() - self.timebegin - self.time_paused
             minutes, seconds = divmod(self.current_stage[1]+1 - duration, 60)
         template = "Etape {etape:01d}/{max_etape:01d} - Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
         banner = template.format(etape=self.current_stage[0], max_etape=len(self.stages), min=int(minutes), sec=int(seconds), speed=int(self.rot_speed), score=round(self.score)+int(self.energy))

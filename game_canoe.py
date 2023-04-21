@@ -29,9 +29,10 @@ class GameCanoe(Console):
         """
 
         def flush_events_queue():
+            """Empties the event queue and re-fill it with new randomly generated events"""
             game_events.clear()
             while len(game_events) <= 10:
-                delay = time.time() - self.time0 + random.randint(30 - 2*self.current_stage[3], 32 - 2*self.current_stage[3]) #Values can be changed to in/decrease spawn rate
+                delay = time.time() - self.time0 - self.time_paused + random.randint(30 - 2*self.current_stage[3], 32 - 2*self.current_stage[3]) #Values can be changed to in/decrease spawn rate
                 ev_block = random.choice(list(event_blocks.values()))
                 events = [ (delay + te, *ev) for te, *ev in ev_block["events"] ]
                 game_events.extend(events)
@@ -109,6 +110,10 @@ class GameCanoe(Console):
 
         game_events = start_events.copy()
         self.timebegin = 0
+
+        self.is_game_paused = False
+        self.time_paused = 0.0
+
         is_game_started = False
 
         game_events.sort(key=lambda x: x[0])    # Sort by time
@@ -116,204 +121,216 @@ class GameCanoe(Console):
         while True:
             time_delta = clock.tick(30)
 
-            ####  Scripted Game Events (see file game_events.py)  ####
-            if len(game_events) > 0:
-                t = time.time() - self.time0
-                if game_events[0][0] < t:
-                    event_type = game_events[0][1]
-                    if event_type == "LOCK":      # Lock game control
-                        control_enabled = False
-                    elif event_type == "UNLOCK":    # Enable game control
-                        control_enabled = True
-                    elif event_type == "FS":    # Fixed speed
-                        event_data = game_events[0][2]
-                        fixed_speed = event_data
-                    elif event_type == "LVL_START":     # Start level (obstacles, bonuses and score recording)
-                        level_started = True
-                        self.timebegin=time.time()
-                        is_game_started = True
-                    elif event_type == "DECO":      # Spawn special scenery
-                        event_data = game_events[0][2]
-                        for elt in special_scenery:
-                            if not elt.alive:
-                                sprite_filename = os.path.join(self.dir_img, event_data[0])
-                                sprite = pg.image.load(sprite_filename)
-                                elt.spawn(sprite, 0)
-                                elt.pos_x = self.size_x * 0.5 + event_data[1]
-                                break
-                        else:
-                            print("WARNING: special_scenery array is full")
-                    elif event_type == "BONUS":
-                        h = game_events[0][2]
-                        bonus_height = self.size_y * (1.0 - h)
-                        bonus.spawn(bonus_height)
-                    elif event_type == "OBS_duck":
-                        indiv, h, dir, speed = game_events[0][2]
-                        for obs in obstacles:
-                            if not obs.alive:
-                                side = dir
-                                if side >= 0:
-                                    sprite = duck_sprites[indiv*2 + 0] # facing right
-                                else:
-                                    sprite = duck_sprites[indiv*2 + 1] # facing left
-                                
-                                spawn_height = self.size_y * (1.0 - h)
-                                obs.spawn(sprite, spawn_height, side, speed)
-                                break
-                        else:
-                            print("WARNING: obstacle array is full")
-                    else:
-                        print("ERROR: event type '{}' not found in event_blocks".format(event_type))
-                    
-                    #Remove the oldest event and add a new one
-                    del game_events[0]
-                    delay = time.time() - self.time0 + random.randint(30 - 2*self.current_stage[3], 32 - 2*self.current_stage[3]) #Values can be changed to in/decrease spawn rate
-                    if len(game_events) <= 10 and is_game_started:
-                        ev_block = random.choice(list(event_blocks.values()))
-                        events = [ (delay + te, *ev) for te, *ev in ev_block["events"] ]
-                        game_events.extend(events)
-                        game_events.sort(key=lambda x: x[0])    # Sort by time
-
-
-            # Normalizing and smoothing speed value
-            if control_enabled:
-                rot_speed_normalized = self.rot_speed / self.ROT_SPEED_MAX
+            if self.is_game_paused:
+                self.time_paused = self.time_paused + time_delta / 1000
+                print(self.time_paused)
             else:
-                rot_speed_normalized = 0
-            speed = SPEED_SMOOTHING * previous_speed + (1 - SPEED_SMOOTHING) * rot_speed_normalized
-            previous_speed = speed
-            player.speed = speed # speed is normalized (between 0 and 1)
 
-            ####  Speed Bonus  ####
-            if bonus_timer > 0:
-                # Bonus is activated
-                if bonus_timer > BONUS_COOLDOWN*1000:
-                    # Full speed
-                    scroll_speed = 2 * SCROLL_SPEED_MAX
+                ####  Scripted Game Events (see file game_events.py)  ####
+                if len(game_events) > 0:
+                    t = time.time() - self.time0 - self.time_paused
+                    if game_events[0][0] < t:
+                        event_type = game_events[0][1]
+                        if event_type == "LOCK":      # Lock game control
+                            control_enabled = False
+                        elif event_type == "UNLOCK":    # Enable game control
+                            control_enabled = True
+                        elif event_type == "FS":    # Fixed speed
+                            event_data = game_events[0][2]
+                            fixed_speed = event_data
+                        elif event_type == "LVL_START":     # Start level (obstacles, bonuses and score recording)
+                            level_started = True
+                            self.timebegin=time.time()
+                            is_game_started = True
+                        elif event_type == "DECO":      # Spawn special scenery
+                            event_data = game_events[0][2]
+                            for elt in special_scenery:
+                                if not elt.alive:
+                                    sprite_filename = os.path.join(self.dir_img, event_data[0])
+                                    sprite = pg.image.load(sprite_filename)
+                                    elt.spawn(sprite, 0)
+                                    elt.pos_x = self.size_x * 0.5 + event_data[1]
+                                    break
+                            else:
+                                print("WARNING: special_scenery array is full")
+                        elif event_type == "BONUS":
+                            h = game_events[0][2]
+                            bonus_height = self.size_y * (1.0 - h)
+                            bonus.spawn(bonus_height)
+                        elif event_type == "OBS_duck":
+                            indiv, h, dir, speed = game_events[0][2]
+                            for obs in obstacles:
+                                if not obs.alive:
+                                    side = dir
+                                    if side >= 0:
+                                        sprite = duck_sprites[indiv*2 + 0] # facing right
+                                    else:
+                                        sprite = duck_sprites[indiv*2 + 1] # facing left
+                                    
+                                    spawn_height = self.size_y * (1.0 - h)
+                                    obs.spawn(sprite, spawn_height, side, speed)
+                                    break
+                            else:
+                                print("WARNING: obstacle array is full")
+                        else:
+                            print("ERROR: event type '{}' not found in event_blocks".format(event_type))
+                        
+                        #Remove the oldest event and add a new one
+                        del game_events[0]
+                        delay = time.time() - self.time0 - self.time_paused + random.randint(30 - 2*self.current_stage[3], 32 - 2*self.current_stage[3]) #Values can be changed to in/decrease spawn rate
+                        if len(game_events) <= 10 and is_game_started:
+                            ev_block = random.choice(list(event_blocks.values()))
+                            events = [ (delay + te, *ev) for te, *ev in ev_block["events"] ]
+                            game_events.extend(events)
+                            game_events.sort(key=lambda x: x[0])    # Sort by time
+
+
+                # Normalizing and smoothing speed value
+                if control_enabled:
+                    rot_speed_normalized = self.rot_speed / self.ROT_SPEED_MAX
                 else:
-                    # Decelerating by interpolating between double speed and regular speed
-                    a = bonus_timer/(BONUS_COOLDOWN*1000)
-                    scroll_speed = a * 2 * SCROLL_SPEED_MAX + (1-a) * (SCROLL_SPEED_MAX * speed + SCROLL_SPEED_MIN)
-                bonus_timer -= time_delta
-            else:
-                scroll_speed = SCROLL_SPEED_MAX * speed + SCROLL_SPEED_MIN
-            
-            if fixed_speed > 0:
-                scroll_speed = fixed_speed * SCROLL_SPEED_MAX
+                    rot_speed_normalized = 0
+                speed = SPEED_SMOOTHING * previous_speed + (1 - SPEED_SMOOTHING) * rot_speed_normalized
+                previous_speed = speed
+                player.speed = speed # speed is normalized (between 0 and 1)
 
-            if(level_started):
-                distance += scroll_speed * time_delta * 0.01
-            else:
-                distance = 0
-
-            ####  Background scrolling  ####
-            self.screen.blit(river_bg,(0, bg_y - self.size_y))
-            self.screen.blit(river_bg,(0, bg_y))
-            self.screen.blit(river_bg,(0, bg_y + self.size_y))
-            # The scrolling speed depends on the player speed
-            bg_y = bg_y + scroll_speed * time_delta
-            if bg_y >= self.size_y:
-                bg_y=0
-            
-
-            ####  Update all entities  ####
-            player.update(time_delta)
-            bonus.update(time_delta)
-
-            for elt in landscape:
-                elt.update(time_delta, scroll_speed)
-
-            for elt in special_scenery:
-                elt.update(time_delta, scroll_speed)
-
-            for obs in obstacles:
-                obs.update(time_delta)
-            
-
-            ####  Obstacle/Player collision detection  ####          
-            colliding = player.hitbox.collidelistall([o.hitbox for o in obstacles if o.alive])
-            if len(colliding) > 0:
-                was_hit = player.hit()
-                if was_hit:
-                    self.score -= 100
-                    life_count -= 1
-            for i in colliding:
-                obstacles[i].alive = False
-            
-            if bonus.alive and player.hitbox.colliderect(bonus.hitbox):
-                bonus.alive = False
-                bonus_timer = (BONUS_DURATION + BONUS_COOLDOWN) * 1000
-                self.score += 100
-
-            for elt in special_scenery:
-                elt.draw()
-
-            # Draw landscape elements in order defined by their layer
-            landscape.sort(key=lambda x: x.layer)
-            for elt in landscape:
-                elt.draw()
-
-            bonus.draw()
-            player.draw()
-            
-            for obs in obstacles:
-                obs.draw()
-            
-            
-            ####  Spawning Lanscape elements  ####
-            if random.random() < 0.05:
-                # Spawn rocks on bottom layer
-                for elt in landscape:
-                    if not elt.alive:
-                        elt.spawn(random.choice(rock_sprites), 0)
-                        break
-            if random.random() < 0.01:
-                # Spawn tree truncs
-                for elt in landscape:
-                    if not elt.alive:
-                        elt.spawn(random.choice(bush_sprites + trunc_sprites), 1)
-                        break
-            if random.random() < 0.01:
-                # Spawn bushes
-                for elt in landscape:
-                    if not elt.alive:
-                        elt.spawn(random.choice(bush_sprites), 2)
-                        break
-            if random.random() < 0.01:
-                # Spawn trees on highest layer
-                for elt in landscape:
-                    if not elt.alive:
-                        elt.spawn(random.choice(tree_sprites), 3)
-                        break
-            
-            
-            ####  HUD  ####
-            self.draw_text(self.get_banner(), 25, self.size_x/2, 1)
-            self.draw_text(str(round(distance, 1)), 25, self.size_x - 32, self.size_y - 32)
-            self.draw_life(life_count)
-            
-            pg.display.update()
-
-            #Check if the player is dead or if the time is elapsed
-            time_elapsed = time.time() - self.timebegin
-
-            if is_game_started:
-                if time_elapsed >= self.current_stage[1]:
-                    index_current_stage = self.stages.index(self.current_stage)
-                    if index_current_stage < len(self.stages) - 1:
-                        self.current_stage = self.stages[index_current_stage+1]
-                        self.timebegin = time.time()
-                        flush_events_queue()
-                        if self.debug: print("Passage à l'étape " + str(self.current_stage))
+                ####  Speed Bonus  ####
+                if bonus_timer > 0:
+                    # Bonus is activated
+                    if bonus_timer > BONUS_COOLDOWN*1000:
+                        # Full speed
+                        scroll_speed = 2 * SCROLL_SPEED_MAX
                     else:
-                        self.display_score_ui(time_elapsed, distance)
+                        # Decelerating by interpolating between double speed and regular speed
+                        a = bonus_timer/(BONUS_COOLDOWN*1000)
+                        scroll_speed = a * 2 * SCROLL_SPEED_MAX + (1-a) * (SCROLL_SPEED_MAX * speed + SCROLL_SPEED_MIN)
+                    bonus_timer -= time_delta
+                else:
+                    scroll_speed = SCROLL_SPEED_MAX * speed + SCROLL_SPEED_MIN
+                
+                if fixed_speed > 0:
+                    scroll_speed = fixed_speed * SCROLL_SPEED_MAX
 
-            if life_count <= 0:
-                self.display_score_ui(time.time() - self.timebegin, distance)
+                if(level_started):
+                    distance += scroll_speed * time_delta * 0.01
+                else:
+                    distance = 0
+
+                ####  Background scrolling  ####
+                self.screen.blit(river_bg,(0, bg_y - self.size_y))
+                self.screen.blit(river_bg,(0, bg_y))
+                self.screen.blit(river_bg,(0, bg_y + self.size_y))
+                # The scrolling speed depends on the player speed
+                bg_y = bg_y + scroll_speed * time_delta
+                if bg_y >= self.size_y:
+                    bg_y=0
+                
+
+                ####  Update all entities  ####
+                player.update(time_delta)
+                bonus.update(time_delta)
+
+                for elt in landscape:
+                    elt.update(time_delta, scroll_speed)
+
+                for elt in special_scenery:
+                    elt.update(time_delta, scroll_speed)
+
+                for obs in obstacles:
+                    obs.update(time_delta)
+                
+
+                ####  Obstacle/Player collision detection  ####          
+                colliding = player.hitbox.collidelistall([o.hitbox for o in obstacles if o.alive])
+                if len(colliding) > 0:
+                    was_hit = player.hit()
+                    if was_hit:
+                        self.score -= 100
+                        life_count -= 1
+                for i in colliding:
+                    obstacles[i].alive = False
+                
+                if bonus.alive and player.hitbox.colliderect(bonus.hitbox):
+                    bonus.alive = False
+                    bonus_timer = (BONUS_DURATION + BONUS_COOLDOWN) * 1000
+                    self.score += 100
+
+                for elt in special_scenery:
+                    elt.draw()
+
+                # Draw landscape elements in order defined by their layer
+                landscape.sort(key=lambda x: x.layer)
+                for elt in landscape:
+                    elt.draw()
+
+                bonus.draw()
+                player.draw()
+                
+                for obs in obstacles:
+                    obs.draw()
+                
+                
+                ####  Spawning Lanscape elements  ####
+                if random.random() < 0.05:
+                    # Spawn rocks on bottom layer
+                    for elt in landscape:
+                        if not elt.alive:
+                            elt.spawn(random.choice(rock_sprites), 0)
+                            break
+                if random.random() < 0.01:
+                    # Spawn tree truncs
+                    for elt in landscape:
+                        if not elt.alive:
+                            elt.spawn(random.choice(bush_sprites + trunc_sprites), 1)
+                            break
+                if random.random() < 0.01:
+                    # Spawn bushes
+                    for elt in landscape:
+                        if not elt.alive:
+                            elt.spawn(random.choice(bush_sprites), 2)
+                            break
+                if random.random() < 0.01:
+                    # Spawn trees on highest layer
+                    for elt in landscape:
+                        if not elt.alive:
+                            elt.spawn(random.choice(tree_sprites), 3)
+                            break
+                
+                ####  HUD  ####
+                self.draw_text(self.get_banner(), 25, self.size_x/2, 1)
+                self.draw_text(str(round(distance, 1)), 25, self.size_x - 32, self.size_y - 32)
+                self.draw_life(life_count)
+                
+                pg.display.update()
+
+                #Check if the player is dead or if the time is elapsed
+                time_elapsed = time.time() - self.timebegin - self.time_paused
+
+                if is_game_started:
+                    if time_elapsed >= self.current_stage[1]:
+                        index_current_stage = self.stages.index(self.current_stage)
+                        if index_current_stage < len(self.stages) - 1:
+                            self.current_stage = self.stages[index_current_stage+1]
+                            self.timebegin = time.time()
+                            flush_events_queue()
+                            if self.debug: print("Passage à l'étape " + str(self.current_stage))
+                        else:
+                            self.display_score_ui(time_elapsed, distance)
+
+                if life_count <= 0:
+                    self.display_score_ui(time.time() - self.timebegin - self.time_paused, distance)
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     if not is_game_started:
                         self.display_score_ui(0, distance)
                     else:
-                        self.display_score_ui(time.time() - self.timebegin, distance)
+                        self.display_score_ui(time.time() - self.timebegin - self.time_paused, distance)
+                elif event.type == pg.MOUSEBUTTONDOWN and is_game_started:
+                    if not self.is_game_paused:
+                        pause_filter = pg.Surface((600,1024))
+                        pause_filter.set_alpha(128)
+                        pause_filter.fill((100,100,100))
+                        self.screen.blit(pause_filter, (0,0))
+                        pg.display.update()
+                    self.is_game_paused = not self.is_game_paused
