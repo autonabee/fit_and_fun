@@ -522,7 +522,6 @@ class Console():
             else:
                 self.display_select_exercise_ui()
             
-
         stages_data = [] # Is filled in add stage, no need to fill it beforehand
         label_widgets = []
 
@@ -740,19 +739,21 @@ class Console():
             pg.display.update(rects)
     
  
-    def display_score_ui(self, duration, distance):
-        """ Open score_ui """
+    def display_score_ui(self, duration, time_paused, distance):
+        """ Opens score_ui """
         
         score_ui = pg_menu.Menu('FELICITATIONS!', self.size_x, self.size_y, theme=mytheme)
         minutes, seconds = divmod(duration, 60)
-
-        label_time = score_ui.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=self.WHITE)
+        label_duration = score_ui.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=self.WHITE)
+        minutes, seconds = divmod(time_paused, 60)
+        label_pause = score_ui.add.label("Pause : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=(230,230,230), font_size=20)
         label_distance = score_ui.add.label("Distance : " + str(round(distance)), font_color=self.WHITE)
         label_score = score_ui.add.label("Score : " + str(round(self.score)), font_color=self.WHITE)
-        frame = score_ui.add.frame_v(400, label_time.get_height() * 3 + 30, background_color=self.stone_background)
-        frame.pack(label_time, align=pg_menu.locals.ALIGN_CENTER)
-        frame.pack(label_distance, align=pg_menu.locals.ALIGN_CENTER)
-        frame.pack(label_score, align=pg_menu.locals.ALIGN_CENTER)
+        frame = score_ui.add.frame_v(400, label_duration.get_height() * 4 + 30, background_color=self.stone_background)
+        frame.pack(label_duration, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(label_pause, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(label_distance, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(label_score, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         score_ui.add.vertical_margin(30)
         if self.demo_mode:  score_ui.add.button('REJOUER', partial(self.game, [self.current_diff]), background_color=self.green_button)
         else:               score_ui.add.button('REJOUER', partial(self.game, db.get_all_stages_from_ex(self.current_exercise)), background_color=self.green_button)

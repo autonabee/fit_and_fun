@@ -9,6 +9,7 @@
 
 
 import pygame as pg
+import pygame_menu as pg_menu
 import time
 import os
 import random
@@ -118,13 +119,28 @@ class GameCanoe(Console):
 
         game_events.sort(key=lambda x: x[0])    # Sort by time
 
+        # Init pause menu, which is only displayed when the game is paused
+        def resume():
+            """Resume game when in pause menu"""
+            self.is_game_paused = False
+        
+        def forfeit():
+            """Stops game when in pause menu and displays score UI"""
+            self.display_score_ui(time.time() - self.timebegin - self.time_paused, self.time_paused, distance)
+
+        mytheme = pg_menu.Theme(title_bar_style=pg_menu.widgets.MENUBAR_STYLE_NONE, background_color=(0,0,0,0))
+        mytheme.widget_font=pg_menu.font.FONT_NEVIS
+        pause_ui = pg_menu.Menu('', self.size_x, self.size_y, theme=mytheme)
+        pause_ui.add.label('PAUSE', font_color=self.WHITE, background_color=self.stone_background, padding=(10,40,10,40))
+        pause_ui.add.vertical_margin(50)
+        resume_button = pause_ui.add.button('REPRENDRE', resume, background_color=self.green_button)
+        pause_ui.add.vertical_margin(50)
+        pause_ui.add.button('ABANDONNER', forfeit, background_color=self.red_button)
+
         while True:
             time_delta = clock.tick(30)
-
-            if self.is_game_paused:
-                self.time_paused = self.time_paused + time_delta / 1000
-                print(self.time_paused)
-            else:
+            
+            if not self.is_game_paused:
 
                 ####  Scripted Game Events (see file game_events.py)  ####
                 if len(game_events) > 0:
@@ -315,22 +331,31 @@ class GameCanoe(Console):
                             flush_events_queue()
                             if self.debug: print("Passage à l'étape " + str(self.current_stage))
                         else:
-                            self.display_score_ui(time_elapsed, distance)
+                            self.display_score_ui(time_elapsed, self.time_paused, distance)
 
                 if life_count <= 0:
-                    self.display_score_ui(time.time() - self.timebegin - self.time_paused, distance)
+                    self.display_score_ui(time.time() - self.timebegin - self.time_paused, self.time_paused, distance)
+
+            else:
+                self.time_paused = self.time_paused + time_delta/1000
+                print(self.time_paused)
+
+                events = pg.event.get()
+                pause_ui.update(events)
+
+                pause_ui.draw(self.screen)
+                pg.display.update()
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     if not is_game_started:
-                        self.display_score_ui(0, distance)
+                        self.display_score_ui(0,0,distance)
                     else:
-                        self.display_score_ui(time.time() - self.timebegin - self.time_paused, distance)
+                        self.display_score_ui(time.time() - self.timebegin - self.time_paused, self.time_paused, distance)
                 elif event.type == pg.MOUSEBUTTONDOWN and is_game_started:
                     if not self.is_game_paused:
+                        self.is_game_paused = True
                         pause_filter = pg.Surface((600,1024))
                         pause_filter.set_alpha(128)
                         pause_filter.fill((100,100,100))
                         self.screen.blit(pause_filter, (0,0))
-                        pg.display.update()
-                    self.is_game_paused = not self.is_game_paused
