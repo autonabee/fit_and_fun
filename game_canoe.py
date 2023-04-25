@@ -338,7 +338,6 @@ class GameCanoe(Console):
 
             else:
                 self.time_paused = self.time_paused + time_delta/1000
-                print(self.time_paused)
 
                 events = pg.event.get()
                 pause_ui.update(events)
