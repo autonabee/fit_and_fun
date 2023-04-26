@@ -69,7 +69,8 @@ class Console():
         for i in range(1,16):
             self.VALUES_RESISTANCE.append((str(i)+'/15', i)) # Between 1 and 15 (arbitrary values)
 
-        self.TIMEOUT_TOLERANCE = 50
+        # Number of frames before the sensor is considered disconnected
+        self.TIMEOUT_TOLERANCE = 30
 
         # Control variable
         self._on_message = None
@@ -187,6 +188,12 @@ class Console():
 
             select_diff_ui.draw(self.screen)
             diff_dropselect.draw_after_if_selected(self.screen)
+
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+
             pg.display.update()
 
 
@@ -232,6 +239,12 @@ class Console():
 
             select_user_ui.draw(self.screen)
             user_dropselect.draw_after_if_selected(self.screen)
+
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+
             pg.display.update()
 
 
@@ -275,6 +288,12 @@ class Console():
 
             select_game_ui.draw(self.screen)
             game_dropselect.draw_after_if_selected(self.screen)
+
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+
             pg.display.update()
 
 
@@ -376,6 +395,12 @@ class Console():
 
             select_exercise_ui.draw(self.screen)
             ex_dropselect.draw_after_if_selected(self.screen)
+
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+
             pg.display.update()
 
 
@@ -619,6 +644,11 @@ class Console():
             define_exercise_ui.draw(self.screen)
             if is_kb_active: rects = keyboard.draw(self.screen, True)
 
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+
             # Flip only the updated area
             pg.display.update()
             # Displays keyboard only if the name input is selected
@@ -646,6 +676,12 @@ class Console():
             history_ui.update(events)
 
             history_ui.draw(self.screen)
+
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+            
             pg.display.update()
 
 
@@ -666,6 +702,12 @@ class Console():
             stats_ui.update(events)
 
             stats_ui.draw(self.screen)
+
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+            
             pg.display.update()
 
 
@@ -746,6 +788,11 @@ class Console():
             create_user_ui.draw(self.screen)
             rects = keyboard.draw(self.screen, True)
 
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+            
             # Flip only the updated area
             pg.display.update()
             pg.display.update(rects)
@@ -789,6 +836,12 @@ class Console():
             if score_ui.is_enabled():
                 score_ui.update(events)
                 score_ui.draw(self.screen)
+
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+            
             pg.display.update()
 
 
