@@ -402,12 +402,18 @@ class Console():
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_global' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_param' + str(id)))
 
-        def add_stage(stage_values):
+        def add_stage(stage_values, loading_image):
             """Add new stage into the exercise
 
             Args:
                 stage_values (dict): dict containing "temps", "resistance" and "difficulte" values, None if new stage
             """
+
+            if loading_image :
+                self.screen.blit(self.hourglass, (250,452))
+                pg.display.update()
+                define_exercise_ui.draw(self.screen)
+
             if stage_values == None :
                 stages_data.append(dict(temps=20, resistance=1, difficulte=1))
             else :
@@ -452,7 +458,7 @@ class Console():
                 self.synchro.release()
             
             # Replace 'add' button
-            define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
+            define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None, True), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
 
         def change_time_m(index, item, value):
             """Update time parameter in stages table
@@ -541,7 +547,7 @@ class Console():
             frame.pack(name_exercise_input, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         else:
             name_exercise_input = define_exercise_ui.add.label(self.current_exercise, font_color=self.WHITE, background_color=self.stone_background)
-        define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
+        define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None, True), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
         define_exercise_ui.add.vertical_margin(30)
         button_cancel = define_exercise_ui.add.button('RETOUR', partial(quit_ui, False), background_color=self.yellow_button)
         define_exercise_ui.add.vertical_margin(5)
@@ -556,10 +562,10 @@ class Console():
             for stage in stages_from_db:
                 stored_stages.append(dict(temps=stage[2], resistance=stage[3], difficulte=stage[4]))
             for i in range(0, len(stored_stages)):
-                add_stage(stored_stages[i])
+                add_stage(stored_stages[i], False)
         else :
             for i in range(0, 3):
-                add_stage(None)
+                add_stage(None, False)
 
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
         def on_key_event(text):
