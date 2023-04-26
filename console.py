@@ -35,6 +35,8 @@ class Console():
     heart_full_img = pg.image.load(dir_img+'/heart_full.png')
     heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
     hourglass = pg.image.load(dir_img+'/hourglass.png')
+    connection_ok = pg.image.load(dir_img+'/connection_ok.png')
+    connection_failure = pg.image.load(dir_img+'/connection_failure.png')
     green_button = pg_menu.baseimage.BaseImage(dir_img+'/button_green.png')
     yellow_button = pg_menu.baseimage.BaseImage(dir_img+'/button_yellow.png')
     red_button = pg_menu.baseimage.BaseImage(dir_img+'/button_red.png')
@@ -66,6 +68,8 @@ class Console():
         self.VALUES_RESISTANCE = [] #Also used for difficulty
         for i in range(1,16):
             self.VALUES_RESISTANCE.append((str(i)+'/15', i)) # Between 1 and 15 (arbitrary values)
+
+        self.TIMEOUT_TOLERANCE = 50
 
         # Control variable
         self._on_message = None
@@ -107,11 +111,13 @@ class Console():
         self.current_user='everybody'
         self.current_game='What The Duck'
         self.current_exercise = 'Echauffement'
-        self.current_stage = None
+        self.stages = [(0,1,120,1,1)] # Initialization in game_canoe
+        self.current_stage = self.stages[0]
         self.current_diff = None # Used only in demo mode
-        self.stages = None # Initialization in game_canoe
 
         self.demo_mode = False
+
+        self.connection_timeout = self.TIMEOUT_TOLERANCE
 
 
     def set_wind(self):
@@ -882,6 +888,8 @@ class Console():
             self.rot_speed=0
 
         self.score=self.score+self.speed
+
+        self.connection_timeout = self.TIMEOUT_TOLERANCE
 
         if self.debug==True: print(self.get_banner())
 

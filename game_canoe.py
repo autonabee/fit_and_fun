@@ -316,8 +316,13 @@ class GameCanoe(Console):
                 self.draw_text(self.get_banner(), 25, self.size_x/2, 1)
                 self.draw_text(str(round(distance, 1)), 25, self.size_x - 32, self.size_y - 32)
                 self.draw_life(life_count)
+
+                if self.connection_timeout > 0:  self.screen.blit(self.connection_ok, (5,989))
+                else:                           self.screen.blit(self.connection_failure, (5,989))
                 
                 pg.display.update()
+
+                self.connection_timeout = self.connection_timeout - 1
 
                 #Check if the player is dead or if the time is elapsed
                 time_elapsed = time.time() - self.timebegin - self.time_paused
