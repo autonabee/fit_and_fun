@@ -204,7 +204,7 @@ class Console():
         list_users = db.get_all_user_tuples()
         self.current_user = list_users[0][0]
 
-        select_user_ui = pg_menu.Menu('SELECTIONNEZ UN JOUEUR', self.size_x, self.size_y, theme=mytheme)
+        select_user_ui = pg_menu.Menu('CHOIX DU PROFIL', self.size_x, self.size_y, theme=mytheme)
         
         user_label = select_user_ui.add.label('NOM D\'UTILISATEUR')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
@@ -259,9 +259,9 @@ class Console():
         # Fetch existing games in the database
         list_games = db.get_all_game_tuples()
 
-        select_game_ui = pg_menu.Menu('SELECTIONNEZ UN JEU', self.size_x, self.size_y, theme=mytheme)
+        select_game_ui = pg_menu.Menu('CHOIX DU JEU', self.size_x, self.size_y, theme=mytheme)
 
-        game_label = select_game_ui.add.label('CHOIX DU JEU')
+        game_label = select_game_ui.add.label('JEU')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
         game_dropselect = select_game_ui.add.dropselect('', list_games, default = 0, onchange=self.set_game, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
         game_dropselect.set_selection_effect(selection_effect)
@@ -293,6 +293,11 @@ class Console():
             if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
             else:                           self.screen.blit(self.connection_failure, (5,989))
             self.connection_timeout = self.connection_timeout - 1
+
+            user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
+            user_name_rect = user_name.get_rect()
+            user_name_rect.center = (self.screen.get_width()-user_name_rect.width/2-5,self.screen.get_height()-user_name_rect.height/2-5)
+            self.screen.blit(user_name, user_name_rect)
 
             pg.display.update()
 
@@ -347,7 +352,7 @@ class Console():
             """ Launch the game applying configuration from the selected exercise """
             self.game(db.get_all_stages_from_ex(self.current_exercise))
 
-        select_exercise_ui = pg_menu.Menu('SELECTIONNEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
+        select_exercise_ui = pg_menu.Menu('CHOIX DE L\'EXERCICE', self.size_x, self.size_y, theme=mytheme)
 
         ex_label = select_exercise_ui.add.label('EXERCICE')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
@@ -400,6 +405,11 @@ class Console():
             if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
             else:                           self.screen.blit(self.connection_failure, (5,989))
             self.connection_timeout = self.connection_timeout - 1
+
+            user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
+            user_name_rect = user_name.get_rect()
+            user_name_rect.center = (self.screen.get_width()-user_name_rect.width/2-5,self.screen.get_height()-user_name_rect.height/2-5)
+            self.screen.blit(user_name, user_name_rect)
 
             pg.display.update()
 
@@ -568,7 +578,7 @@ class Console():
 
         id_counter = [1] # For all widgets to have an different id
 
-        define_exercise_ui = pg_menu.Menu('DEFINISSEZ UN EXERCICE', self.size_x, self.size_y, theme=mytheme)
+        define_exercise_ui = pg_menu.Menu('CREATION', self.size_x, self.size_y, theme=mytheme)
         
         if is_new_exercise:
             name_exercise_label = define_exercise_ui.add.label('Nom de l\'exercice', font_color=self.WHITE)
@@ -649,6 +659,11 @@ class Console():
             else:                           self.screen.blit(self.connection_failure, (5,989))
             self.connection_timeout = self.connection_timeout - 1
 
+            user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
+            user_name_rect = user_name.get_rect()
+            user_name_rect.center = (self.screen.get_width()-user_name_rect.width/2-5,self.screen.get_height()-user_name_rect.height/2-5)
+            self.screen.blit(user_name, user_name_rect)
+
             # Flip only the updated area
             pg.display.update()
             # Displays keyboard only if the name input is selected
@@ -707,6 +722,11 @@ class Console():
             if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
             else:                           self.screen.blit(self.connection_failure, (5,989))
             self.connection_timeout = self.connection_timeout - 1
+
+            user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
+            user_name_rect = user_name.get_rect()
+            user_name_rect.center = (self.screen.get_width()-user_name_rect.width/2-5,self.screen.get_height()-user_name_rect.height/2-5)
+            self.screen.blit(user_name, user_name_rect)
             
             pg.display.update()
 
@@ -728,9 +748,10 @@ class Console():
             if is_save_active:
                 name = name_input.get_value()
                 db.create_new_user(name)
+                self.current_user = name
                 self.display_select_game_ui()
             else:
-                if self.debug: print("Exercise name already exists in the database")
+                if self.debug: print("User name already exists in the database")
                 return
 
         create_user_ui = pg_menu.Menu('NOUVEL UTILISATEUR', self.size_x, self.size_y, theme=mytheme)
@@ -841,6 +862,11 @@ class Console():
             if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
             else:                           self.screen.blit(self.connection_failure, (5,989))
             self.connection_timeout = self.connection_timeout - 1
+
+            user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
+            user_name_rect = user_name.get_rect()
+            user_name_rect.center = (self.screen.get_width()-user_name_rect.width/2-5,self.screen.get_height()-user_name_rect.height/2-5)
+            self.screen.blit(user_name, user_name_rect)
             
             pg.display.update()
 
