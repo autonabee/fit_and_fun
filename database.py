@@ -146,6 +146,15 @@ def delete_exercise(ex_name):
     cur.close()
     conn.close()
 
+def delete_user(user_name):
+    conn = sqlite3.connect('fit_and_fun.db')
+    cur = conn.cursor()
+    query = "DELETE FROM User WHERE user_name=?"
+    cur.execute(query, (user_name,))
+    conn.commit()
+    cur.close()
+    conn.close()
+
 def get_all_stages_from_ex(ex_name):
     conn = sqlite3.connect('fit_and_fun.db')
     cur = conn.cursor()

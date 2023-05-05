@@ -37,12 +37,13 @@ class Console():
     hourglass = pg.image.load(dir_img+'/hourglass.png')
     connection_ok = pg.image.load(dir_img+'/connection_ok.png')
     connection_failure = pg.image.load(dir_img+'/connection_failure.png')
-    green_button = pg_menu.baseimage.BaseImage(dir_img+'/button_green.png')
-    yellow_button = pg_menu.baseimage.BaseImage(dir_img+'/button_yellow.png')
-    red_button = pg_menu.baseimage.BaseImage(dir_img+'/button_red.png')
-    gray_button = pg_menu.baseimage.BaseImage(dir_img+'/button_gray.png')
-    stone_background = pg_menu.baseimage.BaseImage(dir_img+'/stone_background.png')
-    wood_background = pg_menu.baseimage.BaseImage(dir_img+'/wood_background.png')
+    green_button        = pg_menu.baseimage.BaseImage(dir_img+'/button_green.png')
+    yellow_button       = pg_menu.baseimage.BaseImage(dir_img+'/button_yellow.png')
+    red_button          = pg_menu.baseimage.BaseImage(dir_img+'/button_red.png')
+    gray_button         = pg_menu.baseimage.BaseImage(dir_img+'/button_gray.png')
+    stone_background    = pg_menu.baseimage.BaseImage(dir_img+'/stone_background.png')
+    wood_background     = pg_menu.baseimage.BaseImage(dir_img+'/wood_background.png')
+    jewel_background    = pg_menu.baseimage.BaseImage(dir_img+'/jewel_background.png')
 
     clock = pg.time.Clock()
     
@@ -199,6 +200,14 @@ class Console():
 
     def display_select_user_ui(self):
         """ Displays the user selection ui """
+
+        def delete_user():
+            """ Displays the user deletion ui (doesn't if the default user is selected)"""
+            if is_save_active:
+                self.display_delete_user_ui()
+            else:
+                if self.debug: print("Can't delete default user")
+                return
         
         # Fetch existing users in the database
         list_users = db.get_all_user_tuples()
@@ -208,7 +217,7 @@ class Console():
         
         user_label = select_user_ui.add.label('NOM D\'UTILISATEUR')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
-        user_dropselect = select_user_ui.add.dropselect('', list_users, default = 0, onchange=self.set_user, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
+        user_dropselect = select_user_ui.add.dropselect('', list_users, default = 0, onchange=self.set_user, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
         user_dropselect.set_selection_effect(selection_effect)
         
         frame = select_user_ui.add.frame_v(max(user_label.get_width(), user_dropselect.get_width()) + 30, user_label.get_height() + user_dropselect.get_height() + 30, background_color=self.stone_background)
@@ -223,6 +232,8 @@ class Console():
         select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('HISTORIQUE', self.display_history_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
+        delete_button = select_user_ui.add.button('SUPPRIMER LE JOUEUR', delete_user, background_color=self.red_button)
+        select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('QUITTER', pg_menu.events.EXIT, background_color=self.red_button)
         
         while True:
@@ -234,6 +245,16 @@ class Console():
                     pg.display.quit()
                     if self.debug : print("Quit") 
                     self.synchro.release()
+
+            # Doesn't allow the suppression of the default user
+            if self.current_user == 'everybody':
+                is_save_active = False
+                delete_button.set_font(pg_menu.font.FONT_NEVIS, 28, self.WHITE, self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
+                delete_button.set_background_color(self.gray_button)
+            else:
+                is_save_active = True
+                delete_button.set_font(pg_menu.font.FONT_NEVIS, 28, (60,60,60), self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
+                delete_button.set_background_color(self.red_button)
 
             select_user_ui.update(events)
 
@@ -671,6 +692,8 @@ class Console():
     
 
     def display_history_ui(self):#TODO
+        """Displays information about the n last played games"""
+
         history_ui = pg_menu.Menu('HISTORIQUE', self.size_x, self.size_y, theme=mytheme)
         #recherche des dernieres parties dans bdd
         #db.general_history()
@@ -731,9 +754,46 @@ class Console():
             pg.display.update()
 
 
-    def display_delete_user_ui(self): #TODO
-        print('Displays delete user ui')
-        return
+    def display_delete_user_ui(self):
+        """Displays a confirmation before deleting the requested user"""
+
+        def delete_user():
+            db.delete_user(self.current_user)
+            self.current_user = 'everybody'
+            self.display_select_user_ui()
+
+        delete_user_ui = pg_menu.Menu('SUPPRIMER UN UTILISATEUR', self.size_x, self.size_y, theme=mytheme)
+
+        confirm_frame = delete_user_ui.add.frame_v(400,200, background_color=self.stone_background)
+        confirm_label = delete_user_ui.add.label('Etes-vous sur de vouloir\nsupprimer le joueur suivant ?', font_color=(220,220,220), font_size=24)
+        confirm_user  = delete_user_ui.add.label(self.current_user, font_color=self.WHITE, font_size=40, background_color=self.jewel_background)
+        confirm_frame.pack(confirm_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        confirm_frame.pack(confirm_user,  align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        delete_user_ui.add.vertical_margin(15)
+        delete_user_ui.add.button('SUPPRIMER', delete_user, background_color=self.red_button)
+        delete_user_ui.add.vertical_margin(15)
+        delete_user_ui.add.button('RETOUR', self.display_select_user_ui, background_color=self.yellow_button)
+
+        while True:
+            time_delta = self.clock.tick(60)/1000.0
+            events = pg.event.get()
+
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.display.quit()
+                    if self.debug : print("Quit") 
+                    self.synchro.release()
+
+            delete_user_ui.update(events)
+
+            delete_user_ui.draw(self.screen)
+
+            # Displays connection icon
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
+            else:                           self.screen.blit(self.connection_failure, (5,989))
+            self.connection_timeout = self.connection_timeout - 1
+            
+            pg.display.update()
 
         
     def display_create_user_ui(self):
