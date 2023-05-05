@@ -44,6 +44,7 @@ class Console():
     stone_background    = pg_menu.baseimage.BaseImage(dir_img+'/stone_background.png')
     wood_background     = pg_menu.baseimage.BaseImage(dir_img+'/wood_background.png')
     jewel_background    = pg_menu.baseimage.BaseImage(dir_img+'/jewel_background.png')
+    check_icon          = pg_menu.baseimage.BaseImage(dir_img+'/check.png')
 
     clock = pg.time.Clock()
     
@@ -604,9 +605,11 @@ class Console():
         if is_new_exercise:
             name_exercise_label = define_exercise_ui.add.label('Nom de l\'exercice', font_color=self.WHITE)
             name_exercise_input = define_exercise_ui.add.text_input('', font_color=self.WHITE, border_color=self.WHITE, border_width=1)
-            frame = define_exercise_ui.add.frame_v(400, name_exercise_label.get_height() + name_exercise_input.get_height() + 30, background_color=self.stone_background)
-            frame.pack(name_exercise_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
-            frame.pack(name_exercise_input, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+            name_exercise_check = define_exercise_ui.add.button('     ', background_color=self.check_icon)
+            frame = define_exercise_ui.add.frame_v(400, name_exercise_label.get_height() + name_exercise_input.get_height() + name_exercise_check.get_height() + 30, background_color=self.stone_background)
+            frame.pack(name_exercise_label, align=pg_menu.locals.ALIGN_CENTER)
+            frame.pack(name_exercise_input, align=pg_menu.locals.ALIGN_CENTER)
+            frame.pack(name_exercise_check, align=pg_menu.locals.ALIGN_CENTER)
         else:
             name_exercise_input = define_exercise_ui.add.label(self.current_exercise, font_color=self.WHITE, background_color=self.stone_background)
         define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None, True), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
@@ -617,6 +620,7 @@ class Console():
         button_save = define_exercise_ui.add.button('ENREGISTRER', partial(quit_ui, True), background_color=self.green_button)
         define_exercise_ui.add.vertical_margin(30)
         
+        # Creation of the stages, whether fetching them from the DB or from scratch
         stored_stages = []
         if not is_new_exercise:
             stages_from_db = db.get_all_stages_from_ex(self.current_exercise)
@@ -629,17 +633,22 @@ class Console():
             for i in range(0, 3):
                 add_stage(None, False)
 
+        # Declaration of the virtual keyboard
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
         def on_key_event(text):
             name_exercise_input.set_value(text)
             if self.debug: print(name_exercise_input.get_value())
             return
-        
         keyboard = vkboard.VKeyboard(define_exercise_ui,
                                     on_key_event,
                                     layout,
                                     renderer=vkboard.VKeyboardRenderer.DARK,
                                     show_text=False)
+
+        # Declaration of gray filter
+        gray_filter = pg.Surface((600,1024))
+        gray_filter.set_alpha(128)
+        gray_filter.fill((100,100,100))
 
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -662,28 +671,66 @@ class Console():
 
             events = pg.event.get()
 
+            # Event loop
             for event in events:
                 if event.type == pg.QUIT:
                     pg.display.quit()
                     if self.debug : print("Quit")
                     self.synchro.release()
                 elif event.type == pg.FINGERDOWN:
-                    events.remove(event) # Avoid double event (FINGERDOWN and MOUSEDOWN) when using touchscreen
+                    # Avoid double event (FINGERDOWN and MOUSEDOWN) when using touchscreen
+                    events.remove(event)
 
+            # While the virtual keyboard is active, deactivates all widgets and displays a gray transparent filter
+            if is_kb_active:
+                for i in range(1,len(label_widgets)+1):
+                    define_exercise_ui.get_widget('label'+str(i)).hide()
+                    define_exercise_ui.get_widget('remove_button'+str(i)).hide()
+                    define_exercise_ui.get_widget('label_temps'+str(i)).hide()
+                    define_exercise_ui.get_widget('temps_m'+str(i)).hide()
+                    define_exercise_ui.get_widget('temps_s'+str(i)).hide()
+                    define_exercise_ui.get_widget('frame_temps'+str(i)).hide()
+                    define_exercise_ui.get_widget('resistance'+str(i)).hide()
+                    define_exercise_ui.get_widget('difficulte'+str(i)).hide()
+                define_exercise_ui.get_widget('add_stage_button').hide()
+                button_cancel.hide()
+                button_save.hide()
+            else:
+                for i in range(1,len(label_widgets)+1):
+                    define_exercise_ui.get_widget('label'+str(i)).show()
+                    define_exercise_ui.get_widget('remove_button'+str(i)).show()
+                    define_exercise_ui.get_widget('label_temps'+str(i)).show()
+                    define_exercise_ui.get_widget('temps_m'+str(i)).show()
+                    define_exercise_ui.get_widget('temps_s'+str(i)).show()
+                    define_exercise_ui.get_widget('frame_temps'+str(i)).show()
+                    define_exercise_ui.get_widget('resistance'+str(i)).show()
+                    define_exercise_ui.get_widget('difficulte'+str(i)).show()
+                define_exercise_ui.get_widget('add_stage_button').show()
+                button_cancel.show()
+                button_save.show()
+
+            # Update display
+            define_exercise_ui.draw(self.screen)
+            
+            if is_kb_active: 
+                self.screen.blit(gray_filter, (0,0))
+                rects = keyboard.draw(self.screen, True)
+                frame.draw(self.screen)
+                
             define_exercise_ui.update(events)
             if is_kb_active: keyboard.update(events)
-            define_exercise_ui.draw(self.screen)
-            if is_kb_active: rects = keyboard.draw(self.screen, True)
 
             # Displays connection icon
             if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
             else:                           self.screen.blit(self.connection_failure, (5,989))
             self.connection_timeout = self.connection_timeout - 1
 
-            user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
-            user_name_rect = user_name.get_rect()
-            user_name_rect.center = (self.screen.get_width()-user_name_rect.width/2-5,self.screen.get_height()-user_name_rect.height/2-5)
-            self.screen.blit(user_name, user_name_rect)
+            # Displays user name in the bottom-right corner
+            if not is_kb_active:
+                user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
+                user_name_rect = user_name.get_rect()
+                user_name_rect.center = (self.screen.get_width()-user_name_rect.width/2-5,self.screen.get_height()-user_name_rect.height/2-5)
+                self.screen.blit(user_name, user_name_rect)
 
             # Flip only the updated area
             pg.display.update()
