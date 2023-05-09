@@ -44,7 +44,6 @@ class Console():
     stone_background    = pg_menu.baseimage.BaseImage(dir_img+'/stone_background.png')
     wood_background     = pg_menu.baseimage.BaseImage(dir_img+'/wood_background.png')
     jewel_background    = pg_menu.baseimage.BaseImage(dir_img+'/jewel_background.png')
-    check_icon          = pg_menu.baseimage.BaseImage(dir_img+'/check.png')
 
     clock = pg.time.Clock()
     
@@ -605,10 +604,11 @@ class Console():
         if is_new_exercise:
             name_exercise_label = define_exercise_ui.add.label('Nom de l\'exercice', font_color=self.WHITE)
             name_exercise_input = define_exercise_ui.add.text_input('', font_color=self.WHITE, border_color=self.WHITE, border_width=1)
-            name_exercise_check = define_exercise_ui.add.button('     ', background_color=self.check_icon)
+            name_exercise_check = define_exercise_ui.add.button('OK', background_color=self.green_button, font_size=20)
             frame = define_exercise_ui.add.frame_v(400, name_exercise_label.get_height() + name_exercise_input.get_height() + name_exercise_check.get_height() + 30, background_color=self.stone_background)
             frame.pack(name_exercise_label, align=pg_menu.locals.ALIGN_CENTER)
             frame.pack(name_exercise_input, align=pg_menu.locals.ALIGN_CENTER)
+            frame.pack(define_exercise_ui.add.vertical_margin(10))
             frame.pack(name_exercise_check, align=pg_menu.locals.ALIGN_CENTER)
         else:
             name_exercise_input = define_exercise_ui.add.label(self.current_exercise, font_color=self.WHITE, background_color=self.stone_background)
@@ -693,6 +693,7 @@ class Console():
                     define_exercise_ui.get_widget('resistance'+str(i)).hide()
                     define_exercise_ui.get_widget('difficulte'+str(i)).hide()
                 define_exercise_ui.get_widget('add_stage_button').hide()
+                name_exercise_check.show()
                 button_cancel.hide()
                 button_save.hide()
             else:
@@ -706,6 +707,7 @@ class Console():
                     define_exercise_ui.get_widget('resistance'+str(i)).show()
                     define_exercise_ui.get_widget('difficulte'+str(i)).show()
                 define_exercise_ui.get_widget('add_stage_button').show()
+                name_exercise_check.hide()
                 button_cancel.show()
                 button_save.show()
 
