@@ -119,6 +119,9 @@ class Console():
 
         self.demo_mode = False
 
+        self.speed_values = []
+        self.speed_means = []
+
         self.connection_timeout = self.TIMEOUT_TOLERANCE
 
 
@@ -930,6 +933,17 @@ class Console():
  
     def display_score_ui(self, duration, time_paused, distance):
         """ Opens score_ui """
+
+        # Calculate the mean speed
+        sum_global = 0
+        for vals in self.speed_values:
+            sum = 0.0
+            for val in vals:
+                sum = sum + val
+            mean = sum / len(vals)
+            self.speed_means.append(mean)
+            sum_global = sum_global + mean
+        mean_global = sum_global / len(self.speed_values)
         
         score_ui = pg_menu.Menu('FELICITATIONS!', self.size_x, self.size_y, theme=mytheme)
         minutes, seconds = divmod(duration, 60)
@@ -938,11 +952,13 @@ class Console():
         label_pause = score_ui.add.label("Pause : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=(230,230,230), font_size=20)
         label_distance = score_ui.add.label("Distance : " + str(round(distance)), font_color=self.WHITE)
         label_score = score_ui.add.label("Score : " + str(round(self.score)), font_color=self.WHITE)
-        frame = score_ui.add.frame_v(400, label_duration.get_height() * 4 + 30, background_color=self.stone_background)
+        label_vitessemoy = score_ui.add.label("Vitesse moyenne : " + str(round(mean_global, 2)), font_color=self.WHITE)
+        frame = score_ui.add.frame_v(400, label_duration.get_height() * 5 + 30, background_color=self.stone_background)
         frame.pack(label_duration, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(label_pause, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(label_distance, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(label_score, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(label_vitessemoy, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         score_ui.add.vertical_margin(30)
         if self.demo_mode:  score_ui.add.button('REJOUER', partial(self.game, [self.current_diff]), background_color=self.green_button)
         else:               score_ui.add.button('REJOUER', partial(self.game, db.get_all_stages_from_ex(self.current_exercise)), background_color=self.green_button)
@@ -951,6 +967,7 @@ class Console():
         else :              score_ui.add.button('MENU', partial(self.display_select_game_ui), background_color=self.yellow_button)
         score_ui.add.vertical_margin(30)
         score_ui.add.button('QUITTER', pg_menu.events.EXIT, background_color=self.red_button)
+
         while True:
             events = pg.event.get()
 
@@ -1031,6 +1048,12 @@ class Console():
             minutes, seconds = divmod(self.current_stage[1], 60)
         else:
             duration = time.time() - self.timebegin - self.time_paused
+
+            # Store the mean of all registered speed values each second
+            if int(duration) > len(self.speed_values) -1:
+                self.speed_values.append([])
+            self.speed_values[int(duration)].append(int(self.rot_speed))
+
             minutes, seconds = divmod(self.current_stage[1]+1 - duration, 60)
         template = "Etape {etape:01d}/{max_etape:01d} - Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
         banner = template.format(etape=self.current_stage[0], max_etape=len(self.stages), min=int(minutes), sec=int(seconds), speed=int(self.rot_speed), score=round(self.score)+int(self.energy))
@@ -1078,8 +1101,6 @@ class Console():
         self.score=self.score+self.speed
 
         self.connection_timeout = self.TIMEOUT_TOLERANCE
-
-        if self.debug==True: print(self.get_banner())
 
     #Different input types to simulate
     INPUT_SELECT = 0
