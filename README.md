@@ -72,7 +72,7 @@ __Attention__ : Ajouter un espace entre le reste des instructions et celle-ci
 * Ajouter dans le .bashrc :
 ```
 DISPLAY=:0 xrandr --output HDMI-1 --rotate left
-xinput set-prop 'WonderShare WS170120' 'Coordinate Transformation Matrix' 0 -1 1 1 0 0 0 0 1
+xinput set-prop 'WaveShare WS170120' 'Coordinate Transformation Matrix' 0 -1 1 1 0 0 0 0 1
 systemctl start mosquitto
 cd [your_path]/fit_and_fun
 python3 fit_and_fun.py -f
