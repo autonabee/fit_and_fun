@@ -775,8 +775,22 @@ class Console():
             pg.display.update()
 
 
-    def display_stats_ui(self):#TODO faire le lien avec la BDD
+    def display_stats_ui(self):
+        """Displays information about the current user"""
         stats_ui = pg_menu.Menu('STATISTIQUES', self.size_x, self.size_y, theme=mytheme)
+
+        # Get user data from database
+        user_data = db.get_data_from_user(self.current_user)
+        
+        minutes, seconds = divmod(user_data[2], 60)
+        label_time = stats_ui.add.label('Temps total : ' + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=self.WHITE, font_size=24)
+        label_nb = stats_ui.add.label('Nombre de parties jouees : ' + str(user_data[1]), font_color=self.WHITE, font_size=24)
+        label_speed = stats_ui.add.label('Vitesse moyenne : ' + str(user_data[0]), font_color=self.WHITE, font_size=24)
+        frame = stats_ui.add.frame_v(500, label_time.get_height()*3 + 30, background_color=self.stone_background)
+        frame.pack(label_time, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(label_nb, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(label_speed, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        stats_ui.add.vertical_margin(30)
         stats_ui.add.button('RETOUR', self.display_select_game_ui, background_color=self.yellow_button)
 
         while True:
@@ -943,7 +957,11 @@ class Console():
             mean = sum / len(vals)
             self.speed_means.append(mean)
             sum_global = sum_global + mean
-        mean_global = sum_global / len(self.speed_values)
+        if len(self.speed_values) > 0:  mean_global = sum_global / len(self.speed_values)
+        else:                           mean_global = 0.0
+
+        # Update database
+        if not self.demo_mode: db.update_data_from_user(self.current_user, mean_global, duration)
         
         score_ui = pg_menu.Menu('FELICITATIONS!', self.size_x, self.size_y, theme=mytheme)
         minutes, seconds = divmod(duration, 60)
