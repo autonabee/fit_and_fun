@@ -85,11 +85,11 @@ def get_data_from_user(user_name):
     Args:
         user_name (string): name of the user
     Return:
-        array containing : [mean_speed(float), nb_speed_values(int), time_played(int)]
+        array containing : [mean_speed(float), nb_speed_values(int), time_played(int), time_max(int)]
     """
     conn = sqlite3.connect('fit_and_fun.db')
     cur = conn.cursor()
-    query = "SELECT mean_speed, nb_speed_values, time_played FROM User WHERE user_name=?"
+    query = "SELECT mean_speed, nb_speed_values, time_played, time_max FROM User WHERE user_name=?"
     cur.execute(query, (user_name,))
     res = cur.fetchall()
     cur.close()
@@ -102,8 +102,8 @@ def create_new_user(new_user_name):
     query = "SELECT MAX(id) FROM User"
     cur.execute(query)
     new_id = cur.fetchall()[0][0] + 1
-    values = (new_id, new_user_name, new_user_name, 0.0, 0, 0)
-    query = "INSERT INTO User (id, user_name, value, mean_speed, nb_speed_values, time_played) VALUES (?,?,?,?,?,?)"
+    values = (new_id, new_user_name, new_user_name, 0.0, 0, 0, 0)
+    query = "INSERT INTO User (id, user_name, value, mean_speed, nb_speed_values, time_played, time_max) VALUES (?,?,?,?,?,?,?)"
     cur.execute(query, values)
     conn.commit()
     cur.close()
@@ -145,17 +145,18 @@ def create_new_stage(ex_name, time, resistance, difficulte):
 def update_data_from_user(user_name, speed_value, time_value):
     conn = sqlite3.connect('fit_and_fun.db')
     cur = conn.cursor()
-    query = "SELECT mean_speed, nb_speed_values, time_played FROM User WHERE user_name=?"
+    query = "SELECT mean_speed, nb_speed_values, time_played, time_max FROM User WHERE user_name=?"
     cur.execute(query, (user_name,))
     res = cur.fetchall()
     mean_speed = res[0][0]
     nb_speed_values = res[0][1]
     time_played = res[0][2]
+    time_max = max(time_value, res[0][3])
     mean_speed = (mean_speed * nb_speed_values + speed_value) / (nb_speed_values + 1)
     nb_speed_values = nb_speed_values + 1
     time_played = time_played + time_value
-    query = "UPDATE User SET mean_speed=?, nb_speed_values=?, time_played=? WHERE user_name=?"
-    cur.execute(query, (mean_speed, nb_speed_values, time_played, user_name))
+    query = "UPDATE User SET mean_speed=?, nb_speed_values=?, time_played=?, time_max=? WHERE user_name=?"
+    cur.execute(query, (mean_speed, nb_speed_values, time_played, time_max, user_name))
     conn.commit()
     cur.close()
     conn.close()

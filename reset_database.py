@@ -18,7 +18,8 @@ query = '''CREATE TABLE User (
 			value NOT NULL UNIQUE,
 			mean_speed REAL,
 			nb_speed_values INTEGER,
-			time_played INTEGER
+			time_played INTEGER,
+			time_max INTEGER
 			);'''
 cur.execute(query)
 
@@ -116,8 +117,8 @@ for table in tables:
 	print('')
 
 # add the user by default
-values = (0, 'everybody', 'everybody', 0.0, 0, 0)
-query = "INSERT INTO User (id, user_name, value, mean_speed, nb_speed_values, time_played) VALUES (?,?,?,?,?,?)"
+values = (0, 'everybody', 'everybody', 0.0, 0, 0, 0)
+query = "INSERT INTO User (id, user_name, value, mean_speed, nb_speed_values, time_played, time_max) VALUES (?,?,?,?,?,?,?)"
 cur.execute(query, values)
 conn.commit()
 

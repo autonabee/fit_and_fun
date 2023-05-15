@@ -787,14 +787,15 @@ class Console():
         # Get user data from database
         user_data = db.get_data_from_user(self.current_user)
         
-        nb_minutes = int(user_data[2] / 60)
-        hours, minutes = divmod(nb_minutes, 60)
-        print(str(hours) + ' ' + str(minutes))
+        nb_minutes_total = int(user_data[2] / 60)
+        hours_total, minutes_total = divmod(nb_minutes_total, 60)
+        nb_minutes_max = int(user_data[3] / 60)
+        hours_max, minutes_max = divmod(nb_minutes_max, 60)
         
         # Statistics display
         image_total_time = stats_ui.add.image(self.icon_chrono)
         label_total_time = stats_ui.add.label('Temps total', font_color=(200,200,200), font_size=20)
-        label_total_time_res = stats_ui.add.label(str(int(hours)) + "h" + str(int(minutes)) + "min", font_color=self.WHITE, font_size=36)
+        label_total_time_res = stats_ui.add.label(str(int(hours_total)) + "h" + str(int(minutes_total)) + "min", font_color=self.WHITE, font_size=36)
         frame_total_time = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
         frame_total_time.pack(image_total_time, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_total_time.pack(label_total_time, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
@@ -818,7 +819,7 @@ class Console():
 
         image_longest_game = stats_ui.add.image(self.icon_hourglass)
         label_longest_game = stats_ui.add.label('Plus longue partie', font_color=(200,200,200), font_size=20)
-        label_longest_game_res = stats_ui.add.label('1000h0min', font_color=self.WHITE, font_size=36) #TODO
+        label_longest_game_res = stats_ui.add.label(str(int(hours_max)) + "h" + str(int(minutes_max)) + "min", font_color=self.WHITE, font_size=36)
         frame_longest_game = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
         frame_longest_game.pack(image_longest_game, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_longest_game.pack(label_longest_game, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
