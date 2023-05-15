@@ -45,6 +45,11 @@ class Console():
     wood_background     = pg_menu.baseimage.BaseImage(dir_img+'/wood_background.png')
     jewel_background    = pg_menu.baseimage.BaseImage(dir_img+'/jewel_background.png')
 
+    icon_chrono         = pg_menu.baseimage.BaseImage(dir_img+'/icon_chrono.png')
+    icon_arrive         = pg_menu.baseimage.BaseImage(dir_img+'/icon_arrive.png')
+    icon_snail          = pg_menu.baseimage.BaseImage(dir_img+'/icon_snail.png')
+    icon_hourglass      = pg_menu.baseimage.BaseImage(dir_img+'/icon_hourglass.png')
+
     clock = pg.time.Clock()
     
     def __init__(self, wind=None, debug=False, fullscreen=False):
@@ -782,14 +787,53 @@ class Console():
         # Get user data from database
         user_data = db.get_data_from_user(self.current_user)
         
-        minutes, seconds = divmod(user_data[2], 60)
-        label_time = stats_ui.add.label('Temps total : ' + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=self.WHITE, font_size=24)
-        label_nb = stats_ui.add.label('Nombre de parties jouees : ' + str(user_data[1]), font_color=self.WHITE, font_size=24)
-        label_speed = stats_ui.add.label('Vitesse moyenne : ' + str(user_data[0]), font_color=self.WHITE, font_size=24)
-        frame = stats_ui.add.frame_v(500, label_time.get_height()*3 + 30, background_color=self.stone_background)
-        frame.pack(label_time, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
-        frame.pack(label_nb, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
-        frame.pack(label_speed, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        nb_minutes = int(user_data[2] / 60)
+        hours, minutes = divmod(nb_minutes, 60)
+        print(str(hours) + ' ' + str(minutes))
+        
+        # Statistics display
+        image_total_time = stats_ui.add.image(self.icon_chrono)
+        label_total_time = stats_ui.add.label('Temps total', font_color=(200,200,200), font_size=20)
+        label_total_time_res = stats_ui.add.label(str(int(hours)) + "h" + str(int(minutes)) + "min", font_color=self.WHITE, font_size=36)
+        frame_total_time = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        frame_total_time.pack(image_total_time, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame_total_time.pack(label_total_time, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame_total_time.pack(label_total_time_res, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+
+        image_nb_games = stats_ui.add.image(self.icon_arrive)
+        label_nb_games = stats_ui.add.label('Parties jouees', font_color=(200,200,200), font_size=20)
+        label_nb_games_res = stats_ui.add.label(str(user_data[1]), font_color=self.WHITE, font_size=36)
+        frame_nb_games = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        frame_nb_games.pack(image_nb_games, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame_nb_games.pack(label_nb_games, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame_nb_games.pack(label_nb_games_res, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+
+        image_mean_speed = stats_ui.add.image(self.icon_snail)
+        label_mean_speed = stats_ui.add.label('Vitesse moyenne', font_color=(200,200,200), font_size=20)
+        label_mean_speed_res = stats_ui.add.label(str(user_data[0]), font_color=self.WHITE, font_size=36)
+        frame_mean_speed = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        frame_mean_speed.pack(image_mean_speed, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame_mean_speed.pack(label_mean_speed, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame_mean_speed.pack(label_mean_speed_res, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+
+        image_longest_game = stats_ui.add.image(self.icon_hourglass)
+        label_longest_game = stats_ui.add.label('Plus longue partie', font_color=(200,200,200), font_size=20)
+        label_longest_game_res = stats_ui.add.label('1000h0min', font_color=self.WHITE, font_size=36) #TODO
+        frame_longest_game = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        frame_longest_game.pack(image_longest_game, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame_longest_game.pack(label_longest_game, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame_longest_game.pack(label_longest_game_res, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+
+        frame_h1 = stats_ui.add.frame_h(540, 300)
+        frame_h1.pack(frame_total_time, align=pg_menu.locals.ALIGN_LEFT)
+        frame_h1.pack(frame_nb_games, align=pg_menu.locals.ALIGN_RIGHT)
+        frame_h2 = stats_ui.add.frame_h(540, 300)
+        frame_h2.pack(frame_mean_speed, align=pg_menu.locals.ALIGN_LEFT)
+        frame_h2.pack(frame_longest_game, align=pg_menu.locals.ALIGN_RIGHT)
+        frame_v = stats_ui.add.frame_v(600, 650)
+        frame_v.pack(frame_h1, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame_v.pack(frame_h2, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+
         stats_ui.add.vertical_margin(30)
         stats_ui.add.button('RETOUR', self.display_select_game_ui, background_color=self.yellow_button)
 
