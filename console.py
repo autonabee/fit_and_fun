@@ -447,20 +447,23 @@ class Console():
         """Displays the exercise definition ui
         
         Args:
-            is_new_exercise (bool): if True, create a new exercise. If False, edit one existing
+            is_new_exercise (bool): if True, create a new exercise. If False, edit the one specified by self.cuurent_exercise
         """
 
         def delete_stage(id):
             """Delete the desired stage from the exercise definition ui
 
             Args:
-                index (int): Index of the stage to be deleted (Warning: starting at 1, not 0)
+                index (int): Index of the stage to be deleted
             """
-            index_label = label_widgets.index(define_exercise_ui.get_widget('label'+str(id)))
-            for i in range(index_label + 1, len(label_widgets)) :
-                define_exercise_ui.get_widget(label_widgets[i].get_id()).set_title('Etape ' + str(i))
-            label_widgets.pop(index_label)
+
+            # Delete all traces of deleted stage in ids or stages_data and rename all following stages
+            index_label = ids.index(id)
+            for i in range(index_label + 1, len(ids)) :
+                define_exercise_ui.get_widget('label'+str(ids[i])).set_title('Etape ' + str(i))
+            ids.pop(index_label)
             stages_data.pop(index_label)
+
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('label' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('remove_button' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('label_temps' + str(id)))
@@ -493,10 +496,11 @@ class Console():
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('add_stage_button'))
             
             try:
-                i = id_counter[0]
-                id_counter[0] = id_counter[0] + 1
-                label = define_exercise_ui.add.label('Etape ' + str(len(label_widgets)+1), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(82, 41, 11), font_size=20)
-                label_widgets.append(label)
+                # Keeping the list of used ids up to date
+                if(len(ids) > 0):   ids.append(ids[-1]+1)
+                else:               ids.append(1)
+                i = ids[-1]
+                label = define_exercise_ui.add.label('Etape ' + str(len(ids)), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(82, 41, 11), font_size=20)
                 remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(82, 41, 11))
                 temps_label = define_exercise_ui.add.label('Temps :', label_id='label_temps'+str(i), font_color=(230, 230, 230), font_size=24)
                 temps_m = define_exercise_ui.add.selector('', self.VALUES_TEMPS_M, default=self.VALUES_TEMPS_M.index((str(stages_data[-1]["temps"]//60)+'m', stages_data[-1]["temps"]//60)), selector_id='temps_m'+str(i),
@@ -536,7 +540,7 @@ class Console():
             Args:
                 index (int): index of the stage you want to update
             """
-            id = label_widgets.index(define_exercise_ui.get_widget('label'+str(index)))
+            id = ids.index(index)
             val_sec = stages_data[id]["temps"] % 60
             if self.debug and value != stages_data[id]["temps"] - val_sec: print('Duration of stage ' + str(id+1) + " changed to " + str(value*60 + val_sec) + " seconds")
             stages_data[id]["temps"] = value * 60 + val_sec
@@ -547,7 +551,7 @@ class Console():
             Args:
                 index (int): index of the stage you want to update
             """
-            id = label_widgets.index(define_exercise_ui.get_widget('label'+str(index)))
+            id = ids.index(index)
             val_min = stages_data[id]["temps"] // 60
             if self.debug and value != stages_data[id]["temps"] - val_min*60: print('Duration of stage ' + str(id+1) + " changed to " + str(val_min*60 + value) + " seconds")
             stages_data[id]["temps"] = val_min * 60 + value
@@ -559,7 +563,7 @@ class Console():
                 text (str): resistance value for this stage
                 index (int): index of the stage you want to update
             """
-            id = label_widgets.index(define_exercise_ui.get_widget('label'+str(index)))
+            id = ids.index(index)
             if self.debug and value != stages_data[id]["resistance"]: print('Resistance of stage ' + str(id+1) + " changed to " + str(value))
             stages_data[id]["resistance"] = value
 
@@ -570,7 +574,7 @@ class Console():
                 text (str): difficulte value for this stage
                 index (int): index of the stage you want to update
             """
-            id = label_widgets.index(define_exercise_ui.get_widget('label'+str(index)))
+            id = ids.index(index)
             if self.debug and value != stages_data[id]["difficulte"]: print('Difficulty of stage ' + str(id+1) + " changed to " + str(value))
             stages_data[id]["difficulte"] = value
 
@@ -599,13 +603,13 @@ class Console():
                 self.display_select_exercise_ui()
             
         stages_data = [] # Is filled in add stage, no need to fill it beforehand
-        label_widgets = []
 
         # Used to determined whether the prompted name is already existing or not
         existing_names = db.get_all_exercise_names()
         is_save_active = True
 
-        id_counter = [1] # For all widgets to have an different id
+        # Used to keep in memory all used ids
+        ids = []
 
         define_exercise_ui = pg_menu.Menu('CREATION', self.size_x, self.size_y, theme=mytheme)
         
@@ -691,7 +695,7 @@ class Console():
 
             # While the virtual keyboard is active, deactivates all widgets and displays a gray transparent filter
             if is_kb_active:
-                for i in range(1,len(label_widgets)+1):
+                for i in ids:
                     define_exercise_ui.get_widget('label'+str(i)).hide()
                     define_exercise_ui.get_widget('remove_button'+str(i)).hide()
                     define_exercise_ui.get_widget('label_temps'+str(i)).hide()
@@ -705,7 +709,7 @@ class Console():
                 button_cancel.hide()
                 button_save.hide()
             else:
-                for i in range(1,len(label_widgets)+1):
+                for i in ids:
                     define_exercise_ui.get_widget('label'+str(i)).show()
                     define_exercise_ui.get_widget('remove_button'+str(i)).show()
                     define_exercise_ui.get_widget('label_temps'+str(i)).show()
