@@ -18,9 +18,9 @@ PubSubClient client(espClient);
 
 // Configure the name and password of the connected wifi and your MQTT Serve
 // host. 
-const char* ssid        = "xxx";
-const char* password    = "yyy";
-const char* mqtt_server = "192.168.0.106";
+const char* ssid        = "fit_and_fun";
+const char* password    = "fun_and_fit";
+const char* mqtt_server = "10.42.0.1";
 
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
@@ -56,7 +56,7 @@ void loop() {
                     // server.
     M5.IMU.getGyroData(&gyroX, &gyroY, &gyroZ);
     //M5.Lcd.printf("GYRO: %6.2f  %6.2f  %6.2f\n", gyroX, gyroY, gyroZ);
-    snprintf(msg, MSG_BUFFER_SIZE, "%6.2f", gyroZ);
+    snprintf(msg, MSG_BUFFER_SIZE, "%6.2f", (gyroZ+12)*15/600);
     client.publish("fit_and_fun/speed", msg);
     
     delay(500);
@@ -88,7 +88,7 @@ void setupWifi() {
     delay(10);
     M5.Lcd.printf("Connecting to %s", ssid);
     WiFi.mode(WIFI_STA);  // Set the mode to WiFi station mode.  
-    WiFi.begin(ssid, password);  // Start Wifi connection.
+    WiFi.begin(ssid);  // Start Wifi connection.
 
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);

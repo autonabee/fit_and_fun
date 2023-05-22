@@ -815,7 +815,7 @@ class Console():
 
         image_mean_speed = stats_ui.add.image(self.icon_snail)
         label_mean_speed = stats_ui.add.label('Vitesse moyenne', font_color=(200,200,200), font_size=20)
-        label_mean_speed_res = stats_ui.add.label(str(user_data[0]), font_color=self.WHITE, font_size=36)
+        label_mean_speed_res = stats_ui.add.label(str(round(user_data[0], 1)), font_color=self.WHITE, font_size=36)
         frame_mean_speed = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
         frame_mean_speed.pack(image_mean_speed, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_mean_speed.pack(label_mean_speed, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
