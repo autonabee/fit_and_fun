@@ -315,7 +315,7 @@ class GameCanoe(Console):
                 ####  HUD  ####
                 self.draw_text(self.get_banner(), 25, self.size_x/2, 1)
                 self.draw_text(str(round(distance, 1)), 25, self.size_x - 32, self.size_y - 32)
-                self.draw_life(life_count)
+                if self.demo_mode: self.draw_life(life_count)
 
                 if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
                 else:                           self.screen.blit(self.connection_failure, (5,989))
@@ -338,7 +338,7 @@ class GameCanoe(Console):
                         else:
                             self.display_score_ui(time_elapsed, self.time_paused, distance)
 
-                if life_count <= 0:
+                if self.demo_mode and life_count <= 0:
                     self.display_score_ui(time.time() - self.timebegin - self.time_paused, self.time_paused, distance)
 
             else:
