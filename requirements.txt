@@ -1,0 +1,5 @@
+python3>3.9
+numpy>1.24
+pygame>2.1
+pygame-vkeyboard>2.0
+sqlite3>3.37
