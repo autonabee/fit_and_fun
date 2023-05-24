@@ -12,9 +12,7 @@ sur PC.
 #### Build & libs
 
 * Raspberry Pi OS Full (64 bit) a port of debian bullseye with desktop (humanlab/humanlab)
-* python > 3.9
-* sudo apt install -y mosquitto  mosquitto-clients
-* pip install -y pygame pygame-menu paho-mqtt readchar
+* Execute `install.sh`
 
 #### Mqtt broker config
 
