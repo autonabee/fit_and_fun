@@ -50,6 +50,9 @@ class Console():
     icon_snail          = pg_menu.baseimage.BaseImage(dir_img+'/icon_snail.png')
     icon_hourglass      = pg_menu.baseimage.BaseImage(dir_img+'/icon_hourglass.png')
 
+    icon_pedal          = pg_menu.baseimage.BaseImage(dir_img+'/icon_pedal.png')
+    icon_keyboard       = pg_menu.baseimage.BaseImage(dir_img+'/icon_keyboard.png')
+
     clock = pg.time.Clock()
     
     def __init__(self, wind=None, debug=False, fullscreen=False):
@@ -124,6 +127,8 @@ class Console():
 
         self.demo_mode = False
 
+        self.kb_input = False
+
         self.speed_values = []
         self.speed_means = []
 
@@ -165,6 +170,7 @@ class Console():
 
         def launch_game():
             """ Launch the game applying configuration from the selected difficulty """
+            self.kb_input = input_toggle.get_value()
             self.game([self.current_diff])
 
         select_diff_ui = pg_menu.Menu('MODE DEMO', self.size_x, self.size_y, theme=mytheme)
@@ -172,11 +178,20 @@ class Console():
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
         diff_label = select_diff_ui.add.label('DIFFICULTE')
         diff_dropselect = select_diff_ui.add.dropselect('', [('Facile',(0,1,120,1,1)),('Moyen',(0,1,120,1,5)),('Difficile',(0,1,120,1,10)),('Chaotique',(0,1,120,1,15))],
-                                                    default = 0, onchange=set_diff, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=4)
+                                                    default = 0, onchange=set_diff, open_middle=True, placeholder_add_to_selection_box=False, padding=(5,30,5,0), selection_box_height=4)
         diff_dropselect.set_selection_effect(selection_effect)
-        frame = select_diff_ui.add.frame_v(max(diff_label.get_width(), diff_dropselect.get_width()) + 30, diff_label.get_height() + diff_dropselect.get_height() + 30, background_color=self.stone_background)
+        input_toggle = select_diff_ui.add.toggle_switch(' ', state_text=('Maindalier','Clavier'), state_color=((178,178,178),(178,178,178)), width=200, padding=(5,30,5,0))
+        input_toggle.set_selection_effect(selection_effect)
+        pedal_image = select_diff_ui.add.image(self.icon_pedal)
+        keyboard_image = select_diff_ui.add.image(self.icon_keyboard)
+        frame_toggle = select_diff_ui.add.frame_h(pedal_image.get_width() + keyboard_image.get_width() + input_toggle.get_width() + 50, 70)
+        frame_toggle.pack(pedal_image, align=pg_menu.locals.ALIGN_CENTER)
+        frame_toggle.pack(input_toggle, align=pg_menu.locals.ALIGN_CENTER)
+        frame_toggle.pack(keyboard_image, align=pg_menu.locals.ALIGN_CENTER)
+        frame = select_diff_ui.add.frame_v(frame_toggle.get_width() + 30, diff_label.get_height() + diff_dropselect.get_height() + frame_toggle.get_height() + 30, background_color=self.stone_background)
         frame.pack(diff_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(diff_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(frame_toggle, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         select_diff_ui.add.vertical_margin(30)
 
         select_diff_ui.add.button('JOUER', launch_game, background_color=self.green_button)
@@ -379,6 +394,7 @@ class Console():
             
         def launch_game():
             """ Launch the game applying configuration from the selected exercise """
+            self.kb_input = input_toggle.get_value()
             self.game(db.get_all_stages_from_ex(self.current_exercise))
 
         select_exercise_ui = pg_menu.Menu('CHOIX DE L\'EXERCICE', self.size_x, self.size_y, theme=mytheme)
@@ -386,11 +402,20 @@ class Console():
         ex_label = select_exercise_ui.add.label('EXERCICE')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
         ex_dropselect = select_exercise_ui.add.dropselect('', list_exercises, default = list_exercises.index((self.current_exercise, self.current_exercise)),
-                                                                    onchange=self.set_exercise, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
+                                                                    onchange=self.set_exercise, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8, padding=(5,30,5,0))
         ex_dropselect.set_selection_effect(selection_effect)
-        frame = select_exercise_ui.add.frame_v(max(ex_label.get_width(), ex_dropselect.get_width()) + 30, ex_label.get_height() + ex_dropselect.get_height() + 30, background_color=self.stone_background)
+        input_toggle = select_exercise_ui.add.toggle_switch(' ', state_text=('Maindalier','Clavier'), state_color=((178,178,178),(178,178,178)), width=200, padding=(5,30,5,0))
+        input_toggle.set_selection_effect(selection_effect)
+        pedal_image = select_exercise_ui.add.image(self.icon_pedal)
+        keyboard_image = select_exercise_ui.add.image(self.icon_keyboard)
+        frame_toggle = select_exercise_ui.add.frame_h(pedal_image.get_width() + keyboard_image.get_width() + input_toggle.get_width() + 50, 70)
+        frame_toggle.pack(pedal_image, align=pg_menu.locals.ALIGN_CENTER)
+        frame_toggle.pack(input_toggle, align=pg_menu.locals.ALIGN_CENTER)
+        frame_toggle.pack(keyboard_image, align=pg_menu.locals.ALIGN_CENTER)
+        frame = select_exercise_ui.add.frame_v(frame_toggle.get_width() + 30, ex_label.get_height() + ex_dropselect.get_height() + frame_toggle.get_height() + 30, background_color=self.stone_background)
         frame.pack(ex_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(ex_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        frame.pack(frame_toggle, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         select_exercise_ui.add.vertical_margin(10)
         select_exercise_ui.add.button('JOUER', launch_game, background_color=self.green_button)
         select_exercise_ui.add.vertical_margin(30)
@@ -1131,7 +1156,11 @@ class Console():
         """ executes the function corresponding to the called topic
         """
         if message.topic == "fit_and_fun/speed":
-            self.get_speed(client, userdata, message)
+            if not self.kb_input:
+                self.get_speed(client, userdata, message)
+        if message.topic == "fit_and_fun/speed_kb":
+            if self.kb_input:
+                self.get_speed(client, userdata, message)
         elif message.topic == "fit_and_fun/select":
             self.btn_select(client, userdata, message)
         elif message.topic == "fit_and_fun/down":
