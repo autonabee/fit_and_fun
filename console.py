@@ -137,17 +137,13 @@ class Console():
         self.current_user=name
 
 
-    def go_to_select_game_ui(self, is_demo_mode):
-        """ Displays the game selection ui
-        
-        Args:
-            is_demo_mode (bool): if True, displays a light version of the interface which doesn't have any link with the database
-        """
-        self.demo_mode = is_demo_mode
-        if is_demo_mode:
-            self.display_select_difficulty_ui()
-        else:
-            self.display_select_game_ui()
+    def launch_selected_game(self, is_demo_mode, is_kb_input):
+        """ Launch the selected game applying a certain configuration depending on the context """
+
+        self.kb_input = is_kb_input
+        if is_demo_mode: game = GameCanoe(self, [self.current_diff])
+        else:            game = GameCanoe(self, db.get_all_stages_from_ex(self.current_exercise))
+        game.game()
 
 
     def display_select_difficulty_ui(self):
@@ -160,10 +156,7 @@ class Console():
             if self.debug: print('Difficulty set to ' + selected_tuple[0][0])
 
         def launch_game():
-            """ Launch the game applying configuration from the selected difficulty """
-            self.kb_input = input_toggle.get_value()
-            game = GameCanoe(self, [self.current_diff])
-            game.game()
+            self.launch_selected_game(True, input_toggle.get_value())
 
         select_diff_ui = pg_menu.Menu('MODE DEMO', self.size_x, self.size_y, theme=mytheme)
         
@@ -224,6 +217,16 @@ class Console():
                 if self.debug: print("Can't delete default user")
                 return
         
+        def go_to_select_game_ui():
+            """ Displays the game selection ui """
+            self.demo_mode = False
+            self.display_select_game_ui()
+
+        def go_to_select_difficulty_ui():
+            """ Displays a light version of the interface which doesn't have any link with the database """
+            self.demo_mode = True
+            self.display_select_difficulty_ui()
+        
         # Fetch existing users in the database
         list_users = db.get_all_user_tuples()
         self.current_user = list_users[0][0]
@@ -239,11 +242,11 @@ class Console():
         frame.pack(user_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(user_dropselect, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         select_user_ui.add.vertical_margin(10)
-        select_user_ui.add.button('VALIDER', partial(self.go_to_select_game_ui, False), background_color=self.green_button)
+        select_user_ui.add.button('VALIDER', go_to_select_game_ui, background_color=self.green_button)
         select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('NOUVEAU JOUEUR', self.display_create_user_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(5)
-        select_user_ui.add.button('MODE DEMO', partial(self.go_to_select_game_ui, True), background_color=self.yellow_button)
+        select_user_ui.add.button('MODE DEMO', go_to_select_difficulty_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
         select_user_ui.add.button('HISTORIQUE', self.display_history_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
@@ -386,9 +389,7 @@ class Console():
             
         def launch_game():
             """ Launch the game applying configuration from the selected exercise """
-            self.kb_input = input_toggle.get_value()
-            game = GameCanoe(self, db.get_all_stages_from_ex(self.current_exercise))
-            game.game()
+            self.launch_selected_game(False, input_toggle.get_value())
 
         select_exercise_ui = pg_menu.Menu('CHOIX DE L\'EXERCICE', self.size_x, self.size_y, theme=mytheme)
 
@@ -1015,12 +1016,6 @@ class Console():
     def display_score_ui(self, duration, time_paused, distance, score):
         """ Opens score_ui """
 
-        def launch_game():
-            if self.demo_mode: game = GameCanoe(self, [self.current_diff])
-            else:              game = GameCanoe(self, db.get_all_stages_from_ex(self.current_exercise)) 
-            game.game()
-
-
         # Calculate the mean speed
         sum_global = 0
         for vals in self.speed_values:
@@ -1051,7 +1046,7 @@ class Console():
         frame.pack(label_score, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(label_vitessemoy, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         score_ui.add.vertical_margin(30)
-        score_ui.add.button('REJOUER', launch_game, background_color=self.green_button)
+        score_ui.add.button('REJOUER', partial(self.launch_selected_game, self.demo_mode, self.kb_input), background_color=self.green_button)
         score_ui.add.vertical_margin(30)
         if self.demo_mode:  score_ui.add.button('MENU', partial(self.display_select_difficulty_ui), background_color=self.yellow_button)
         else :              score_ui.add.button('MENU', partial(self.display_select_game_ui), background_color=self.yellow_button)
@@ -1090,7 +1085,6 @@ class Console():
     def message_callback(self, client, userdata, message):
         """ executes the function corresponding to the called topic """
 
-        print(message.topic)
         if message.topic == "fit_and_fun/speed":
             if not self.kb_input:
                 self.get_speed(client, userdata, message)
