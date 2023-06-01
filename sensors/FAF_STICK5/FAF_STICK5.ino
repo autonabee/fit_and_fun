@@ -56,7 +56,9 @@ void loop() {
                     // server.
     M5.IMU.getGyroData(&gyroX, &gyroY, &gyroZ);
     //M5.Lcd.printf("GYRO: %6.2f  %6.2f  %6.2f\n", gyroX, gyroY, gyroZ);
-    snprintf(msg, MSG_BUFFER_SIZE, "%6.2f", (gyroZ+12)*15/600);
+    //snprintf(msg, MSG_BUFFER_SIZE, "%6.2f", (gyroZ+12)*15/600);
+    snprintf(msg, MSG_BUFFER_SIZE, "%6.2f", (gyroZ / 360) * 2*PI);
+    Serial.println((gyroZ / 360) * 2*PI);
     client.publish("fit_and_fun/speed", msg);
     
     delay(500);
