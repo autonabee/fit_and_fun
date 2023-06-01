@@ -1,6 +1,5 @@
 import argparse
-#from console import Console
-from game_canoe import GameCanoe
+from console import Console
 from mqtt_subscriber import mqtt_subscriber
 from wind import wind
 import pygame as pg
@@ -83,7 +82,7 @@ if __name__ == "__main__":
         wind_resistor=wind()
         wind_resistor.run()
     #console=GameCanoe(wind=wind_resistor) 
-    console=GameCanoe(ARGS.debug, ARGS.fullscreen)
+    console=Console(ARGS.debug, ARGS.fullscreen)
     subscribes = ['fit_and_fun/speed']
     if ARGS.controls:
         subscribes += ['fit_and_fun/select','fit_and_fun/down']

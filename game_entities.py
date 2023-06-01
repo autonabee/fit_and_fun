@@ -11,7 +11,6 @@
 import pygame as pg
 import random
 import os
-from console import Console
 
 
 
@@ -21,9 +20,9 @@ class Player():
     HIT_BLINK_DURATION = 3.0        # Blinking period duration after being hit (in seconds)
     
 
-    def __init__(self, screen):
+    def __init__(self, screen, dir_img):
         self.screen = screen
-        self.sprites = [pg.image.load(os.path.join(Console.dir_img, filename)) for filename in self.SPRITES_PATH]
+        self.sprites = [pg.image.load(os.path.join(dir_img, filename)) for filename in self.SPRITES_PATH]
         self.width = self.sprites[0].get_width()
         self.height = self.sprites[0].get_height()
         self.pos_x = (self.screen.get_width() - self.width) * 0.5
@@ -216,10 +215,10 @@ class Bonus():
     SPRITES_PATH = ["tremplin_0.png", "tremplin_1.png"]
     LIFETIME = 5.0  # Lifetime of the bonus (in seconds)
 
-    def __init__(self, screen):
+    def __init__(self, screen, dir_img):
         self.screen = screen
         self.alive = False
-        self.sprites = [pg.image.load(os.path.join(Console.dir_img, filename)) for filename in self.SPRITES_PATH]
+        self.sprites = [pg.image.load(os.path.join(dir_img, filename)) for filename in self.SPRITES_PATH]
         self.width = self.sprites[0].get_width()
         self.height = self.sprites[0].get_height()
         self.lifetime = 0

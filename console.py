@@ -6,6 +6,7 @@ import database as db
 import pygame_vkeyboard as vkboard
 import sqlite3
 import random as rand
+from game_canoe import GameCanoe
 
 
 import threading
@@ -32,8 +33,6 @@ class Console():
     #Images
     dir_img=os.path.join(os.path.dirname(__file__), 'images')
     
-    heart_full_img = pg.image.load(dir_img+'/heart_full.png')
-    heart_empty_img = pg.image.load(dir_img+'/heart_empty.png')
     hourglass = pg.image.load(dir_img+'/hourglass.png')
     connection_ok = pg.image.load(dir_img+'/connection_ok.png')
     connection_failure = pg.image.load(dir_img+'/connection_failure.png')
@@ -61,9 +60,6 @@ class Console():
         self.ROT_SPEED_MIN = 00
         self.ROT_SPEED_MAX = 15
         # rot speed max = 700, screen speed max = 3 => 3/600
-        
-        # Ratio between effective speed and apparent score
-        self.SCORE_RATIO=0.02
 
         # Selectable values in exercise definition
         self.VALUES_TEMPS_M = []
@@ -85,11 +81,6 @@ class Console():
         self._on_message = None
         # raw speed value received from the mqtt sensor
         self.rot_speed=0
-        self.speed=0.0
-        self.energy=0.0
-        self.score=0
-        # initial time when the game begins
-        self.time0=0
         # initial time when the boat pass the GO line
         self.timebegin=0
         
@@ -171,7 +162,8 @@ class Console():
         def launch_game():
             """ Launch the game applying configuration from the selected difficulty """
             self.kb_input = input_toggle.get_value()
-            self.game([self.current_diff])
+            game = GameCanoe(self, [self.current_diff])
+            game.game()
 
         select_diff_ui = pg_menu.Menu('MODE DEMO', self.size_x, self.size_y, theme=mytheme)
         
@@ -395,7 +387,8 @@ class Console():
         def launch_game():
             """ Launch the game applying configuration from the selected exercise """
             self.kb_input = input_toggle.get_value()
-            self.game(db.get_all_stages_from_ex(self.current_exercise))
+            game = GameCanoe(self, db.get_all_stages_from_ex(self.current_exercise))
+            game.game()
 
         select_exercise_ui = pg_menu.Menu('CHOIX DE L\'EXERCICE', self.size_x, self.size_y, theme=mytheme)
 
@@ -730,7 +723,7 @@ class Console():
                     define_exercise_ui.get_widget('resistance'+str(i)).hide()
                     define_exercise_ui.get_widget('difficulte'+str(i)).hide()
                 define_exercise_ui.get_widget('add_stage_button').hide()
-                name_exercise_check.show()
+                if is_new_exercise: name_exercise_check.show()
                 button_cancel.hide()
                 button_save.hide()
             else:
@@ -744,7 +737,7 @@ class Console():
                     define_exercise_ui.get_widget('resistance'+str(i)).show()
                     define_exercise_ui.get_widget('difficulte'+str(i)).show()
                 define_exercise_ui.get_widget('add_stage_button').show()
-                name_exercise_check.hide()
+                if is_new_exercise: name_exercise_check.hide()
                 button_cancel.show()
                 button_save.show()
 
@@ -1019,8 +1012,14 @@ class Console():
             pg.display.update(rects)
     
  
-    def display_score_ui(self, duration, time_paused, distance):
+    def display_score_ui(self, duration, time_paused, distance, score):
         """ Opens score_ui """
+
+        def launch_game():
+            if self.demo_mode: game = GameCanoe(self, [self.current_diff])
+            else:              game = GameCanoe(self, db.get_all_stages_from_ex(self.current_exercise)) 
+            game.game()
+
 
         # Calculate the mean speed
         sum_global = 0
@@ -1043,7 +1042,7 @@ class Console():
         minutes, seconds = divmod(time_paused, 60)
         label_pause = score_ui.add.label("Pause : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=(230,230,230), font_size=20)
         label_distance = score_ui.add.label("Distance : " + str(round(distance)), font_color=self.WHITE)
-        label_score = score_ui.add.label("Score : " + str(round(self.score)), font_color=self.WHITE)
+        label_score = score_ui.add.label("Score : " + str(round(score)), font_color=self.WHITE)
         label_vitessemoy = score_ui.add.label("Vitesse moyenne : " + str(round(mean_global, 2)), font_color=self.WHITE)
         frame = score_ui.add.frame_v(400, label_duration.get_height() * 5 + 30, background_color=self.stone_background)
         frame.pack(label_duration, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
@@ -1052,8 +1051,7 @@ class Console():
         frame.pack(label_score, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame.pack(label_vitessemoy, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         score_ui.add.vertical_margin(30)
-        if self.demo_mode:  score_ui.add.button('REJOUER', partial(self.game, [self.current_diff]), background_color=self.green_button)
-        else:               score_ui.add.button('REJOUER', partial(self.game, db.get_all_stages_from_ex(self.current_exercise)), background_color=self.green_button)
+        score_ui.add.button('REJOUER', launch_game, background_color=self.green_button)
         score_ui.add.vertical_margin(30)
         if self.demo_mode:  score_ui.add.button('MENU', partial(self.display_select_difficulty_ui), background_color=self.yellow_button)
         else :              score_ui.add.button('MENU', partial(self.display_select_game_ui), background_color=self.yellow_button)
@@ -1089,76 +1087,14 @@ class Console():
             pg.display.update()
 
 
-    def draw_text(self, text, size, x, y):
-        """ Print text on the panel with 
-
-         Parameters
-        ----------
-            size: int
-                size of the text
-            x: int
-                x location of the text
-            y: int
-                y location of the text
-        """
-        font = pg.font.Font(self.font_name, size)
-        text_surface = font.render(text, True, self.BLACK)
-        text_rect = text_surface.get_rect()
-        text_rect.midtop = (x, y)
-        self.screen.blit(text_surface, text_rect)
-
-
-    def draw_life(self, life_count):
-        """ Print life counter in the top left corner with 
-
-         Parameters
-        ----------
-            life_counter: int
-                number of remaining lives
-        """
-        self.screen.blit(self.heart_full_img, (5, 30))
-        if(life_count >= 2):
-            self.screen.blit(self.heart_full_img, (5, 61))
-        else:
-            self.screen.blit(self.heart_empty_img, (5, 61))
-        if(life_count == 3):
-            self.screen.blit(self.heart_full_img, (5, 92))
-        else:
-            self.screen.blit(self.heart_empty_img, (5, 92))
-
-
-    def get_banner(self):
-        """ Format textual information
-        
-            Return
-            ------
-            banner: string
-             contains time, speed and score
-        """
-        #Timer activates only when the game begins
-        if self.timebegin == 0 :
-            minutes, seconds = divmod(self.current_stage[1], 60)
-        else:
-            duration = time.time() - self.timebegin - self.time_paused
-
-            # Store the mean of all registered speed values each second
-            if int(duration) > len(self.speed_values) -1:
-                self.speed_values.append([])
-            self.speed_values[int(duration)].append(int(self.rot_speed))
-
-            minutes, seconds = divmod(self.current_stage[1]+1 - duration, 60)
-        template = "Etape {etape:01d}/{max_etape:01d} - Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
-        banner = template.format(etape=self.current_stage[0], max_etape=len(self.stages), min=int(minutes), sec=int(seconds), speed=int(self.rot_speed), score=round(self.score)+int(self.energy))
-        return banner
-
-
     def message_callback(self, client, userdata, message):
-        """ executes the function corresponding to the called topic
-        """
+        """ executes the function corresponding to the called topic """
+
+        print(message.topic)
         if message.topic == "fit_and_fun/speed":
             if not self.kb_input:
                 self.get_speed(client, userdata, message)
-        if message.topic == "fit_and_fun/speed_kb":
+        elif message.topic == "fit_and_fun/speed_kb":
             if self.kb_input:
                 self.get_speed(client, userdata, message)
         elif message.topic == "fit_and_fun/select":
@@ -1184,17 +1120,12 @@ class Console():
             rot_speed=abs(rot_speed)
             if rot_speed < self.ROT_SPEED_MIN:
                 self.rot_speed=0
-                self.speed=0.0
             elif rot_speed > self.ROT_SPEED_MAX:
                 self.rot_speed=self.ROT_SPEED_MAX
             else:
                 self.rot_speed=rot_speed
-            self.speed=self.SCORE_RATIO*self.rot_speed
         except Exception:
-            self.speed=0.0
             self.rot_speed=0
-
-        self.score=self.score+self.speed
 
         self.connection_timeout = self.TIMEOUT_TOLERANCE
 
