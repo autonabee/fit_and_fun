@@ -12,7 +12,9 @@ sur PC.
 #### Build & libs
 
 * Raspberry Pi OS Full (64 bit) a port of debian bullseye with desktop (humanlab/humanlab)
-* Execute `install.sh`
+* python > 3.9
+* sudo apt install -y mosquitto  mosquitto-clients
+* pip install -y pygame pygame-menu paho-mqtt readchar
 
 #### Mqtt broker config
 
@@ -69,10 +71,14 @@ __Attention__ : Ajouter un espace entre le reste des instructions et celle-ci
 @lxterminal
 ```
 
+* Connaître l'identifiant de l'écran, exécuter la commande
+```xinput```
+et copier le résultat qui correspond à l'appareil utilisé. Par exemple, avec l'écran WaveShare conseillé, l'identifiant correspondant est `WaveShare WS170120`
+
 * Ajouter dans le .bashrc :
 ```
 DISPLAY=:0 xrandr --output HDMI-1 --rotate left
-xinput set-prop 'WaveShare WS170120' 'Coordinate Transformation Matrix' 0 -1 1 1 0 0 0 0 1
+xinput set-prop '[screen_id]' 'Coordinate Transformation Matrix' 0 -1 1 1 0 0 0 0 1
 systemctl start mosquitto
 cd [your_path]/fit_and_fun
 python fit_and_fun.py -f
