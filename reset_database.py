@@ -27,7 +27,8 @@ query = '''DROP TABLE IF EXISTS Game;'''
 cur.execute(query)
 query = '''CREATE TABLE Game (
 			id INTEGER PRIMARY KEY,
-			game_name TEXT NOT NULL UNIQUE
+			display_name TEXT NOT NULL UNIQUE,
+			class_name TEXT NOT NULL UNIQUE
 			);'''
 cur.execute(query)
 
@@ -129,8 +130,11 @@ result = cur.fetchall()
 print(result)
 
 # add the fist game
-values = (0,'What The Duck')
-query = "INSERT INTO Game (id,game_name) VALUES (?,?)"
+values = (0,'What The Duck', 'GameCanoe')
+query = "INSERT INTO Game (id, display_name, class_name) VALUES (?,?,?)"
+cur.execute(query, values)
+values = (1,'Boring text', 'GameData')
+query = "INSERT INTO Game (id, display_name, class_name) VALUES (?,?,?)"
 cur.execute(query, values)
 conn.commit()
 

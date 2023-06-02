@@ -7,6 +7,7 @@ import pygame_vkeyboard as vkboard
 import sqlite3
 import random as rand
 from game_canoe import GameCanoe
+from game_data import GameData
 
 
 import threading
@@ -110,7 +111,7 @@ class Console():
         self.wind_resistor = wind
 
         self.current_user='everybody'
-        self.current_game='What The Duck'
+        self.current_game=('What The Duck','GameCanoe')
         self.current_exercise = 'Echauffement'
         self.stages = [(0,1,120,1,1)] # Initialization in game_canoe
         self.current_stage = self.stages[0]
@@ -141,8 +142,12 @@ class Console():
         """ Launch the selected game applying a certain configuration depending on the context """
 
         self.kb_input = is_kb_input
-        if is_demo_mode: game = GameCanoe(self, [self.current_diff])
-        else:            game = GameCanoe(self, db.get_all_stages_from_ex(self.current_exercise))
+        if is_demo_mode: stages = [self.current_diff]
+        else:            stages = db.get_all_stages_from_ex(self.current_exercise)
+        if self.current_game[1] == 'GameCanoe':
+            game = GameCanoe(self, stages)
+        elif self.current_game[1] == 'GameData':
+            game = GameData(self, stages)
         game.game()
 
 
@@ -287,13 +292,12 @@ class Console():
             pg.display.update()
 
 
-    def set_game(self, game_name, game):
-        """ Update current game name with data coming from a dropselect """
-        self.current_game = game
-
-
     def display_select_game_ui(self):
         """ Displays the game selection ui """
+
+        def set_game(game_tuple, class_name):
+            """ Update current game name with data coming from a dropselect """
+            self.current_game = game_tuple[0]
 
         # Fetch existing games in the database
         list_games = db.get_all_game_tuples()
@@ -302,7 +306,7 @@ class Console():
 
         game_label = select_game_ui.add.label('JEU')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
-        game_dropselect = select_game_ui.add.dropselect('', list_games, default = 0, onchange=self.set_game, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
+        game_dropselect = select_game_ui.add.dropselect('', list_games, default = list_games.index(self.current_game), onchange=set_game, open_middle=True, placeholder_add_to_selection_box=False, margin=(0,0), selection_box_height=8)
         game_dropselect.set_selection_effect(selection_effect)
         frame = select_game_ui.add.frame_v(max(game_label.get_width(), game_dropselect.get_width()) + 30, game_label.get_height() + game_dropselect.get_height() + 30, background_color=self.stone_background)
         frame.pack(game_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
