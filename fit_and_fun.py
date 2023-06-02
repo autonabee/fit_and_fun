@@ -4,6 +4,7 @@ from mqtt_subscriber import mqtt_subscriber
 from wind import wind
 import pygame as pg
 import threading
+import subprocess
 
 # Input simulation via keyboard
 class KeyboardController():
@@ -75,8 +76,16 @@ if __name__ == "__main__":
                         help='Activates button controling')
     PARSER.add_argument('-l', '--local', dest='local', action='store_true',
                         help='Doesn\'t make the connection with MQTT broker')
+    PARSER.add_argument('-o', '--orientation', dest='orientation',
+                        help='Screen orientation (landscape or portrait)', default='portrait')
     ARGS = PARSER.parse_args()
 
+    if ARGS.orientation != 'landscape' and ARGS.orientation != 'portrait':
+        raise Exception("ERROR : property '" + ARGS.orientation + "' doesn't exist, accepted values are 'landscape' and 'portrait'")
+    if ARGS.orientation == 'landscape':
+        subprocess.call('./orientation_landscape.sh')
+    else:
+        subprocess.call('./orientation_portrait.sh')
     wind_resistor=None
     if ARGS.wind==True:
         wind_resistor=wind()
