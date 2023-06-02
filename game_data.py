@@ -7,6 +7,7 @@ import math
 class GameData():
 
     def __init__(self, console, stages):
+        # Necessary variables in order to retrieve console data
         self.console = console
         self.screen = console.screen
 
@@ -14,7 +15,7 @@ class GameData():
 
         # Constants
         SPEED_SMOOTHING = 0.8       # To smooth speed value and avoid jagginess, between 0 and 1
-        COEFF_DISTANCE = 0.12       # Length of a pedal (m) - allows transfer between rad/s and m/s
+        COEFF_DISTANCE = 0.12       # Length of a pedal (m) - used to convert rad/s to m/s
 
         # Data
         previous_speed = 0  # Used for value smoothing
@@ -54,6 +55,7 @@ class GameData():
             pg.display.update()
             self.console.connection_timeout = self.console.connection_timeout - 1
 
+            # Events management
             events = pg.event.get()
             for event in events:
                 if event.type == pg.QUIT:
