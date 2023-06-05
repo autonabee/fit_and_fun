@@ -83,15 +83,14 @@ if __name__ == "__main__":
     if ARGS.orientation != 'landscape' and ARGS.orientation != 'portrait':
         raise Exception("ERROR : property '" + ARGS.orientation + "' doesn't exist, accepted values are 'landscape' and 'portrait'")
     if ARGS.orientation == 'landscape':
-        subprocess.call('./orientation_landscape.sh')
+        process = subprocess.call('./orientation_landscape.sh')
     else:
-        subprocess.call('./orientation_portrait.sh')
+        process = subprocess.call('./orientation_portrait.sh')
     wind_resistor=None
     if ARGS.wind==True:
         wind_resistor=wind()
         wind_resistor.run()
-    #console=GameCanoe(wind=wind_resistor) 
-    console=Console(ARGS.debug, ARGS.fullscreen)
+    console=Console(ARGS.wind, ARGS.debug, ARGS.fullscreen, ARGS.orientation)
     subscribes = ['fit_and_fun/speed']
     if ARGS.controls:
         subscribes += ['fit_and_fun/select','fit_and_fun/down']

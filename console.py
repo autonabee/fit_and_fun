@@ -15,15 +15,6 @@ import time
 import os
 import sys
 
-# Custom menu theme
-mytheme = pg_menu.themes.THEME_DEFAULT.copy()
-myimage = pg_menu.baseimage.BaseImage(
-    image_path=os.path.join(os.path.dirname(__file__),"images/menu_bg.png"),
-    drawing_mode=pg_menu.baseimage.IMAGE_MODE_REPEAT_XY
-)
-mytheme.background_color = myimage
-mytheme.widget_font=pg_menu.font.FONT_NEVIS
-
 class Console():
     """ Class Console to manage the game
         using a single input rot_speed
@@ -55,8 +46,18 @@ class Console():
 
     clock = pg.time.Clock()
     
-    def __init__(self, wind=None, debug=False, fullscreen=False):
+    def __init__(self, wind=None, debug=False, fullscreen=False, orientation='portrait'):
         """ Class constructor """
+
+        # Custom menu theme
+        self.mytheme = pg_menu.themes.THEME_DEFAULT.copy()
+        if orientation == 'portrait':
+            myimage = pg_menu.baseimage.BaseImage(image_path=os.path.join(os.path.dirname(__file__),"images/menu_bg_portrait.png"))
+        else:
+            myimage = pg_menu.baseimage.BaseImage(image_path=os.path.join(os.path.dirname(__file__),"images/menu_bg_landscape.png"))
+        self.mytheme.background_color = myimage
+        self.mytheme.widget_font=pg_menu.font.FONT_NEVIS
+
         # Min/Max speed 
         self.ROT_SPEED_MIN = 00
         self.ROT_SPEED_MAX = 15
@@ -87,13 +88,18 @@ class Console():
         
         # Screen init
         pg.init()
+        self.orientation = orientation
         if fullscreen:
             self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
             self.size_x = self.screen.get_width()
             self.size_y = self.screen.get_height()
         else:
-            self.size_x = 600
-            self.size_y = 1024
+            if orientation == 'portrait':
+                self.size_x = 600
+                self.size_y = 1024
+            else:
+                self.size_x = 1024
+                self.size_y = 600
             self.screen = pg.display.set_mode((self.size_x, self.size_y))
         pg.display.set_caption('Fit&Fun')
         #Add a delay before you can press a key again
@@ -163,7 +169,7 @@ class Console():
         def launch_game():
             self.launch_selected_game(True, input_toggle.get_value())
 
-        select_diff_ui = pg_menu.Menu('MODE DEMO', self.size_x, self.size_y, theme=mytheme)
+        select_diff_ui = pg_menu.Menu('MODE DEMO', self.size_x, self.size_y, theme=self.mytheme)
         
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
         diff_label = select_diff_ui.add.label('DIFFICULTE')
@@ -204,8 +210,8 @@ class Console():
             diff_dropselect.draw_after_if_selected(self.screen)
 
             # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,self.size_y-35))
+            else:                           self.screen.blit(self.connection_failure, (5,self.size_y-35))
             self.connection_timeout = self.connection_timeout - 1
 
             pg.display.update()
@@ -236,7 +242,7 @@ class Console():
         list_users = db.get_all_user_tuples()
         self.current_user = list_users[0][0]
 
-        select_user_ui = pg_menu.Menu('CHOIX DU PROFIL', self.size_x, self.size_y, theme=mytheme)
+        select_user_ui = pg_menu.Menu('CHOIX DU PROFIL', self.size_x, self.size_y, theme=self.mytheme)
         
         user_label = select_user_ui.add.label('NOM D\'UTILISATEUR')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
@@ -252,8 +258,6 @@ class Console():
         select_user_ui.add.button('NOUVEAU JOUEUR', self.display_create_user_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(5)
         select_user_ui.add.button('MODE DEMO', go_to_select_difficulty_ui, background_color=self.yellow_button)
-        select_user_ui.add.vertical_margin(30)
-        select_user_ui.add.button('HISTORIQUE', self.display_history_ui, background_color=self.yellow_button)
         select_user_ui.add.vertical_margin(30)
         delete_button = select_user_ui.add.button('SUPPRIMER LE JOUEUR', delete_user, background_color=self.red_button)
         select_user_ui.add.vertical_margin(30)
@@ -285,8 +289,8 @@ class Console():
             user_dropselect.draw_after_if_selected(self.screen)
 
             # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,self.size_y-35))
+            else:                           self.screen.blit(self.connection_failure, (5,self.size_y-35))
             self.connection_timeout = self.connection_timeout - 1
 
             pg.display.update()
@@ -302,7 +306,7 @@ class Console():
         # Fetch existing games in the database
         list_games = db.get_all_game_tuples()
 
-        select_game_ui = pg_menu.Menu('CHOIX DU JEU', self.size_x, self.size_y, theme=mytheme)
+        select_game_ui = pg_menu.Menu('CHOIX DU JEU', self.size_x, self.size_y, theme=self.mytheme)
 
         game_label = select_game_ui.add.label('JEU')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
@@ -333,8 +337,8 @@ class Console():
             game_dropselect.draw_after_if_selected(self.screen)
 
             # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,self.size_y-35))
+            else:                           self.screen.blit(self.connection_failure, (5,self.size_y-35))
             self.connection_timeout = self.connection_timeout - 1
 
             user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
@@ -376,14 +380,14 @@ class Console():
             """ Displays the exercise edition interface """
             
             if is_new:
-                self.screen.blit(self.hourglass, (250,452))
+                self.screen.blit(self.hourglass, (self.size_x/2-50,self.size_y/2-60))
                 pg.display.update()
                 select_exercise_ui.draw(self.screen)
                 self.display_define_exercise_ui(True)
             else:
                 # Check if the selected exercise is 'Echauffement'
                 if not is_default_ex_selected:
-                    self.screen.blit(self.hourglass, (250,452))
+                    self.screen.blit(self.hourglass, (self.size_x/2-50,self.size_y/2-60))
                     pg.display.update()
                     select_exercise_ui.draw(self.screen)
                     self.display_define_exercise_ui(False)
@@ -395,7 +399,7 @@ class Console():
             """ Launch the game applying configuration from the selected exercise """
             self.launch_selected_game(False, input_toggle.get_value())
 
-        select_exercise_ui = pg_menu.Menu('CHOIX DE L\'EXERCICE', self.size_x, self.size_y, theme=mytheme)
+        select_exercise_ui = pg_menu.Menu('CHOIX DE L\'EXERCICE', self.size_x, self.size_y, theme=self.mytheme)
 
         ex_label = select_exercise_ui.add.label('EXERCICE')
         selection_effect = pg_menu.widgets.HighlightSelection(0, 0, 0)
@@ -454,8 +458,8 @@ class Console():
             ex_dropselect.draw_after_if_selected(self.screen)
 
             # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,self.size_y-35))
+            else:                           self.screen.blit(self.connection_failure, (5,self.size_y-35))
             self.connection_timeout = self.connection_timeout - 1
 
             user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
@@ -506,7 +510,7 @@ class Console():
             """
 
             if loading_image :
-                self.screen.blit(self.hourglass, (250,452))
+                self.screen.blit(self.hourglass, (self.size_x/2-50,self.size_y/2-60))
                 pg.display.update()
                 define_exercise_ui.draw(self.screen)
 
@@ -634,7 +638,7 @@ class Console():
         # Used to keep in memory all used ids
         ids = []
 
-        define_exercise_ui = pg_menu.Menu('CREATION', self.size_x, self.size_y, theme=mytheme)
+        define_exercise_ui = pg_menu.Menu('CREATION', self.size_x, self.size_y, theme=self.mytheme)
         
         if is_new_exercise:
             name_exercise_label = define_exercise_ui.add.label('Nom de l\'exercice', font_color=self.WHITE)
@@ -649,7 +653,7 @@ class Console():
             name_exercise_input = define_exercise_ui.add.label(self.current_exercise, font_color=self.WHITE, background_color=self.stone_background)
         define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None, True), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
         define_exercise_ui.add.vertical_margin(30)
-        button_cancel = define_exercise_ui.add.button('RETOUR', partial(quit_ui, False), background_color=self.yellow_button)
+        button_cancel = define_exercise_ui.add.button('ANNULER', partial(quit_ui, False), background_color=self.yellow_button)
         define_exercise_ui.add.vertical_margin(5)
         button_cancel.set_font(pg_menu.font.FONT_NEVIS, 24, self.BLACK, self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
         button_save = define_exercise_ui.add.button('ENREGISTRER', partial(quit_ui, True), background_color=self.green_button)
@@ -681,7 +685,7 @@ class Console():
                                     show_text=False)
 
         # Declaration of gray filter
-        gray_filter = pg.Surface((600,1024))
+        gray_filter = pg.Surface((self.size_x,self.size_y))
         gray_filter.set_alpha(128)
         gray_filter.fill((100,100,100))
 
@@ -758,8 +762,8 @@ class Console():
             if is_kb_active: keyboard.update(events)
 
             # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,self.size_y-35))
+            else:                           self.screen.blit(self.connection_failure, (5,self.size_y-35))
             self.connection_timeout = self.connection_timeout - 1
 
             # Displays user name in the bottom-right corner
@@ -774,42 +778,10 @@ class Console():
             # Displays keyboard only if the name input is selected
             if is_kb_active: pg.display.update(rects)
     
-
-    def display_history_ui(self):#TODO
-        """Displays information about the n last played games"""
-
-        history_ui = pg_menu.Menu('HISTORIQUE', self.size_x, self.size_y, theme=mytheme)
-        #recherche des dernieres parties dans bdd
-        #db.general_history()
-        #bouton -> : accès au 10 parties précédentes
-        #bouton <- : accès au 10 parties suivantes
-        history_ui.add.button('RETOUR', self.display_select_user_ui, background_color=self.yellow_button)
-
-        while True:
-            time_delta = self.clock.tick(60)/1000.0
-            events = pg.event.get()
-
-            for event in events:
-                if event.type == pg.QUIT:
-                    pg.display.quit()
-                    if self.debug : print("Quit") 
-                    self.synchro.release()
-
-            history_ui.update(events)
-
-            history_ui.draw(self.screen)
-
-            # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
-            self.connection_timeout = self.connection_timeout - 1
-            
-            pg.display.update()
-
-
+    
     def display_stats_ui(self):
         """Displays information about the current user"""
-        stats_ui = pg_menu.Menu('STATISTIQUES', self.size_x, self.size_y, theme=mytheme)
+        stats_ui = pg_menu.Menu('STATISTIQUES', self.size_x, self.size_y, theme=self.mytheme)
 
         # Get user data from database
         user_data = db.get_data_from_user(self.current_user)
@@ -823,7 +795,10 @@ class Console():
         image_total_time = stats_ui.add.image(self.icon_chrono)
         label_total_time = stats_ui.add.label('Temps total', font_color=(200,200,200), font_size=20)
         label_total_time_res = stats_ui.add.label(str(int(hours_total)) + "h" + str(int(minutes_total)) + "min", font_color=self.WHITE, font_size=36)
-        frame_total_time = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        if self.orientation == 'portrait':
+            frame_total_time = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        else:
+            frame_total_time = stats_ui.add.frame_v(250,250)
         frame_total_time.pack(image_total_time, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_total_time.pack(label_total_time, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_total_time.pack(label_total_time_res, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
@@ -831,7 +806,10 @@ class Console():
         image_nb_games = stats_ui.add.image(self.icon_arrive)
         label_nb_games = stats_ui.add.label('Parties jouees', font_color=(200,200,200), font_size=20)
         label_nb_games_res = stats_ui.add.label(str(user_data[1]), font_color=self.WHITE, font_size=36)
-        frame_nb_games = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        if self.orientation == 'portrait':
+            frame_nb_games = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        else:
+            frame_nb_games = stats_ui.add.frame_v(250,250)
         frame_nb_games.pack(image_nb_games, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_nb_games.pack(label_nb_games, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_nb_games.pack(label_nb_games_res, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
@@ -839,7 +817,10 @@ class Console():
         image_mean_speed = stats_ui.add.image(self.icon_snail)
         label_mean_speed = stats_ui.add.label('Vitesse moyenne', font_color=(200,200,200), font_size=20)
         label_mean_speed_res = stats_ui.add.label(str(round(user_data[0], 1)), font_color=self.WHITE, font_size=36)
-        frame_mean_speed = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        if self.orientation == 'portrait':
+            frame_mean_speed = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        else:
+            frame_mean_speed = stats_ui.add.frame_v(250,250)
         frame_mean_speed.pack(image_mean_speed, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_mean_speed.pack(label_mean_speed, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_mean_speed.pack(label_mean_speed_res, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
@@ -847,23 +828,34 @@ class Console():
         image_longest_game = stats_ui.add.image(self.icon_hourglass)
         label_longest_game = stats_ui.add.label('Plus longue partie', font_color=(200,200,200), font_size=20)
         label_longest_game_res = stats_ui.add.label(str(int(hours_max)) + "h" + str(int(minutes_max)) + "min", font_color=self.WHITE, font_size=36)
-        frame_longest_game = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        if self.orientation == 'portrait':
+            frame_longest_game = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
+        else:
+            frame_longest_game = stats_ui.add.frame_v(250,250)
         frame_longest_game.pack(image_longest_game, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_longest_game.pack(label_longest_game, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
         frame_longest_game.pack(label_longest_game_res, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
 
-        frame_h1 = stats_ui.add.frame_h(540, 300)
-        frame_h1.pack(frame_total_time, align=pg_menu.locals.ALIGN_LEFT)
-        frame_h1.pack(frame_nb_games, align=pg_menu.locals.ALIGN_RIGHT)
-        frame_h2 = stats_ui.add.frame_h(540, 300)
-        frame_h2.pack(frame_mean_speed, align=pg_menu.locals.ALIGN_LEFT)
-        frame_h2.pack(frame_longest_game, align=pg_menu.locals.ALIGN_RIGHT)
-        frame_v = stats_ui.add.frame_v(600, 650)
-        frame_v.pack(frame_h1, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
-        frame_v.pack(frame_h2, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        if self.orientation == 'portrait':
+            frame_h1 = stats_ui.add.frame_h(540, 300)
+            frame_h1.pack(frame_total_time, align=pg_menu.locals.ALIGN_LEFT)
+            frame_h1.pack(frame_nb_games, align=pg_menu.locals.ALIGN_RIGHT)
+            frame_h2 = stats_ui.add.frame_h(540, 300)
+            frame_h2.pack(frame_mean_speed, align=pg_menu.locals.ALIGN_LEFT)
+            frame_h2.pack(frame_longest_game, align=pg_menu.locals.ALIGN_RIGHT)
+            frame_v = stats_ui.add.frame_v(600, 650)
+            frame_v.pack(frame_h1, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+            frame_v.pack(frame_h2, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+        else:
+            frame_h = stats_ui.add.frame_h(self.size_x, frame_total_time.get_height() + 30, background_color=self.wood_background)
+            frame_h.pack(frame_total_time)
+            frame_h.pack(frame_nb_games)
+            frame_h.pack(frame_mean_speed)
+            frame_h.pack(frame_longest_game)
 
         stats_ui.add.vertical_margin(30)
         stats_ui.add.button('RETOUR', self.display_select_game_ui, background_color=self.yellow_button)
+
 
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -880,8 +872,8 @@ class Console():
             stats_ui.draw(self.screen)
 
             # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,self.size_y-35))
+            else:                           self.screen.blit(self.connection_failure, (5,self.size_y-35))
             self.connection_timeout = self.connection_timeout - 1
 
             user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)
@@ -900,7 +892,7 @@ class Console():
             self.current_user = 'everybody'
             self.display_select_user_ui()
 
-        delete_user_ui = pg_menu.Menu('SUPPRIMER UN UTILISATEUR', self.size_x, self.size_y, theme=mytheme)
+        delete_user_ui = pg_menu.Menu('SUPPRIMER UN UTILISATEUR', self.size_x, self.size_y, theme=self.mytheme)
 
         confirm_frame = delete_user_ui.add.frame_v(400,200, background_color=self.stone_background)
         confirm_label = delete_user_ui.add.label('Etes-vous sur de vouloir\nsupprimer le joueur suivant ?', font_color=(220,220,220), font_size=24)
@@ -910,7 +902,7 @@ class Console():
         delete_user_ui.add.vertical_margin(15)
         delete_user_ui.add.button('SUPPRIMER', delete_user, background_color=self.red_button)
         delete_user_ui.add.vertical_margin(15)
-        delete_user_ui.add.button('RETOUR', self.display_select_user_ui, background_color=self.yellow_button)
+        delete_user_ui.add.button('ANNULER', self.display_select_user_ui, background_color=self.yellow_button)
 
         while True:
             time_delta = self.clock.tick(60)/1000.0
@@ -927,8 +919,8 @@ class Console():
             delete_user_ui.draw(self.screen)
 
             # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,self.size_y-35))
+            else:                           self.screen.blit(self.connection_failure, (5,self.size_y-35))
             self.connection_timeout = self.connection_timeout - 1
             
             pg.display.update()
@@ -949,20 +941,23 @@ class Console():
                 self.current_user = name
                 self.display_select_game_ui()
             else:
-                if self.debug: print("User name already exists in the database")
+                if self.debug: print("User name is empty or already exists in the database")
                 return
 
-        create_user_ui = pg_menu.Menu('NOUVEL UTILISATEUR', self.size_x, self.size_y, theme=mytheme)
+        create_user_ui = pg_menu.Menu('NOUVEL UTILISATEUR', self.size_x, self.size_y, theme=self.mytheme)
         name_label = create_user_ui.add.label("NOM")
         name_input = create_user_ui.add.text_input('', maxwidth=300, maxchar=20)
+        name_check = create_user_ui.add.button('OK', background_color=self.green_button, font_size=20)
 
-        frame = create_user_ui.add.frame_v(400, name_label.get_height() + name_input.get_height() + 30, background_color=self.stone_background)
-        frame.pack(name_label, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
-        frame.pack(name_input, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
-        create_user_ui.add.vertical_margin(10)
+        frame = create_user_ui.add.frame_v(400, name_label.get_height() + name_input.get_height() + name_check.get_height() + 30, background_color=self.stone_background)
+        frame.pack(name_label, align=pg_menu.locals.ALIGN_CENTER)
+        frame.pack(name_input, align=pg_menu.locals.ALIGN_CENTER)
+        frame.pack(create_user_ui.add.vertical_margin(10))
+        frame.pack(name_check, align=pg_menu.locals.ALIGN_CENTER)
+        create_user_ui.add.vertical_margin(50)
         button_save = create_user_ui.add.button('VALIDER', action=partial(create_user, name_input), background_color=self.green_button)
-        create_user_ui.add.vertical_margin(30)
-        create_user_ui.add.button('RETOUR', self.display_select_user_ui, background_color=self.yellow_button)
+        create_user_ui.add.vertical_margin(70)
+        create_user_ui.add.button('ANNULER', self.display_select_user_ui, background_color=self.yellow_button)
         
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
 
@@ -1003,18 +998,19 @@ class Console():
                     events.remove(event)
 
             create_user_ui.update(events)
-            keyboard.update(events)
+            if name_input.get_selected_time() != 0: keyboard.update(events)
             create_user_ui.draw(self.screen)
-            rects = keyboard.draw(self.screen, True)
+            # Displays keyboard only when input is selected
+            if name_input.get_selected_time() != 0: rects = keyboard.draw(self.screen, True)
 
             # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,self.size_y-35))
+            else:                           self.screen.blit(self.connection_failure, (5,self.size_y-35))
             self.connection_timeout = self.connection_timeout - 1
             
             # Flip only the updated area
             pg.display.update()
-            pg.display.update(rects)
+            if name_input.get_selected_time() != 0: pg.display.update(rects)
     
  
     def display_score_ui(self, duration, time_paused, distance, score):
@@ -1035,7 +1031,7 @@ class Console():
         # Update database
         if not self.demo_mode: db.update_data_from_user(self.current_user, mean_global, duration)
         
-        score_ui = pg_menu.Menu('FELICITATIONS!', self.size_x, self.size_y, theme=mytheme)
+        score_ui = pg_menu.Menu('FELICITATIONS!', self.size_x, self.size_y, theme=self.mytheme)
         minutes, seconds = divmod(duration, 60)
         label_duration = score_ui.add.label("Time : " + str(int(minutes)) + "'" + str(int(seconds)) + "\"", font_color=self.WHITE)
         minutes, seconds = divmod(time_paused, 60)
@@ -1074,8 +1070,8 @@ class Console():
                 score_ui.draw(self.screen)
 
             # Displays connection icon
-            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,989))
-            else:                           self.screen.blit(self.connection_failure, (5,989))
+            if self.connection_timeout > 0: self.screen.blit(self.connection_ok, (5,self.size_y-35))
+            else:                           self.screen.blit(self.connection_failure, (5,self.size_y-35))
             self.connection_timeout = self.connection_timeout - 1
 
             user_name = pg.font.Font('freesansbold.ttf', 24).render(self.current_user, True, (255,255,255), None)

@@ -66,19 +66,6 @@ def get_all_game_tuples():
     conn.close()
     return(games_list)
 
-def get_all_exercise_names():
-    conn = sqlite3.connect('fit_and_fun.db')
-    cur = conn.cursor()
-    query = "SELECT game_name FROM Game;"
-    cur.execute(query)
-    games = cur.fetchall()
-    games_list = []
-    for ex in games :
-        games_list.append(ex[0])
-    cur.close()
-    conn.close()
-    return(games_list)
-
 def get_data_from_user(user_name):
     """Returns a tuple containing data about the given user
     

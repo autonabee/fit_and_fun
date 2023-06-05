@@ -390,8 +390,8 @@ class GameCanoe():
                 self.draw_text(str(round(distance, 1)), 25, self.console.size_x - 32, self.console.size_y - 32)
                 if self.console.demo_mode: self.draw_life()
 
-                if self.console.connection_timeout > 0: self.screen.blit(self.console.connection_ok, (5,989))
-                else:                           self.screen.blit(self.console.connection_failure, (5,989))
+                if self.console.connection_timeout > 0: self.screen.blit(self.console.connection_ok, (5,self.size_y-35))
+                else:                           self.screen.blit(self.console.connection_failure, (5,self.size_y-35))
                 
                 pg.display.update()
 
