@@ -50,8 +50,8 @@ class GameData():
             distance_label.set_title('Distance : ' + str(round(distance,1)) + 'm')
 
             # Connexion status display
-            if self.console.connection_timeout > 0: self.screen.blit(self.console.connection_ok, (5,self.size_y-35))
-            else:                           self.screen.blit(self.console.connection_failure, (5,self.size_y-35))
+            if self.console.connection_timeout > 0: self.screen.blit(self.console.connection_ok, (5,self.console.size_y-35))
+            else:                           self.screen.blit(self.console.connection_failure, (5,self.console.size_y-35))
             pg.display.update()
             self.console.connection_timeout = self.console.connection_timeout - 1
 
