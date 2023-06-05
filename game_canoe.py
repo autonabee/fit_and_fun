@@ -41,7 +41,8 @@ class GameCanoe():
         self.time0 = time.time()
 
         # Loading sprite assets
-        self.river_bg = pg.image.load(self.dir_img+'/level_bg.png')
+        if console.orientation == 'portrait':   self.river_bg = pg.image.load(self.dir_img+'/level_bg_portrait.png')
+        else:                                   self.river_bg = pg.image.load(self.dir_img+'/level_bg_landscape.png')
         self.duck_sprites = [pg.image.load(os.path.join(self.dir_img, f"canard_{i}.png")) for i in range(1,3)]
         self.bush_sprites = [pg.image.load(os.path.join(self.dir_img, f"buisson_{i}.png")) for i in range(1,3)]
         self.tree_sprites = [pg.image.load(os.path.join(self.dir_img, f"tree_{i}.png")) for i in range(1,3)]
@@ -390,8 +391,8 @@ class GameCanoe():
                 self.draw_text(str(round(distance, 1)), 25, self.console.size_x - 32, self.console.size_y - 32)
                 if self.console.demo_mode: self.draw_life()
 
-                if self.console.connection_timeout > 0: self.screen.blit(self.console.connection_ok, (5,self.size_y-35))
-                else:                           self.screen.blit(self.console.connection_failure, (5,self.size_y-35))
+                if self.console.connection_timeout > 0: self.screen.blit(self.console.connection_ok, (5,self.console.size_y-35))
+                else:                           self.screen.blit(self.console.connection_failure, (5,self.console.size_y-35))
                 
                 pg.display.update()
 
@@ -434,7 +435,7 @@ class GameCanoe():
                     # Toggle pause UI
                     if not self.is_game_paused:
                         self.is_game_paused = True
-                        pause_filter = pg.Surface((600,1024))
+                        pause_filter = pg.Surface((self.console.size_x,self.console.size_y))
                         pause_filter.set_alpha(128)
                         pause_filter.fill((100,100,100))
                         self.screen.blit(pause_filter, (0,0))
