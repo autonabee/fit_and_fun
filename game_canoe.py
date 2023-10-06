@@ -408,7 +408,6 @@ class GameCanoe():
                             self.current_stage = self.stages[index_current_stage+1]
                             self.timebegin = time.time()
                             self.flush_events_queue()
-                            if self.debug: print("Passage à l'étape " + str(self.current_stage))
                         else:
                             self.console.display_score_ui(time_elapsed, self.time_paused, distance, self.score)
 
