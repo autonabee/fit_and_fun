@@ -58,7 +58,7 @@ class GameData():
             # Events management
             events = pg.event.get()
             for event in events:
-                if event.type == pg.QUIT:
+                if event.type == pg.QUIT or event.type == pg.MOUSEBUTTONDOWN:
                     self.console.display_score_ui(time.time() - self.time0, 0, distance, 0)
 
             game_ui.update(events)
