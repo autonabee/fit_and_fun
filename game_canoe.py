@@ -12,7 +12,9 @@ import pygame as pg
 import pygame_menu as pg_menu
 import time
 import os
+import sys
 import random
+import statistics
 from game_entities import Player, Obstacle, Bonus, LandscapeProp
 from game_events import start_events, event_blocks
 
@@ -86,7 +88,8 @@ class GameCanoe():
         for stage in stages:
             self.stages.append((stage[1], stage[2], stage[3], stage[4]))
         self.current_stage = self.stages[0]
-        
+        self.speed_vals_cstage=[]
+
         # Entities are instanciated once to avoid garbage collection as much as possible
         self.player = Player(self.screen, self.dir_img)
         self.bonus = Bonus(self.screen, self.dir_img)  # Only one bonus at each moment
@@ -98,6 +101,7 @@ class GameCanoe():
         # game_events is initialized with the game's basic events (3,2,1,GO)
         self.game_events = start_events.copy()
         self.timebegin = 0
+        self.timebegin_game = 0
 
         self.is_game_paused = False
         self.time_paused = 0.0
@@ -174,15 +178,22 @@ class GameCanoe():
         #Timer activates only when the game begins
         if self.timebegin == 0 :
             minutes, seconds = divmod(self.current_stage[1], 60)
+            self.console.speed_values=[] 
+            self.speed_vals_sec=[]
+            self.cseconds = int(seconds)
+            self.cstage=self.current_stage[0]
         else:
             duration = time.time() - self.timebegin - self.time_paused
-
-            # Store the mean of all registered speed values each second
-            if int(duration) > len(self.console.speed_values) - 1:
-                self.console.speed_values.append([])
-            self.console.speed_values[int(duration)].append(int(self.console.rot_speed))
-
             minutes, seconds = divmod(self.current_stage[1]+1 - duration, 60)
+            self.speed_vals_sec.append(self.console.rot_speed)
+            # Store the mean of all registered speed values each second
+            if self.cseconds != int(seconds):
+                if len(self.speed_vals_sec) > 0:
+                    mean_vel=statistics.mean(self.speed_vals_sec)
+                    self.console.speed_values.append(int(mean_vel))
+                    self.speed_vals_sec=[]
+                self.cseconds = int(seconds)
+
         template = "Etape {etape:01d}/{max_etape:01d} - Time: {min:02d}:{sec:02d} - Speed: {speed:03d} - Score: {score:03d}"
         banner = template.format(etape=self.current_stage[0], max_etape=len(self.stages), min=int(minutes), sec=int(seconds), speed=int(self.console.rot_speed), score=round(self.score))
         return banner
@@ -227,7 +238,8 @@ class GameCanoe():
                             self.fixed_speed = event_data
                         elif event_type == "LVL_START":     # Start level (obstacles, bonuses and score recording)
                             self.level_started = True
-                            self.timebegin=time.time()
+                            self.timebegin=time.time() 
+                            self.timebegin_game=time.time()
                             self.is_game_started = True
                         elif event_type == "DECO":      # Spawn special scenery
                             event_data = self.game_events[0][2]
@@ -399,6 +411,7 @@ class GameCanoe():
                 self.console.connection_timeout = self.console.connection_timeout - 1
 
                 #Check if the player is dead or if the time is elapsed
+                time_elapsed_game = time.time() - self.timebegin_game - self.time_paused
                 time_elapsed = time.time() - self.timebegin - self.time_paused
 
                 if self.is_game_started:
@@ -409,10 +422,10 @@ class GameCanoe():
                             self.timebegin = time.time()
                             self.flush_events_queue()
                         else:
-                            self.console.display_score_ui(time_elapsed, self.time_paused, distance, self.score)
+                            self.console.display_score_ui(time_elapsed_game, self.time_paused, distance, self.score)
 
                 if self.console.demo_mode and self.life_count <= 0:
-                    self.console.display_score_ui(time.time() - self.timebegin - self.time_paused, self.time_paused, distance, self.score)
+                    self.console.display_score_ui(time_elapsed, self.time_paused, distance, self.score)
 
             else:
                 # If the game is paused, displays pause UI
@@ -425,7 +438,7 @@ class GameCanoe():
                 pg.display.update()
 
             for event in pg.event.get():
-                if event.type == pg.QUIT:
+                if event.type == pg.QUIT: 
                     if not self.is_game_started:
                         self.console.display_score_ui(0,0,distance,0)
                     else:

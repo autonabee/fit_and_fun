@@ -4,8 +4,7 @@ from pygame_menu import themes, Theme, widgets
 from functools import partial
 import database as db
 import pygame_vkeyboard as vkboard
-import sqlite3
-import random as rand
+import statistics
 from game_canoe import GameCanoe
 from game_data import GameData
 
@@ -148,8 +147,14 @@ class Console():
         """ Launch the selected game applying a certain configuration depending on the context """
 
         self.kb_input = is_kb_input
-        if is_demo_mode: stages = [self.current_diff]
-        else:            stages = db.get_all_stages_from_ex(self.current_exercise)
+        if is_demo_mode: 
+            stages = [self.current_diff]
+        else:            
+            stages = db.get_all_stages_from_ex(self.current_exercise)
+            # Transform ex_id datebase in index 
+            for index, stage in enumerate(stages):
+                stages[index]=(stage[0], index+1, stage[2], stage[3], stage[4])
+
         if self.current_game[1] == 'GameCanoe':
             game = GameCanoe(self, stages)
         elif self.current_game[1] == 'GameData':
@@ -202,7 +207,9 @@ class Console():
                 if event.type == pg.QUIT:
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro.release()
+                    if self.synchro.locked():
+                        self.synchro.release()
+                    sys.exit()
 
             select_diff_ui.update(events)
 
@@ -266,12 +273,13 @@ class Console():
         while True:
             time_delta = self.clock.tick(60)/1000.0
             events = pg.event.get()
-
             for event in events:
                 if event.type == pg.QUIT:
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro.release()
+                    if self.synchro.locked():
+                        self.synchro.release()
+                    sys.exit()
 
             # Doesn't allow the suppression of the default user
             if self.current_user == 'everybody':
@@ -329,7 +337,9 @@ class Console():
                 if event.type == pg.QUIT:
                     pg.display.quit()
                     if self.debug : print("Quit")
-                    self.synchro.release()
+                    if self.synchro.locked():
+                        self.synchro.release()
+                    sys.exit()
 
             select_game_ui.update(events)
 
@@ -450,7 +460,9 @@ class Console():
                 if event.type == pg.QUIT:
                     pg.display.quit()
                     if self.debug : print("Quit")
-                    self.synchro.release()
+                    if self.synchro.locked():
+                        self.synchro.release()
+                    sys.exit()
 
             select_exercise_ui.update(events)
 
@@ -524,8 +536,10 @@ class Console():
             
             try:
                 # Keeping the list of used ids up to date
-                if(len(ids) > 0):   ids.append(ids[-1]+1)
-                else:               ids.append(1)
+                if(len(ids) > 0):   
+                    ids.append(ids[-1]+1)
+                else:               
+                    ids.append(1)
                 i = ids[-1]
                 label = define_exercise_ui.add.label('Etape ' + str(len(ids)), label_id='label'+str(i), align=pg_menu.locals.ALIGN_LEFT, font_color=(82, 41, 11), font_size=20)
                 remove_button = define_exercise_ui.add.button('X', button_id='remove_button'+str(i), action=partial(delete_stage, i), align=pg_menu.locals.ALIGN_RIGHT, font_color=(82, 41, 11))
@@ -556,7 +570,9 @@ class Console():
                 print("Wrong dictionary format when adding new stage")
                 pg.display.quit()
                 if self.debug: print("Quit") 
-                self.synchro.release()
+                if self.synchro.locked():
+                    self.synchro.release()
+                sys.exit()
             
             # Replace 'add' button
             define_exercise_ui.add.button('+', button_id='add_stage_button', action=partial(add_stage, None, True), align=pg_menu.locals.ALIGN_CENTER, font_color=(0,150,0), border_width=2, border_color=(0,150,0), background_color=self.green_button)
@@ -715,7 +731,9 @@ class Console():
                 if event.type == pg.QUIT:
                     pg.display.quit()
                     if self.debug : print("Quit")
-                    self.synchro.release()
+                    if self.synchro.locked():
+                        self.synchro.release()
+                    sys.exit()
                 elif event.type == pg.FINGERDOWN:
                     # Avoid double event (FINGERDOWN and MOUSEDOWN) when using touchscreen
                     events.remove(event)
@@ -778,23 +796,33 @@ class Console():
             # Displays keyboard only if the name input is selected
             if is_kb_active: pg.display.update(rects)
     
-    
+    def _string_duration(self, secs_total):
+        info_duration=''
+        nb_minutes, nb_secs = divmod(secs_total, 60)
+        if nb_minutes == 0:
+            info_duration= str(int(nb_secs)) + 's'
+        else:
+            nb_hours, nb_minutes = divmod(nb_minutes, 60)
+            if nb_hours > 0:
+                info_duration = str(int(nb_hours)) + 'h' 
+            info_duration = info_duration + str(int(nb_minutes)) + 'm' +  str(int(nb_secs)) + 's'
+
+        return(info_duration)
+
     def display_stats_ui(self):
         """Displays information about the current user"""
         stats_ui = pg_menu.Menu('STATISTIQUES', self.size_x, self.size_y, theme=self.mytheme)
 
         # Get user data from database
         user_data = db.get_data_from_user(self.current_user)
-        
-        nb_minutes_total = int(user_data[2] / 60)
-        hours_total, minutes_total = divmod(nb_minutes_total, 60)
-        nb_minutes_max = int(user_data[3] / 60)
-        hours_max, minutes_max = divmod(nb_minutes_max, 60)
+        # String preparion to display duration in h/m/s
+        duration_total = self._string_duration(user_data[2])
+        duration_max = self._string_duration(user_data[3])
         
         # Statistics display
         image_total_time = stats_ui.add.image(self.icon_chrono)
         label_total_time = stats_ui.add.label('Temps total', font_color=(200,200,200), font_size=20)
-        label_total_time_res = stats_ui.add.label(str(int(hours_total)) + "h" + str(int(minutes_total)) + "min", font_color=self.WHITE, font_size=36)
+        label_total_time_res=stats_ui.add.label(duration_total, font_color=self.WHITE, font_size=36)
         if self.orientation == 'portrait':
             frame_total_time = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
         else:
@@ -827,7 +855,7 @@ class Console():
 
         image_longest_game = stats_ui.add.image(self.icon_hourglass)
         label_longest_game = stats_ui.add.label('Plus longue partie', font_color=(200,200,200), font_size=20)
-        label_longest_game_res = stats_ui.add.label(str(int(hours_max)) + "h" + str(int(minutes_max)) + "min", font_color=self.WHITE, font_size=36)
+        label_longest_game_res = stats_ui.add.label(duration_max, font_color=self.WHITE, font_size=36)
         if self.orientation == 'portrait':
             frame_longest_game = stats_ui.add.frame_v(250,250, background_color=self.wood_background)
         else:
@@ -865,7 +893,9 @@ class Console():
                 if event.type == pg.QUIT:
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro.release()
+                    if self.synchro.locked():
+                        self.synchro.release()
+                    sys.exit()
 
             stats_ui.update(events)
 
@@ -912,7 +942,9 @@ class Console():
                 if event.type == pg.QUIT:
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro.release()
+                    if self.synchro.locked():
+                        self.synchro.release()
+                    sys.exit()
 
             delete_user_ui.update(events)
 
@@ -992,7 +1024,9 @@ class Console():
                 if event.type == pg.QUIT:
                     pg.display.quit()
                     if self.debug: print("Quit") 
-                    self.synchro.release()
+                    if self.synchro.locked():
+                        self.synchro.release()
+                    sys.exit()
                 elif event.type == pg.FINGERDOWN:
                     #Avoid double event (FINGERDOWN and MOUSEDOWN) when using touchscreen
                     events.remove(event)
@@ -1015,18 +1049,12 @@ class Console():
  
     def display_score_ui(self, duration, time_paused, distance, score):
         """ Opens score_ui """
-
-        # Calculate the mean speed
-        sum_global = 0
-        for vals in self.speed_values:
-            sum = 0.0
-            for val in vals:
-                sum = sum + val
-            mean = sum / len(vals)
-            self.speed_means.append(mean)
-            sum_global = sum_global + mean
-        if len(self.speed_values) > 0:  mean_global = sum_global / len(self.speed_values)
-        else:                           mean_global = 0.0
+        if len(self.speed_values) > 0:  
+            mean_global = int(statistics.mean(self.speed_values))
+        else:                           
+            mean_global = 0.0
+            
+        mean_global
 
         # Update database
         if not self.demo_mode: db.update_data_from_user(self.current_user, mean_global, duration)
@@ -1060,10 +1088,11 @@ class Console():
                 if event.type == pg.QUIT: 
                     pg.display.quit()
                     if self.debug : print("Quit") 
-                    self.synchro.release()
+                    if self.synchro.locked():
+                        self.synchro.release()
                     if self.wind_resistor != None:
                         self.wind_resistor.stop()
-                    exit()
+                    sys.exit()
 
             if score_ui.is_enabled():
                 score_ui.update(events)

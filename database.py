@@ -139,11 +139,14 @@ def update_data_from_user(user_name, speed_value, time_value):
     nb_speed_values = res[0][1]
     time_played = res[0][2]
     time_max = max(time_value, res[0][3])
-    mean_speed = (mean_speed * nb_speed_values + speed_value) / (nb_speed_values + 1)
+    if time_played + time_value > 0:
+        new_mean_speed = (mean_speed*time_played + speed_value*time_value) / (time_played + time_value)
+    else:
+        new_mean_speed = mean_speed
     nb_speed_values = nb_speed_values + 1
     time_played = time_played + time_value
     query = "UPDATE User SET mean_speed=?, nb_speed_values=?, time_played=?, time_max=? WHERE user_name=?"
-    cur.execute(query, (mean_speed, nb_speed_values, time_played, time_max, user_name))
+    cur.execute(query, (new_mean_speed, nb_speed_values, time_played, time_max, user_name))
     conn.commit()
     cur.close()
     conn.close()

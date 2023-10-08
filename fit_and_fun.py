@@ -5,6 +5,7 @@ from wind import wind
 import pygame as pg
 import threading
 import subprocess
+import sys
 
 # Input simulation via keyboard
 class KeyboardController():
@@ -59,6 +60,7 @@ class KeyboardController():
         self.lock.release()
         self.t1.join()
 
+
 # Main
 if __name__ == "__main__":
     """Launch the game"""
@@ -82,23 +84,32 @@ if __name__ == "__main__":
 
     if ARGS.orientation != 'landscape' and ARGS.orientation != 'portrait':
         raise Exception("ERROR : property '" + ARGS.orientation + "' doesn't exist, accepted values are 'landscape' and 'portrait'")
-    if ARGS.orientation == 'landscape':
-        process = subprocess.call('./orientation_landscape.sh')
-    else:
-        process = subprocess.call('./orientation_portrait.sh')
-    wind_resistor=None
-    if ARGS.wind==True:
-        wind_resistor=wind()
-        wind_resistor.run()
-    console=Console(ARGS.wind, ARGS.debug, ARGS.fullscreen, ARGS.orientation)
-    subscribes = ['fit_and_fun/speed']
-    if ARGS.controls:
-        subscribes += ['fit_and_fun/select','fit_and_fun/down']
-    if not ARGS.local:
-        mqtt_sub=mqtt_subscriber(console.message_callback, console.synchro, subscribes, 
-                                 broker_addr=ARGS.broker)
-        mqtt_sub.run()
-    virtualController = KeyboardController(console.message_callback)
-    virtualController.run()
-    console.display_select_user_ui()
+   
+    try:
+   
+        if ARGS.orientation == 'landscape':
+            process = subprocess.call('./orientation_landscape.sh')
+        else:
+            process = subprocess.call('./orientation_portrait.sh')
+        wind_resistor=None
+        if ARGS.wind==True:
+            wind_resistor=wind()
+            wind_resistor.run()
+        console=Console(ARGS.wind, ARGS.debug, ARGS.fullscreen, ARGS.orientation)
+        subscribes = ['fit_and_fun/speed']
+        if ARGS.controls:
+            subscribes += ['fit_and_fun/select','fit_and_fun/down']
+        if not ARGS.local:
+            mqtt_sub=mqtt_subscriber(console.message_callback, console.synchro, subscribes, 
+                                    broker_addr=ARGS.broker)
+            mqtt_sub.run()
+        virtualController = KeyboardController(console.message_callback)
+        virtualController.run()
+        console.display_select_user_ui()
+
+    except KeyboardInterrupt:
+        # quit
+        virtualController.stop()
+        sys.exit()
+
  
