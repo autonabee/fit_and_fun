@@ -107,6 +107,9 @@ class Console():
         self.font_name = pg.font.match_font('arial')
         self.WHITE = (255, 255, 255)
         self.BLACK = (0, 0, 0)
+        self.LIGHTGRAY = (220, 220, 220)
+        self.DARKGRAY = (140, 140, 140)
+        self.RED = (255, 0, 56)
         
         # lock for synchro to kill the sensor speed client
         self.synchro = threading.Lock()
@@ -284,11 +287,11 @@ class Console():
             # Doesn't allow the suppression of the default user
             if self.current_user == 'everybody':
                 is_save_active = False
-                delete_button.set_font(pg_menu.font.FONT_NEVIS, 28, self.WHITE, self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
+                delete_button.set_font(pg_menu.font.FONT_NEVIS, 28, self.LIGHTGRAY, self.LIGHTGRAY, self.LIGHTGRAY, self.LIGHTGRAY, self.DARKGRAY)
                 delete_button.set_background_color(self.gray_button)
             else:
                 is_save_active = True
-                delete_button.set_font(pg_menu.font.FONT_NEVIS, 28, (60,60,60), self.WHITE, self.WHITE, self.WHITE, (255,255,255,0))
+                delete_button.set_font(pg_menu.font.FONT_NEVIS, 28, (60,60,60), self.WHITE, self.WHITE, self.WHITE, self.RED)
                 delete_button.set_background_color(self.red_button)
 
             select_user_ui.update(events)
