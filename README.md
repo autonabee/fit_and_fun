@@ -206,4 +206,7 @@ Aucune des deux cartes (M5Stick ou ESP32) ne parvient à se connecter si le hots
 * Wifi access point
   * <https://www.tomshardware.com/how-to/raspberry-pi-access-point>
 
-## TODO
+## Licenses
+
+* Le logiciel est sous licence [MIT](./COPYING)
+* Les boitiers sont sous licence [Creative-Common](cad/COPYING.md)

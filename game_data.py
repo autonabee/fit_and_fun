@@ -1,3 +1,19 @@
+# This file is a part of Fit & Fun
+#
+# Copyright (C) 2023 Inria/Autonabee
+#
+# This software is governed by the CeCILL license under French law and
+# abiding by the rules of distribution of free software.  You can  use, 
+# modify and/ or redistribute the software under the terms of the CeCILL
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info". 
+#
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability.
+
 import pygame as pg
 import pygame_menu as pg_menu
 import time
@@ -40,7 +56,8 @@ class GameData():
             t = time.time() - self.time0
 
             # Normalizing and smoothing speed value
-            rot_speed_normalized = self.console.rot_speed * COEFF_DISTANCE
+            rot_speed_normalized = self.console.rot_speed 
+             COEFF_DISTANCE
             speed = SPEED_SMOOTHING * previous_speed + (1 - SPEED_SMOOTHING) * rot_speed_normalized
             previous_speed = speed
             distance = distance + speed / time_delta
