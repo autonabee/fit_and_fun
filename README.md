@@ -208,5 +208,5 @@ Aucune des deux cartes (M5Stick ou ESP32) ne parvient à se connecter si le hots
 
 ## Licenses
 
-* Le logiciel est sous licence [MIT](./COPYING)
+* Le logiciel est sous licence [Cecill](./COPYING)
 * Les boitiers sont sous licence [Creative-Common](cad/COPYING.md)
