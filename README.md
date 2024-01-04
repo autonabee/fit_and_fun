@@ -71,10 +71,14 @@ __Attention__ : Ajouter un espace entre le reste des instructions et celle-ci
 @lxterminal
 ```
 
+* Connaître l'identifiant de l'écran, exécuter la commande
+```xinput```
+et copier le résultat qui correspond à l'appareil utilisé. Par exemple, avec l'écran WaveShare conseillé, l'identifiant correspondant est `WaveShare WS170120`
+
 * Ajouter dans le .bashrc :
 ```
 DISPLAY=:0 xrandr --output HDMI-1 --rotate left
-xinput set-prop 'WaveShare WS170120' 'Coordinate Transformation Matrix' 0 -1 1 1 0 0 0 0 1
+xinput set-prop '[screen_id]' 'Coordinate Transformation Matrix' 0 -1 1 1 0 0 0 0 1
 systemctl start mosquitto
 cd [your_path]/fit_and_fun
 python fit_and_fun.py -f
@@ -122,6 +126,7 @@ Connecter l'appareil au réseau Wi-Fi `fit_and_fun` et lancer le programme : `py
 * `-d` : Active le mode debug qui affiche des infos supplémentaires dans la console
 * `-f` : Affiche le jeu en mode plein écran ; déconseillé sur un appareil dont la résolution n'est pas 1024x600
 * `-l` : Ne se connecte pas au broker MQTT
+* `-o [portrait|landscape]` : Lance le jeu en portrait ou en paysage (portrait par défaut)
 
 ## Fichiers
 
@@ -135,6 +140,42 @@ Connecter l'appareil au réseau Wi-Fi `fit_and_fun` et lancer le programme : `py
 * `reset_database.py` : python script which resets the database stored as `fit_and_fun.db`
 * `sensors/FAF_ESP/FAF_ESP.ino`: firmware for the gyro sensor (ESP2866+BNO05) sending rot speed through mqtt
 * `sensors/FAF_STICK5/FAF_STICK5.ino`: firmware for the gyro sensor (M5StickC-P), sending rot speed through mqtt to be tested.
+
+## Pour ajouter un jeu
+
+Pour ajouter un nouveau, il faut respecter 3 points
+
+### Créer la classe contenant le code du jeu
+
+Créer une classe (dans un fichier à part) contenant au moins un contructeur sous cette forme :
+```
+def __init__(self, console, stages):
+        self.console = console
+        self.screen = console.screen
+```
+et une fonction `game()` contenant la définition du jeu
+
+Le fichier `game_data.py` contient un exemple simple d'une telle classe.
+
+### Ajouter le nouveau jeu dans la BDD
+
+Dans un terminal :
+```
+sqlite3 fit_and_fun.db
+```
+puis
+```
+INSERT INTO Game (id, display_name, class_name) VALUES ((SELECT max(id) FROM Game) + 1, '[display_name]', '[class_name]');
+```
+avec `display_name` le nom du jeu tel qu'il doit apparaître dans l'interface, et `class_name` le nom de la classe créée dans l'étape précédente.
+
+### Modifier console.py
+Dans `console.py`, modifier le corps de la fonction `launch_selected_game`, ajouter :
+```
+elif self.current_game[1] == '[class_name]':
+            game = [class_name](self, stages)
+```
+avec `class_name` le nom de la classe créée précédemment.
 
 ## Problèmes non résolus
 
@@ -165,4 +206,7 @@ Aucune des deux cartes (M5Stick ou ESP32) ne parvient à se connecter si le hots
 * Wifi access point
   * <https://www.tomshardware.com/how-to/raspberry-pi-access-point>
 
-## TODO
+## Licenses
+
+* Le logiciel est sous licence [MIT](./COPYING)
+* Les boitiers sont sous licence [Creative-Common](cad/COPYING.md)

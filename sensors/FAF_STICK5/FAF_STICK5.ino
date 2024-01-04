@@ -1,14 +1,27 @@
+/*
+* This file is a part of Fit and Fun
+*
+* Copyright (C) 2023 Inria/Autonabee
+*
+* This software is governed by the CeCILL license under French law and
+* abiding by the rules of distribution of free software.  You can  use, 
+* modify and/ or redistribute the software under the terms of the CeCILL
+* license as circulated by CEA, CNRS and INRIA at the following URL
+* "http://www.cecill.info". 
+*
+* As a counterpart to the access to the source code and  rights to copy,
+* modify and redistribute granted by the license, users are provided only
+* with a limited warranty  and the software's author,  the holder of the
+* economic rights,  and the successive licensors  have only  limited
+* liability.
+*/
 
 /*
-*******************************************************************************
-* Copyright (c) 2021 by M5Stack
-*                  Equipped with M5StickC-Plus sample source code
+* Inspired by M5StickC-Plus sample source code
 * Visit for more information: https://docs.m5stack.com/en/core/m5stickc_plus
-*
-* Describe: MQTT.
-* Date: 2021/11/5
-*******************************************************************************
 */
+
+
 #include "M5StickCPlus.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -56,7 +69,9 @@ void loop() {
                     // server.
     M5.IMU.getGyroData(&gyroX, &gyroY, &gyroZ);
     //M5.Lcd.printf("GYRO: %6.2f  %6.2f  %6.2f\n", gyroX, gyroY, gyroZ);
-    snprintf(msg, MSG_BUFFER_SIZE, "%6.2f", (gyroZ+12)*15/600);
+    //snprintf(msg, MSG_BUFFER_SIZE, "%6.2f", (gyroZ+12)*15/600);
+    snprintf(msg, MSG_BUFFER_SIZE, "%6.2f", (gyroZ / 360) * 2*PI);
+    Serial.println((gyroZ / 360) * 2*PI);
     client.publish("fit_and_fun/speed", msg);
     
     delay(500);

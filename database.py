@@ -1,3 +1,19 @@
+# This file is a part of Fit & Fun
+#
+# Copyright (C) 2023 Inria/Autonabee
+#
+# This software is governed by the CeCILL license under French law and
+# abiding by the rules of distribution of free software.  You can  use, 
+# modify and/ or redistribute the software under the terms of the CeCILL
+# license as circulated by CEA, CNRS and INRIA at the following URL
+# "http://www.cecill.info". 
+#
+# As a counterpart to the access to the source code and  rights to copy,
+# modify and redistribute granted by the license, users are provided only
+# with a limited warranty  and the software's author,  the holder of the
+# economic rights,  and the successive licensors  have only  limited
+# liability.
+
 import sqlite3
 
 
@@ -56,25 +72,12 @@ def get_all_exercise_names():
 def get_all_game_tuples():
     conn = sqlite3.connect('fit_and_fun.db')
     cur = conn.cursor()
-    query = "SELECT game_name FROM Game;"
+    query = "SELECT display_name, class_name FROM Game;"
     cur.execute(query)
     games = cur.fetchall()
     games_list = []
-    for ex in games :
-        games_list.append((ex[0], ex[0]))
-    cur.close()
-    conn.close()
-    return(games_list)
-
-def get_all_exercise_names():
-    conn = sqlite3.connect('fit_and_fun.db')
-    cur = conn.cursor()
-    query = "SELECT game_name FROM Game;"
-    cur.execute(query)
-    games = cur.fetchall()
-    games_list = []
-    for ex in games :
-        games_list.append(ex[0])
+    for game in games :
+        games_list.append((game[0], game[1]))
     cur.close()
     conn.close()
     return(games_list)
@@ -152,11 +155,14 @@ def update_data_from_user(user_name, speed_value, time_value):
     nb_speed_values = res[0][1]
     time_played = res[0][2]
     time_max = max(time_value, res[0][3])
-    mean_speed = (mean_speed * nb_speed_values + speed_value) / (nb_speed_values + 1)
+    if time_played + time_value > 0:
+        new_mean_speed = (mean_speed*time_played + speed_value*time_value) / (time_played + time_value)
+    else:
+        new_mean_speed = mean_speed
     nb_speed_values = nb_speed_values + 1
     time_played = time_played + time_value
     query = "UPDATE User SET mean_speed=?, nb_speed_values=?, time_played=?, time_max=? WHERE user_name=?"
-    cur.execute(query, (mean_speed, nb_speed_values, time_played, time_max, user_name))
+    cur.execute(query, (new_mean_speed, nb_speed_values, time_played, time_max, user_name))
     conn.commit()
     cur.close()
     conn.close()
