@@ -102,7 +102,8 @@ class GameCanoe():
         # Exercise stages
         self.stages = []
         for stage in stages:
-            self.stages.append((stage[1], stage[2], stage[3], stage[4]))
+            print("ajout stage in stages game_canoe"+stage[1]+stage[2]+ stage[3]+stage[4]+stage[5])
+            self.stages.append((stage[1], stage[2], stage[3], stage[4],stage[5]))
         self.current_stage = self.stages[0]
         self.speed_vals_cstage=[]
 

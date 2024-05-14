@@ -80,7 +80,7 @@ start_events = [
     (1,     "DECO",   ("2.png", 0)),    # Affiche le sprite "2.png" au centre de l'écran
     (2,     "DECO",   ("1.png", 0)),    # Affiche le sprite "1.png" au centre de l'écran
     (3,     "DECO",   ("go.png", 0)),   # Affiche le sprite "go.png" au centre de l'écran
-    (4.6,   "FS",   0),                 # Vitesse de défilement normale
+    (4.6,   "FS",   6),                 # Vitesse de défilement normale
     (4.6,   "UNLOCK"),                  # Autorise les controles du joueur
     (4.6,   "LVL_START"),               # Commence le comptage du score et l'apparition d'obstacles
 ]

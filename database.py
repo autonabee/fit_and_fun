@@ -128,7 +128,7 @@ def create_new_exercise(ex_name, user_name):
     cur.close()
     conn.close()
 
-def create_new_stage(ex_name, time, resistance, difficulte):
+def create_new_stage(ex_name, time, resistance, difficulte, vitesse):
     conn = sqlite3.connect('fit_and_fun.db')
     cur = conn.cursor()
     query = "SELECT id FROM Exercise WHERE ex_name=?"
@@ -138,8 +138,8 @@ def create_new_stage(ex_name, time, resistance, difficulte):
     query = "SELECT MAX(id) FROM Stage;"
     cur.execute(query)
     new_id = cur.fetchall()[0][0] + 1
-    values = (new_id, ex_id, time, resistance, difficulte)
-    query = "INSERT INTO Stage (id, ex_id, time, resistance, difficulte) VALUES (?,?,?,?,?)"
+    values = (new_id, ex_id, time, resistance, difficulte, vitesse)
+    query = "INSERT INTO Stage (id, ex_id, time, resistance, difficulte,vitesse) VALUES (?,?,?,?,?,?)"
     cur.execute(query, values)
     conn.commit()
     cur.close()

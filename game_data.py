@@ -57,7 +57,7 @@ class GameData():
 
             # Normalizing and smoothing speed value
             rot_speed_normalized = self.console.rot_speed 
-             COEFF_DISTANCE
+            COEFF_DISTANCE
             speed = SPEED_SMOOTHING * previous_speed + (1 - SPEED_SMOOTHING) * rot_speed_normalized
             previous_speed = speed
             distance = distance + speed / time_delta

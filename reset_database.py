@@ -66,6 +66,7 @@ query = '''CREATE TABLE Stage (
 			time INTEGER,
 			resistance INTEGER,
 			difficulte INTEGER,
+			vitesse INTEGER,
 			PRIMARY KEY(ex_id, id),
 			FOREIGN KEY(ex_id) REFERENCES Exercise(id)
 			);'''
