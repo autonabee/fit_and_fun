@@ -63,7 +63,7 @@ class Console():
     
     def __init__(self, wind=None, debug=False, fullscreen=False, orientation='portrait'):
         """ Class constructor """
-
+#Declaration des varibales
         # Custom menu theme
         self.mytheme = pg_menu.themes.THEME_DEFAULT.copy()
         if orientation == 'portrait':
@@ -90,6 +90,10 @@ class Console():
         self.VALUES_RESISTANCE = [] #Also used for difficulty
         for i in range(1,16):
             self.VALUES_RESISTANCE.append((str(i)+'/15', i)) # Between 1 and 15 (arbitrary values)
+        
+        self.VALUES_VITESSE = [] 
+        for i in range(1,16):
+            self.VALUES_VITESSE.append((str(i)+'/15', i)) # Between 1 and 15 (arbitrary values)
 
         # Number of frames before the sensor is considered disconnected
         self.TIMEOUT_TOLERANCE = 30
@@ -97,7 +101,7 @@ class Console():
         # Control variable
         self._on_message = None
         # raw speed value received from the mqtt sensor
-        self.rot_speed=0
+        self.rot_speed=0  #radian/sec
         # initial time when the boat pass the GO line
         self.timebegin=0
         
@@ -530,6 +534,7 @@ class Console():
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_temps' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('resistance' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('difficulte' + str(id)))
+            define_exercise_ui.remove_widget(define_exercise_ui.get_widget('vitesse' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_global' + str(id)))
             define_exercise_ui.remove_widget(define_exercise_ui.get_widget('frame_param' + str(id)))
 
@@ -537,7 +542,7 @@ class Console():
             """Add new stage into the exercise
 
             Args:
-                stage_values (dict): dict containing "temps", "resistance" and "difficulte" values, None if new stage
+                stage_values (dict): dict containing "temps", "resistance", "difficulte" and "vitesse" values, None if new stage
             """
 
             if loading_image :
@@ -546,7 +551,7 @@ class Console():
                 define_exercise_ui.draw(self.screen)
 
             if stage_values == None :
-                stages_data.append(dict(temps=20, resistance=1, difficulte=1))
+                stages_data.append(dict(temps=20, resistance=1, difficulte=1,vitesse=1))  # VALEUR VITESSE A MODIFIER EN FCT DE LA VALEUR ACCEPTEE
             else :
                 stages_data.append(stage_values)
             
@@ -571,6 +576,8 @@ class Console():
                                                         onchange=partial(change_resistance, i), font_color=(230, 230, 230), font_size=24)
                 difficulte = define_exercise_ui.add.selector('Difficulte : ', self.VALUES_RESISTANCE, default=self.VALUES_RESISTANCE.index((str(stages_data[-1]["difficulte"])+'/15', stages_data[-1]["difficulte"])), selector_id='difficulte'+str(i),
                                                         onchange=partial(change_difficulte, i), font_color=(230, 230, 230), font_size=24)
+                vitesse = define_exercise_ui.add.selector('Vitesse : ', self.VALUES_VITESSE, default=self.VALUES_VITESSE.index((str(stages_data[-1]["vitesse"])+'/15', stages_data[-1]["vitesse"])), selector_id='vitesse'+str(i),
+                                                        onchange=partial(change_vitesse, i), font_color=(230, 230, 230), font_size=24)
                 frame_global = define_exercise_ui.add.frame_h(580, 150, frame_id='frame_global'+str(i), background_color=self.wood_background, margin=(0,5))
                 frame_global.relax(True)
                 frame_global.pack(label, align=pg_menu.locals.ALIGN_LEFT, vertical_position=pg_menu.locals.POSITION_NORTH)
@@ -583,6 +590,7 @@ class Console():
                 frame_param.pack(frame_temps, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 frame_param.pack(resistance, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 frame_param.pack(difficulte, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+                #frame_param.pack(vitesse, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 frame_global.pack(frame_param, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 define_exercise_ui.select_widget(None)
             except KeyError:
@@ -639,6 +647,17 @@ class Console():
             id = ids.index(index)
             if self.debug and value != stages_data[id]["difficulte"]: print('Difficulty of stage ' + str(id+1) + " changed to " + str(value))
             stages_data[id]["difficulte"] = value
+            
+        def change_vitesse(index, item, value):
+            """Update difficulte parameter in stages table
+
+            Args:
+                text (str): difficulte value for this stage
+                index (int): index of the stage you want to update
+            """
+            id = ids.index(index)
+            if self.debug and value != stages_data[id]["vitesse"]: print('Vitesse of stage ' + str(id+1) + " changed to " + str(value))
+            stages_data[id]["vitesse"] = value
 
         def quit_ui(is_saved):
             """Returns to previous ui
@@ -652,11 +671,11 @@ class Console():
                         self.current_exercise = name_exercise_input.get_value()
                         db.create_new_exercise(name_exercise_input.get_value(), self.current_user)
                         for s_data in stages_data:
-                            db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"], s_data["difficulte"])
+                            db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"], s_data["difficulte"], s_data["vitesse"])
                     else:
                         db.delete_all_stages_from_ex(self.current_exercise)
                         for s_data in stages_data:
-                            db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"], s_data["difficulte"])
+                            db.create_new_stage(self.current_exercise, s_data["temps"], s_data["resistance"], s_data["difficulte"], s_data["vitesse"])
                     self.display_select_exercise_ui()
                 else:
                     if self.debug: print("Exercise name already existing in the database")
@@ -700,7 +719,7 @@ class Console():
             stages_from_db = db.get_all_stages_from_ex(self.current_exercise)
             print(stages_from_db)
             for stage in stages_from_db:
-                stored_stages.append(dict(temps=stage[2], resistance=stage[3], difficulte=stage[4]))
+                stored_stages.append(dict(temps=stage[2], resistance=stage[3], difficulte=stage[4], vitesse=stage[5]))
             for i in range(0, len(stored_stages)):
                 add_stage(stored_stages[i], False)
         else :
@@ -768,6 +787,7 @@ class Console():
                     define_exercise_ui.get_widget('frame_temps'+str(i)).hide()
                     define_exercise_ui.get_widget('resistance'+str(i)).hide()
                     define_exercise_ui.get_widget('difficulte'+str(i)).hide()
+                    define_exercise_ui.get_widget('vitesse'+str(i)).hide()
                 define_exercise_ui.get_widget('add_stage_button').hide()
                 if is_new_exercise: name_exercise_check.show()
                 button_cancel.hide()
@@ -782,6 +802,7 @@ class Console():
                     define_exercise_ui.get_widget('frame_temps'+str(i)).show()
                     define_exercise_ui.get_widget('resistance'+str(i)).show()
                     define_exercise_ui.get_widget('difficulte'+str(i)).show()
+                    define_exercise_ui.get_widget('vitesse'+str(i)).show()
                 define_exercise_ui.get_widget('add_stage_button').show()
                 if is_new_exercise: name_exercise_check.hide()
                 button_cancel.show()
