@@ -306,7 +306,7 @@ class GameCanoe():
                     rot_speed_normalized = self.console.rot_speed / self.console.ROT_SPEED_MAX
                 else:
                     rot_speed_normalized = 0
-                speed = self.SPEED_SMOOTHING * self.previous_speed + (1 - self.SPEED_SMOOTHING) * rot_speed_normalized
+                speed = (self.SPEED_SMOOTHING * self.previous_speed + (1 - self.SPEED_SMOOTHING) * rot_speed_normalized)
                 self.previous_speed = speed
                 self.player.speed = speed # speed is normalized (between 0 and 1)
 
