@@ -26,7 +26,7 @@
 """
 # Structure of a game event:
 
-    (time, type, data)
+    (time, type, data) #(temps en seconde, type d'objet apparant (image), emplacement sur lécran)
 
 # Type of events / Commands
 
