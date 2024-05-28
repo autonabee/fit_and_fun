@@ -52,7 +52,7 @@ class mqtt_subscriber():
         """
         if self.debug==True: print("Start mqtt subscriber")
         # Broker connection
-        client = mqtt.Client("Console")
+        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1,"Console") #preciser la version de paho a utiliser
         client.connect(self.mqttBroker) 
         # Topics 'fit_and_fun/speed' subscription
         client.loop_start()
