@@ -50,7 +50,7 @@ class GameData():
         speed_label = game_ui.add.label('Vitesse : 0.0m/s', font_color=self.console.WHITE, font_size=32, background_color=self.console.stone_background)
         game_ui.add.vertical_margin(50)
         distance_label = game_ui.add.label('Distance : 0.0m', font_color=self.console.WHITE, background_color=self.console.stone_background)
-
+     
         while True:
             time_delta = clock.tick(30)
             t = time.time() - self.time0
