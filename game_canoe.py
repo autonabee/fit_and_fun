@@ -303,13 +303,16 @@ class GameCanoe():
 
                 # Normalizing and smoothing speed value
                 if control_enabled:
+                    print("current stage",self.current_stage)
                     rot_speed_normalized = self.console.rot_speed / self.console.ROT_SPEED_MAX
                 else:
                     rot_speed_normalized = 0
                 speed = (self.SPEED_SMOOTHING * self.previous_speed + (1 - self.SPEED_SMOOTHING) * rot_speed_normalized)
                 self.previous_speed = speed
                 self.player.speed = speed # speed is normalized (between 0 and 1)
-
+                screen_height = self.screen.get_height()
+                self.player.pos_y = screen_height - self.player.height - self.player.speed * (screen_height - self.player.height)
+                print("Vitesse player",self.player.speed)
                 # Increase score
                 self.score = self.score + self.console.rot_speed * self.SCORE_RATIO
 

@@ -115,9 +115,9 @@ class Console():
         else:
             if orientation == 'portrait':
                 self.size_x = 600
-                self.size_y = 1024
+                self.size_y = 988
             else:
-                self.size_x = 1024
+                self.size_x = 988
                 self.size_y = 600
             self.screen = pg.display.set_mode((self.size_x, self.size_y))
         pg.display.set_caption('Fit&Fun')
@@ -582,7 +582,7 @@ class Console():
                 frame_global.relax(True)
                 frame_global.pack(label, align=pg_menu.locals.ALIGN_LEFT, vertical_position=pg_menu.locals.POSITION_NORTH)
                 frame_global.pack(remove_button, align=pg_menu.locals.ALIGN_RIGHT, vertical_position=pg_menu.locals.POSITION_NORTH)
-                frame_param = define_exercise_ui.add.frame_v(500, 150, frame_id='frame_param'+str(i))
+                frame_param = define_exercise_ui.add.frame_v(500, 200, frame_id='frame_param'+str(i))
                 frame_temps = define_exercise_ui.add.frame_h(450, 44, frame_id='frame_temps'+str(i))
                 frame_temps.pack(temps_label, align=pg_menu.locals.ALIGN_CENTER)
                 frame_temps.pack(temps_m, align=pg_menu.locals.ALIGN_CENTER)
@@ -590,7 +590,7 @@ class Console():
                 frame_param.pack(frame_temps, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 frame_param.pack(resistance, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 frame_param.pack(difficulte, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
-                #frame_param.pack(vitesse, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
+                frame_param.pack(vitesse, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 frame_global.pack(frame_param, align=pg_menu.locals.ALIGN_CENTER, vertical_position=pg_menu.locals.POSITION_CENTER)
                 define_exercise_ui.select_widget(None)
             except KeyError:
@@ -1154,7 +1154,7 @@ class Console():
     def message_callback(self, client, userdata, message):
         """ executes the function corresponding to the called topic """
 
-        if message.topic == "fit_and_fun/speed":
+        if message.topic == "fit_and_fun/current_stage":
             if not self.kb_input:
                 self.get_speed(client, userdata, message)
         elif message.topic == "fit_and_fun/speed_kb":
@@ -1189,7 +1189,7 @@ class Console():
                 self.rot_speed=rot_speed
         except Exception:
             self.rot_speed=0
-
+        print('rot_speed',self.rot_speed)
         self.connection_timeout = self.TIMEOUT_TOLERANCE
 
     #Different input types to simulate
