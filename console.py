@@ -183,6 +183,8 @@ class Console():
         elif self.current_game[1] == 'GameData':
             game = GameData(self, stages)
         game.game()
+        print("stages",stages)
+        print("acquisition vitesse etape",stage[5])
 
 
     def display_select_difficulty_ui(self):
@@ -714,18 +716,18 @@ class Console():
         define_exercise_ui.add.vertical_margin(30)
         
         # Creation of the stages, whether fetching them from the DB or from scratch
-        stored_stages = []
+        self.stored_stages = []
         if not is_new_exercise:
             stages_from_db = db.get_all_stages_from_ex(self.current_exercise)
-            print(stages_from_db)
+            print("stages_from_db",stages_from_db)
             for stage in stages_from_db:
-                stored_stages.append(dict(temps=stage[2], resistance=stage[3], difficulte=stage[4], vitesse=stage[5]))
-            for i in range(0, len(stored_stages)):
-                add_stage(stored_stages[i], False)
+                self.stored_stages.append(dict(temps=stage[2], resistance=stage[3], difficulte=stage[4], vitesse=stage[5]))
+            for i in range(0, len(self.stored_stages)):
+                add_stage(self.stored_stages[i], False)
         else :
             for i in range(0, 3):
                 add_stage(None, False)
-
+        print("stored",self.stored_stages)
         # Declaration of the virtual keyboard
         layout = vkboard.VKeyboardLayout(vkboard.VKeyboardLayout.AZERTY)
         def on_key_event(text):

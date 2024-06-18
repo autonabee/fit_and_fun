@@ -311,6 +311,9 @@ class GameCanoe():
                 self.previous_speed = speed
                 self.player.speed = speed # speed is normalized (between 0 and 1)
                 screen_height = self.screen.get_height()
+
+                # Update player speed according to target_speed=vitesse
+                
                 self.player.pos_y = screen_height - self.player.height - self.player.speed * (screen_height - self.player.height)
                 print("Vitesse player",self.player.speed)
                 # Increase score
