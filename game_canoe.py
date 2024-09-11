@@ -102,8 +102,7 @@ class GameCanoe():
         # Exercise stages
         self.stages = []
         for stage in stages:
-            print("ajout stage in stages game_canoe",stage[1],stage[2], stage[3],stage[4])
-            self.stages.append((stage[1], stage[2], stage[3], stage[4]))
+            self.stages.append((stage[1], stage[2], stage[3], stage[4],stage[5]))
         self.current_stage = self.stages[0]
         self.speed_vals_cstage=[]
 
@@ -304,7 +303,7 @@ class GameCanoe():
                 # Normalizing and smoothing speed value
                 if control_enabled:
                     print("current stage",self.current_stage)
-                    rot_speed_normalized = self.console.rot_speed / self.console.ROT_SPEED_MAX
+                    rot_speed_normalized = self.console.rot_speed / (self.current_stage[4]*1.5)
                 else:
                     rot_speed_normalized = 0
                 speed = (self.SPEED_SMOOTHING * self.previous_speed + (1 - self.SPEED_SMOOTHING) * rot_speed_normalized)
@@ -315,7 +314,11 @@ class GameCanoe():
                 # Update player speed according to target_speed=vitesse
                 
                 self.player.pos_y = screen_height - self.player.height - self.player.speed * (screen_height - self.player.height)
-                print("Vitesse player",self.player.speed)
+                ## screen_height-screen_height*self.console.rot_speed/(self.current_stage[4]/self.console.ROT_SPEED_MAX)
+                ##self.player.speed/self.current_stage[1]*screen_height/2
+                ##screen_height - self.player.height - self.player.speed * (screen_height - self.player.height)
+                print("Vitesse player",self.console.rot_speed)
+                print("position y", self.player.pos_y)
                 # Increase score
                 self.score = self.score + self.console.rot_speed * self.SCORE_RATIO
 

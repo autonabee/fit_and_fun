@@ -31,7 +31,7 @@ import os
 
 class Player():
     SPRITES_PATH = ["canoe_1.png", "canoe_2.png"]
-    ROWING_ANIM_SPEED_MAX = 0.2     # Don't go above 1.0 !
+    ROWING_ANIM_SPEED_MAX = 0.2    # Don't go above 1.0 ! define paddle stroke speed 
     HIT_BLINK_DURATION = 3.0        # Blinking period duration after being hit (in seconds)
     
 
@@ -40,8 +40,8 @@ class Player():
         self.sprites = [pg.image.load(os.path.join(dir_img, filename)) for filename in self.SPRITES_PATH]
         self.width = self.sprites[0].get_width()
         self.height = self.sprites[0].get_height()
-        self.pos_x = (self.screen.get_width() - self.width) * 0.5
-        self.pos_y = 0
+        self.pos_x = (self.screen.get_width() - self.width) * 0.5 # player position on the middle of the screen
+        self.pos_y = 0 # player position on the bottom of the screen
         self.hitbox = pg.Rect(self.pos_x + 55, self.pos_y + 8, self.width - 110, self.height - 20)
         self.sprite_idx = 0
         self.anim_counter = 0.0
@@ -63,10 +63,11 @@ class Player():
         assert 0 <= self.speed <= 1, "speed value is outside [0,1] range"
 
         screen_height = self.screen.get_height()
-        #self.pos_y = screen_height - self.height \
-                #    - self.speed * (screen_height - self.height)
-        print("position y", self.pos_y)
-        self.pos_y = 0.9 * self.pos_y + 0.05 * screen_height  # Up and bottom margin
+        ##self.pos_y = screen_height/2
+        ##self.pos_y = screen_height - self.height \
+              ##     - self.speed * (screen_height - self.height)        
+       ## self.pos_y = 0.9 * self.pos_y + 0.05 * screen_height  # Up and bottom margin
+        
         self.hitbox.x = self.pos_x + 55
         self.hitbox.y = self.pos_y + 10
         
