@@ -176,15 +176,13 @@ class Console():
             stages = db.get_all_stages_from_ex(self.current_exercise)
             # Transform ex_id datebase in index 
             for index, stage in enumerate(stages):
-                stages[index]=(stage[0], index+1, stage[2], stage[3], stage[4])
+                stages[index]=(stage[0], index+1, stage[2], stage[3], stage[4], stage[5])
 
         if self.current_game[1] == 'GameCanoe':
             game = GameCanoe(self, stages)
         elif self.current_game[1] == 'GameData':
             game = GameData(self, stages)
         game.game()
-        print("stages",stages)
-        print("acquisition vitesse etape",stage[5])
 
 
     def display_select_difficulty_ui(self):
