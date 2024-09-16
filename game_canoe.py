@@ -311,7 +311,7 @@ class GameCanoe():
                 self.player.speed = speed # speed is normalized (between 0 and 1)
                 screen_height = self.screen.get_height()
 
-                # Update player speed according to target_speed=vitesse
+                # Update player speed according to target_speed=vitesse_consigne
                 
                 self.player.pos_y = screen_height - self.player.height - self.player.speed * (screen_height - self.player.height)
                 ## screen_height-screen_height*self.console.rot_speed/(self.current_stage[4]/self.console.ROT_SPEED_MAX)
