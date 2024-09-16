@@ -1190,6 +1190,8 @@ class Console():
         except Exception:
             self.rot_speed=0
         print('rot_speed',self.rot_speed)
+
+
         self.connection_timeout = self.TIMEOUT_TOLERANCE
 
     #Different input types to simulate
