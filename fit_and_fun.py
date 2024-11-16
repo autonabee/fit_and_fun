@@ -121,6 +121,7 @@ if __name__ == "__main__":
             mqtt_sub.run()
         virtualController = KeyboardController(console.message_callback)
         virtualController.run()
+        # TODO: verify database is initiated
         console.display_select_user_ui()
 
     except KeyboardInterrupt:
