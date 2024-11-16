@@ -2,22 +2,19 @@
 
 An interactive device to make a hand pedal fun
 
-Première version avec un capteur MStick5C-P qui envoie la vitesse de rotation du capteur par MQTT/wifi à un jeu pygame
-sur PC.
+# Material
+## Harware
+- Raspberry (tested version : 4 Model B - OS Rasbian)
+- ESP 32
 
-## Pre-requis
+## Librairy
+- Python 3.9
+- Mosquitto (sudo apt install -y mosquitto  mosquitto-clients)
+- Pygame (pip install -y pygame pygame-menu paho-mqtt readchar)
 
-### Raspberry
-
-#### Build & libs
-
-* Raspberry Pi OS Full (64 bit) a port of debian bullseye with desktop (humanlab/humanlab)
-* python > 3.9
-* sudo apt install -y mosquitto  mosquitto-clients
-* pip install -y pygame pygame-menu paho-mqtt readchar
-
-#### Mqtt broker config
-
+# Installation
+- Install first the librairy
+- Configure the MQTT broker
 Add at this end of the file: `/etc/mosquitto/mosquitto.conf`
 ```
 listener 1883 localhost 
@@ -25,10 +22,25 @@ listener 1883 10.42.0.1
 allow_anonymous true
 ```
 
-Restart the service
+- Restart the service
 ```
 systemctl restart mosquitto
 ```
+
+
+
+
+
+
+# Archive
+Première version avec un capteur MStick5C-P qui envoie la vitesse de rotation du capteur par MQTT/wifi à un jeu pygame
+sur PC.
+
+## Pre-requis
+
+#### Mqtt broker config
+
+
 
 Some reminders to debug
 
