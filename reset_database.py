@@ -174,8 +174,8 @@ values = (0,new_ex_name,current_user_id)
 query = "INSERT INTO Exercise (id,ex_name,user_id) VALUES (?,?,?)"
 cur.execute(query, values)
 # with 1 stage
-values = (0, 0, 90, 1, 1)
-query = "INSERT INTO Stage (id,ex_id,time,resistance, difficulte) VALUES (?,?,?,?,?)"
+values = (0, 0, 90, 1, 1, 500.0)
+query = "INSERT INTO Stage (id,ex_id,time,resistance, difficulte, vitesse) VALUES (?,?,?,?,?,?)"
 cur.execute(query, values)
 conn.commit()
 
