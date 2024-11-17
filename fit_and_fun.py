@@ -18,6 +18,34 @@ import argparse
 from mqtt_subscriber import mqtt_subscriber
 import threading
 import subprocess
+from subprocess import Popen
+import tkinter as tk
+from game import Game
+
+__GAMES__ : list[Game] = [
+    Game("print game", "games/print_game_launcher.py", lambda msg: print(f"msg: {msg}"))
+]
+
+
+def game_menu():
+    root = tk.Tk()
+    root.geometry("600x600")
+    
+    tk.Label(root, font=80, text="select a game").pack()
+    for game in __GAMES__:
+        print(game.name)
+        def target():
+            mqtt_subscriber(game.driver, threading.Lock(), 'fit_and_fun/speed')
+            p = Popen(game.path)
+            reload = True
+            root.destroy()
+            p.wait()
+            game_menu()
+            
+
+        tk.Button(root, font=80, text="GAME: "+game.name, command=target).pack(pady=10)
+
+    root.mainloop()
 
 
 # Main
@@ -49,3 +77,4 @@ if __name__ == "__main__":
     else:
         process = subprocess.call('./orientation_portrait.sh')
     
+    game_menu()
