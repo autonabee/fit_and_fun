@@ -17,72 +17,47 @@
 import paho.mqtt.client as mqtt
 import threading
 
-class mqtt_subscriber():
-    """ Mqtt subscriber to receive a raw rotational speed"""
-    def __init__(self, on_message, synchro : threading.Lock, topics, broker_addr='localhost'):
-        """
-        Class constructor
+def connect_to_device(on_message, on_disconnect)-> mqtt.Client | int:
+    """
+    Connect to device via mqtt
 
-        Parameter:
-        ---------
-        on_message: callback function
-            mqtt callback subscriber to get the value
+    on_message: callback receiving mqtt messages
 
-        synchro: threading.Lock
-            to synchronize the end of the client subscriber
-        
-        broker_addr: string
-            broker address (name or IP) in action
-
-        topics: [string]
-            Mqtt topics to be subscribed
-        
-        """
-        self.on_message=on_message
-        self.mqttBroker = broker_addr
-        self.topics = topics
-        # Lock thread synchronization
-        # self.lock = synchro
-        # self.lock.acquire()
-
-
-    def subscribe_connect(self):
-        """ client function launched in a thread
-        """
-        # Broker connection
-        client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1,"Console") #preciser la version de paho a utiliser
-        client.connect(self.mqttBroker) 
-        # Topics 'fit_and_fun/speed' subscription
-        client.loop_start()
-        for topic in self.topics:
-            client.subscribe(topic)
-        client.on_message=self.on_message 
-        # Wait for the end
-        self.lock.acquire()
-        client.loop_stop()
-   
-    def run(self):
-        """ Start the thread """
-        self.t1=threading.Thread(target=self.subscribe_connect)
-        self.t1.start()
-
-    def stop(self):
-        """ Stop the thread """
-        self.lock.release()
-        self.t1.join()
-
-# if __name__ == "__main__":
-#     """ Exemple of subscriber use"""
-
-#     lock = threading.Lock()
+    msg.payloads contains a value ranging from -10.0 to 10.0 under normal circumstances
+    going up to -20.0 + 20.0 when spinned by hand.
     
-#     def get_msg(self, client, userdata, message):
-#         try:
-#             rot_speed=float(str(message.payload.decode("utf-8"))) 
-#         except Exception:
-#             print('Error in mqtt message')
-#             self.speed=0
-#             self.rot_speed=0
+    returns the mqtt client responsible for the connection or an MQTT Error Code is something went wrong.
 
-#     mqtt_sub=mqtt_subscriber(get_msg, lock, 'fit_and_fun/speed')
-#     lock.acquire()
+    if no message is received for 1 second, on_disconnect will be called.
+    """
+    client = mqtt.Client()
+    timer = threading.Timer(1.0, on_disconnect)
+    timer.start()
+
+    def on_message_wrapper(x, y, msg):
+        nonlocal timer
+        nonlocal on_message
+        timer.cancel()
+        timer = threading.Timer(1.0, on_disconnect)
+        timer.start()
+        on_message(msg)
+
+
+    client.on_message=on_message_wrapper
+
+    res = client.connect('10.42.0.1')
+
+    if res != mqtt.MQTT_ERR_SUCCESS:
+        return res
+
+    res = client.subscribe("fit_and_fun/speed")
+
+    if res[0] != mqtt.MQTT_ERR_SUCCESS:
+        return res
+    
+    res = client.loop_start()
+    
+    if res != mqtt.MQTT_ERR_SUCCESS:
+        return res
+
+    return client
