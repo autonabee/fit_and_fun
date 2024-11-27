@@ -17,7 +17,6 @@ while run:
     turning = pg.key.get_pressed()[pg.K_a]
             
     s = "turning" if turning else "still"
-    print(s)
     label = myfont.render(f"the wheel of fortune is {s}...", 1, (255,255,0))
     screen.blit(label, (100, 100))
     pg.display.flip()
