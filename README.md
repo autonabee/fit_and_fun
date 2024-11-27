@@ -78,9 +78,9 @@ listener 1883 10.42.0.1
 allow_anonymous true
 ```
 
-- Restart the service
+- Restart the service everytime the rasberri pi was disconnected from fit_and_fun
 ```
-systemctl restart mosquitto
+sudo systemctl restart mosquitto
 ```
 Some tips to debug
 * see the log: `sudo tail -f /var/log/mosquitto/mosquitto.log`
@@ -193,38 +193,3 @@ sur PC.
 
 
 ## Pour ajouter un jeu
-
-Pour ajouter un nouveau, il faut respecter 3 points
-
-### Créer la classe contenant le code du jeu
-
-Créer une classe (dans un fichier à part) contenant au moins un contructeur sous cette forme :
-```
-def __init__(self, console, stages):
-        self.console = console
-        self.screen = console.screen
-```
-et une fonction `game()` contenant la définition du jeu
-
-Le fichier `game_data.py` contient un exemple simple d'une telle classe.
-
-### Ajouter le nouveau jeu dans la BDD
-
-Dans un terminal :
-```
-sqlite3 fit_and_fun.db
-```
-puis
-```
-INSERT INTO Game (id, display_name, class_name) VALUES ((SELECT max(id) FROM Game) + 1, '[display_name]', '[class_name]');
-```
-avec `display_name` le nom du jeu tel qu'il doit apparaître dans l'interface, et `class_name` le nom de la classe créée dans l'étape précédente.
-
-### Modifier console.py
-Dans `console.py`, modifier le corps de la fonction `launch_selected_game`, ajouter :
-```
-elif self.current_game[1] == '[class_name]':
-            game = [class_name](self, stages)
-```
-avec `class_name` le nom de la classe créée précédemment.
-
